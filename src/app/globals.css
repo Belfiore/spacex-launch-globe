@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+:root {
+  --color-navy-900: #0a0e1a;
+  --color-navy-800: #121829;
+  --color-navy-700: #1a2238;
+  --color-charcoal: #1e1e2e;
+  --color-cyan-400: #22d3ee;
+  --color-cyan-500: #06b6d4;
+  --color-teal-400: #2dd4bf;
+  --color-amber-500: #f59e0b;
+  --color-red-500: #ef4444;
+  --color-green-500: #22c55e;
+}
+
+@theme inline {
+  --color-background: var(--color-navy-900);
+  --color-foreground: #e2e8f0;
+  --color-panel: var(--color-navy-800);
+  --color-panel-border: rgba(255, 255, 255, 0.06);
+  --color-accent: var(--color-cyan-400);
+  --color-accent-dim: var(--color-cyan-500);
+  --color-trajectory: var(--color-teal-400);
+  --color-active: var(--color-amber-500);
+  --color-success: var(--color-green-500);
+  --color-failure: var(--color-red-500);
+  --color-muted: #94a3b8;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-navy-900);
+  color: #e2e8f0;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Glass panel effect */
+.glass-panel {
+  background: rgba(18, 24, 41, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Glow effects */
+.glow-cyan {
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.3), 0 0 30px rgba(34, 211, 238, 0.1);
+}
+
+.glow-amber {
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.3), 0 0 30px rgba(245, 158, 11, 0.1);
+}
+
+/* Status badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-upcoming {
+  background: rgba(34, 211, 238, 0.15);
+  color: #22d3ee;
+}
+
+.badge-success {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.badge-failure {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
