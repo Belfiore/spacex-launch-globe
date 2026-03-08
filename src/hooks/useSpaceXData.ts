@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { LAUNCHPAD_SITE_MAP, LAUNCH_SITES, ROCKET_NAMES } from "@/lib/constants";
 import type { Launch, LaunchSite } from "@/lib/types";
+import { computeJellyfish } from "@/lib/jellyfish";
 import fallbackData from "@/data/fallbackLaunches.json";
 
 interface SpaceXLaunch {
@@ -101,6 +102,14 @@ async function fetchSpaceXData(): Promise<Launch[]> {
     .sort((a, b) => a.dateUnix - b.dateUnix);
 }
 
+/** Enrich launches with jellyfish potential data */
+function enrichWithJellyfish(launches: Launch[]): Launch[] {
+  return launches.map((l) => {
+    const jf = computeJellyfish(l.dateUtc, l.launchSite.lat, l.launchSite.lng);
+    return jf.potential !== "none" ? { ...l, jellyfish: jf } : l;
+  });
+}
+
 function loadFallbackData(): Launch[] {
   return (fallbackData as Launch[]).sort((a, b) => a.dateUnix - b.dateUnix);
 }
@@ -120,15 +129,15 @@ export function useSpaceXData() {
         const data = await fetchSpaceXData();
         if (!cancelled) {
           if (data.length > 0) {
-            setLaunches(data);
+            setLaunches(enrichWithJellyfish(data));
           } else {
-            setLaunches(loadFallbackData());
+            setLaunches(enrichWithJellyfish(loadFallbackData()));
           }
         }
       } catch {
         if (!cancelled) {
           console.warn("SpaceX API unavailable, using fallback data");
-          setLaunches(loadFallbackData());
+          setLaunches(enrichWithJellyfish(loadFallbackData()));
         }
       } finally {
         if (!cancelled) setLoading(false);

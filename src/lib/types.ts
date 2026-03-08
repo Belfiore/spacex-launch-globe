@@ -14,6 +14,14 @@ export interface BoosterReturn {
   landingTime?: string;
 }
 
+export interface JellyfishData {
+  potential: "high" | "moderate" | "none";
+  sunAltitude: number; // degrees (negative = below horizon)
+  twilightPhase: "civil" | "nautical" | "astronomical" | "day" | "night";
+  minutesFromTwilight: number; // how many minutes into ideal window
+  description: string; // human-readable explanation
+}
+
 export interface Launch {
   id: string;
   name: string;
@@ -27,15 +35,13 @@ export interface Launch {
   details?: string;
   boosterReturn?: BoosterReturn;
   webcastUrl?: string;
+  jellyfish?: JellyfishData;
 }
+
+export type VehicleFamily = "falcon9" | "falconHeavy" | "starship";
 
 export type PlaybackState = "stopped" | "playing" | "paused";
 export type CameraMode = "free" | "auto";
-export type CinematicPhase = "liftoff" | "pitch-over" | "downrange" | "orbital" | null;
-export type SequentialState = "idle" | "viewing" | "transitioning";
-
-/** @deprecated Alias for backward compatibility */
-export type CinematicStage = CinematicPhase;
 
 export interface FilterState {
   search: string;
@@ -44,4 +50,6 @@ export interface FilterState {
   site: string | null;
   /** Multi-select site filter — site group keys like "CC", "BC", "V" */
   sites: string[];
+  /** When true, only show launches with jellyfish potential */
+  jellyfish: boolean;
 }

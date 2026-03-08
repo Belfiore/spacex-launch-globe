@@ -16,7 +16,8 @@ export default function FilterBar() {
     filters.rocketType ||
     filters.status ||
     filters.site ||
-    filters.sites.length > 0;
+    filters.sites.length > 0 ||
+    filters.jellyfish;
 
   function toggleSite(key: string) {
     const current = filters.sites;
@@ -194,6 +195,44 @@ export default function FilterBar() {
             </button>
           );
         })}
+
+        <span style={{ color: "#334155", margin: "0 2px" }}>|</span>
+
+        {/* Jellyfish filter */}
+        <button
+          onClick={() => setFilters({ jellyfish: !filters.jellyfish })}
+          style={{
+            padding: "3px 8px",
+            borderRadius: "4px",
+            border: `1px solid ${
+              filters.jellyfish
+                ? "rgba(168, 85, 247, 0.5)"
+                : "rgba(255, 255, 255, 0.08)"
+            }`,
+            background: filters.jellyfish
+              ? "rgba(168, 85, 247, 0.15)"
+              : "rgba(255, 255, 255, 0.02)",
+            color: filters.jellyfish ? "#c084fc" : "#64748b",
+            cursor: "pointer",
+            transition: "all 0.15s ease",
+            fontWeight: filters.jellyfish ? 600 : 400,
+            display: "flex",
+            alignItems: "center",
+            gap: "3px",
+          }}
+        >
+          <span
+            style={{
+              width: "6px",
+              height: "6px",
+              borderRadius: "50%",
+              background: "#a855f7",
+              opacity: filters.jellyfish ? 1 : 0.4,
+              flexShrink: 0,
+            }}
+          />
+          JF
+        </button>
 
         {/* Clear */}
         {hasActiveFilters && (

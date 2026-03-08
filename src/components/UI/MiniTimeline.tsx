@@ -79,9 +79,7 @@ export default function MiniTimeline() {
   const timelineDate = useAppStore((s) => s.timelineDate);
   const setTimelineDate = useAppStore((s) => s.setTimelineDate);
   const miniTimelinePlaying = useAppStore((s) => s.miniTimelinePlaying);
-  const setMiniTimelinePlaying = useAppStore((s) => s.setMiniTimelinePlaying);
-  const setPlaybackState = useAppStore((s) => s.setPlaybackState);
-  const setCameraMode = useAppStore((s) => s.setCameraMode);
+  const toggleMissionPlayback = useAppStore((s) => s.toggleMissionPlayback);
 
   const trackRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
@@ -103,15 +101,23 @@ export default function MiniTimeline() {
     return (timelineDate.getTime() - launchMs) / 1000;
   }, [selectedLaunch, timelineDate]);
 
-  // Display T: use localT when mini timeline is playing, else use globalT
-  const displayT = miniTimelinePlaying && localT !== null ? localT : globalT;
+  // Display T: use localT when available, else use globalT
+  const displayT = localT !== null ? localT : globalT;
 
-  // Reset localT when selected launch changes
+  // Initialize localT to first phase when a launch is selected (so timeline always appears)
   useEffect(() => {
-    localTRef.current = null;
-    setLocalT(null);
-    setMiniTimelinePlaying(false);
-  }, [selectedLaunch?.id, setMiniTimelinePlaying]);
+    if (!selectedLaunch) {
+      localTRef.current = null;
+      setLocalT(null);
+      return;
+    }
+    const phasesArr = getPhasesForRocket(selectedLaunch.rocketType);
+    const initT = phasesArr.length > 0 ? phasesArr[0].tSeconds : 0;
+    localTRef.current = initT;
+    setLocalT(initT);
+    // Ensure playback is paused when switching launches
+    useAppStore.getState().pauseMissionPlayback();
+  }, [selectedLaunch?.id]);
 
   // ── Isolated RAF loop for mini timeline playback ──────────────
   useEffect(() => {
@@ -144,6 +150,8 @@ export default function MiniTimeline() {
       const store = useAppStore.getState();
       const phasesArr = getPhasesForRocket(store.selectedLaunch?.rocketType ?? "Falcon 9");
       const maxT = phasesArr[phasesArr.length - 1].tSeconds + 30;
+      const minPhaseT = phasesArr[0].tSeconds;
+      const totalDuration = maxT - minPhaseT;
 
       if (newT >= maxT) {
         // Auto-stop at end of mission phases
@@ -151,10 +159,12 @@ export default function MiniTimeline() {
         setLocalT(maxT);
         // Defer store updates to avoid setState-during-render
         queueMicrotask(() => {
-          useAppStore.getState().setMiniTimelinePlaying(false);
+          const s = useAppStore.getState();
+          s.pauseMissionPlayback();
+          s.setTrajectoryProgress(1);
           if (store.selectedLaunch) {
             const launchMs = new Date(store.selectedLaunch.dateUtc).getTime();
-            useAppStore.getState().setTimelineDate(new Date(launchMs + maxT * 1000));
+            s.setTimelineDate(new Date(launchMs + maxT * 1000));
           }
         });
         return; // Don't request another frame
@@ -163,10 +173,15 @@ export default function MiniTimeline() {
       localTRef.current = newT;
       setLocalT(newT);
 
-      // Sync global timeline so the globe shows matching state (deferred)
+      // Sync global timeline and trajectory progress
       if (store.selectedLaunch) {
         const launchMs = new Date(store.selectedLaunch.dateUtc).getTime();
-        useAppStore.getState().setTimelineDate(new Date(launchMs + newT * 1000));
+        const s = useAppStore.getState();
+        s.setTimelineDate(new Date(launchMs + newT * 1000));
+
+        // Drive trajectory progress (0-1) proportional to mini timeline position
+        const normalizedProgress = Math.max(0, Math.min(1, (newT - minPhaseT) / totalDuration));
+        s.setTrajectoryProgress(normalizedProgress);
       }
 
       rafRef.current = requestAnimationFrame(tick);
@@ -182,28 +197,20 @@ export default function MiniTimeline() {
     };
   }, [miniTimelinePlaying, selectedLaunch, phases]);
 
-  // ── Play/pause handler (isolated from main playback) ──────────
+  // ── Play/pause handler — uses unified store action ──────────────
   const handlePlayPause = useCallback(() => {
-    if (miniTimelinePlaying) {
-      setMiniTimelinePlaying(false);
-    } else {
-      // Pause main playback to avoid conflicts
-      setPlaybackState("paused");
-      setCameraMode("auto");
-
-      // Initialize localT from current global timeline position
-      if (selectedLaunch) {
-        const launchMs = new Date(selectedLaunch.dateUtc).getTime();
-        const initT = (useAppStore.getState().timelineDate.getTime() - launchMs) / 1000;
-        const minT = phases.length > 0 ? phases[0].tSeconds : 0;
-        const startT = Math.max(minT, initT);
-        localTRef.current = startT;
-        setLocalT(startT);
+    if (!miniTimelinePlaying && selectedLaunch) {
+      // Starting playback — initialize localT from current position if needed
+      const currentT = localTRef.current;
+      if (currentT === null) {
+        const phasesArr = getPhasesForRocket(selectedLaunch.rocketType);
+        const initT = phasesArr.length > 0 ? phasesArr[0].tSeconds : 0;
+        localTRef.current = initT;
+        setLocalT(initT);
       }
-
-      setMiniTimelinePlaying(true);
     }
-  }, [miniTimelinePlaying, setMiniTimelinePlaying, setPlaybackState, setCameraMode, selectedLaunch, phases]);
+    toggleMissionPlayback();
+  }, [miniTimelinePlaying, toggleMissionPlayback, selectedLaunch]);
 
   // ── Scrub handler ─────────────────────────────────────────────
   const handleScrub = useCallback(
@@ -219,6 +226,10 @@ export default function MiniTimeline() {
       setLocalT(targetT);
       const launchMs = new Date(selectedLaunch.dateUtc).getTime();
       setTimelineDate(new Date(launchMs + targetT * 1000));
+      // Sync trajectory progress with scrub position
+      const totalDuration = maxT - minT + 30; // +30 matches RAF loop logic
+      const normalizedProgress = Math.max(0, Math.min(1, (targetT - minT) / totalDuration));
+      useAppStore.getState().setTrajectoryProgress(normalizedProgress);
     },
     [selectedLaunch, phases, setTimelineDate]
   );
@@ -240,7 +251,6 @@ export default function MiniTimeline() {
 
   const maxPhaseT = phases[phases.length - 1].tSeconds;
   const minT = phases[0].tSeconds;
-  if (displayT < minT - 120 || displayT > maxPhaseT + 120) return null;
 
   const range = maxPhaseT - minT;
   const progressPct = Math.max(0, Math.min(100, ((displayT - minT) / range) * 100));
@@ -271,8 +281,8 @@ export default function MiniTimeline() {
         }
       `}</style>
 
-      {/* Narration overlay */}
-      {currentNarration && (
+      {/* Narration overlay — only during active playback */}
+      {currentNarration && miniTimelinePlaying && (
         <div
           key={currentNarration.label}
           style={{

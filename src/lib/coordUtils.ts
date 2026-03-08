@@ -43,3 +43,16 @@ export function getCameraPositionForLatLng(
   const surfacePos = latLngToVector3(lat, lng, GLOBE.RADIUS);
   return surfacePos.normalize().multiplyScalar(distance);
 }
+
+/**
+ * Get the default OrbitControls target: a point offset from globe center toward USA.
+ * This makes the camera orbit around the US instead of around the center of the Earth.
+ */
+let _usaOrbitTarget: THREE.Vector3 | null = null;
+export function getUSAOrbitTarget(): THREE.Vector3 {
+  if (!_usaOrbitTarget) {
+    const surface = latLngToVector3(GLOBE.USA_CENTER_LAT, GLOBE.USA_CENTER_LNG, GLOBE.RADIUS);
+    _usaOrbitTarget = surface.normalize().multiplyScalar(GLOBE.RADIUS * GLOBE.ORBIT_TARGET_OFFSET);
+  }
+  return _usaOrbitTarget.clone();
+}

@@ -65,9 +65,14 @@ export const GLOBE = {
   MAX_ZOOM: 12,
   AUTO_ROTATE_SPEED: 0,
   IDLE_TIMEOUT: 5000, // ms before auto-rotate resumes
-  // Looking from Mexico (~18°N, -95°W) up toward US launch sites, distance=5
-  CAMERA_INITIAL: [-0.41, 1.55, 4.74] as [number, number, number],
+  // Looking from the Atlantic (SE of US) toward the East Coast, distance~5
+  CAMERA_INITIAL: [-2.0, 2.5, 3.8] as [number, number, number],
   FOV: 45,
+  /** Central USA (Kansas) — orbit center so camera pivots around launch sites */
+  USA_CENTER_LAT: 39.8,
+  USA_CENTER_LNG: -98.5,
+  /** Orbit target offset: 0 = globe center, 1 = surface. 0.3 keeps orbit natural */
+  ORBIT_TARGET_OFFSET: 0.3,
 };
 
 // ── Colors ───────────────────────────────────────────────────
@@ -153,37 +158,10 @@ export const DRONE_SHIP_COORDS = {
   LZ2: { lat: 28.485, lng: -80.54 }, // Landing Zone 2 (RTLS)
 };
 
-// ── Cinematic camera phases ─────────────────────────────────
-export const CINEMATIC_PHASES = {
-  liftoff: {
-    distance: 2.45,
-    elevation: 4,
-    driftSpeed: 0,
-    targetT: 0.05,
-    duration: 8,
-  },
-  "pitch-over": {
-    distance: 2.6,
-    elevation: 6,
-    driftSpeed: 0.015,
-    targetT: 0.15,
-    duration: 10,
-  },
-  downrange: {
-    distance: 2.9,
-    elevation: 10,
-    driftSpeed: 0.01,
-    targetT: 0.35,
-    duration: 12,
-  },
-  orbital: {
-    distance: 3.6,
-    elevation: 16,
-    driftSpeed: 0.008,
-    targetT: 0.5,
-    duration: 15,
-  },
+// ── Earth textures — progressive loading ────────────────────
+export const EARTH_TEXTURES = {
+  /** Fast-loading 2K texture for initial render */
+  LOW_RES: "https://unpkg.com/three-globe@2.31.1/example/img/earth-blue-marble.jpg",
+  /** High-res 5400x2700 texture loaded in background (local copy to avoid CORS) */
+  HIGH_RES: "/textures/earth-hires.jpg",
 } as const;
-
-/** Pause duration (ms) at each launch during sequential playback before auto-advancing */
-export const SEQUENTIAL_DWELL_MS = 20000;

@@ -6,8 +6,6 @@ import type {
   PlaybackState,
   CameraMode,
   FilterState,
-  CinematicPhase,
-  SequentialState,
 } from "@/lib/types";
 
 interface AppState {
@@ -29,15 +27,14 @@ interface AppState {
   playbackState: PlaybackState;
   setPlaybackState: (state: PlaybackState) => void;
 
-  // Mini timeline playback (isolated from main playback)
+  // Mini timeline playback — the single source of truth for play/pause
   miniTimelinePlaying: boolean;
   setMiniTimelinePlaying: (playing: boolean) => void;
 
-  // Sequential launch navigation
-  currentLaunchIndex: number;
-  setCurrentLaunchIndex: (idx: number) => void;
-  sequentialState: SequentialState;
-  setSequentialState: (state: SequentialState) => void;
+  // Unified playback actions (used by both card ▶ and mini timeline ▶)
+  startMissionPlayback: () => void;
+  pauseMissionPlayback: () => void;
+  toggleMissionPlayback: () => void;
 
   // Panel
   panelOpen: boolean;
@@ -53,13 +50,14 @@ interface AppState {
   cameraResetCounter: number;
   resetView: () => void;
 
-  // Cinematic phase
-  cinematicPhase: CinematicPhase;
-  setCinematicPhase: (phase: CinematicPhase) => void;
-
-  // Cinematic-driven trajectory progress (0..1) — overrides timeline-based progress during cinematic
+  // Trajectory progress (0..1) — driven by mini timeline during playback
   trajectoryProgress: number;
   setTrajectoryProgress: (p: number) => void;
+
+  // Orbit center mode
+  orbitCenter: "usa" | "earth" | "launch";
+  setOrbitCenter: (center: "usa" | "earth" | "launch") => void;
+  centerOnLaunch: () => void;
 
   // ISS toggle
   showISS: boolean;
@@ -78,6 +76,7 @@ const defaultFilters: FilterState = {
   status: null,
   site: null,
   sites: [],
+  jellyfish: false,
 };
 
 export const useAppStore = create<AppState>((set) => ({
@@ -103,11 +102,17 @@ export const useAppStore = create<AppState>((set) => ({
   miniTimelinePlaying: false,
   setMiniTimelinePlaying: (playing) => set({ miniTimelinePlaying: playing }),
 
-  // Sequential launch navigation
-  currentLaunchIndex: -1,
-  setCurrentLaunchIndex: (idx) => set({ currentLaunchIndex: idx }),
-  sequentialState: "idle",
-  setSequentialState: (state) => set({ sequentialState: state }),
+  // Unified playback actions
+  startMissionPlayback: () =>
+    set({ miniTimelinePlaying: true, playbackState: "playing" }),
+  pauseMissionPlayback: () =>
+    set({ miniTimelinePlaying: false, playbackState: "paused" }),
+  toggleMissionPlayback: () =>
+    set((s) =>
+      s.miniTimelinePlaying
+        ? { miniTimelinePlaying: false, playbackState: "paused" }
+        : { miniTimelinePlaying: true, playbackState: "playing" }
+    ),
 
   // Panel
   panelOpen: true,
@@ -126,19 +131,30 @@ export const useAppStore = create<AppState>((set) => ({
       cameraTarget: null,
       selectedLaunch: null,
       cameraMode: "free",
-      cinematicPhase: null,
-      sequentialState: "idle" as SequentialState,
-      currentLaunchIndex: -1,
+      miniTimelinePlaying: false,
+      playbackState: "stopped",
       trajectoryProgress: 0,
+      orbitCenter: "usa" as const,
     })),
 
-  // Cinematic phase
-  cinematicPhase: null,
-  setCinematicPhase: (phase) => set({ cinematicPhase: phase }),
-
-  // Cinematic-driven trajectory progress
+  // Trajectory progress
   trajectoryProgress: 0,
   setTrajectoryProgress: (p) => set({ trajectoryProgress: p }),
+
+  // Orbit center mode
+  orbitCenter: "usa",
+  setOrbitCenter: (center) => set({ orbitCenter: center }),
+  centerOnLaunch: () =>
+    set((s) => {
+      if (!s.selectedLaunch) return {};
+      return {
+        orbitCenter: "launch" as const,
+        cameraTarget: {
+          lat: s.selectedLaunch.launchSite.lat,
+          lng: s.selectedLaunch.launchSite.lng,
+        },
+      };
+    }),
 
   // ISS toggle
   showISS: true,

@@ -13,6 +13,7 @@ import CameraController from "./CameraController";
 import DroneShipMarker from "./DroneShipMarker";
 import ISSOrbit from "./ISSOrbit";
 import { GLOBE, COLORS } from "@/lib/constants";
+import { getUSAOrbitTarget, latLngToVector3 } from "@/lib/coordUtils";
 import { useAppStore } from "@/store/useAppStore";
 
 // A launch is "active" if the timeline is within a window around its launch time
@@ -30,6 +31,7 @@ function GlobeScene() {
   const timelineDate = useAppStore((s) => s.timelineDate);
   const showISS = useAppStore((s) => s.showISS);
   const trajectoryProgress = useAppStore((s) => s.trajectoryProgress);
+  const orbitCenter = useAppStore((s) => s.orbitCenter);
 
   // Compute active launches and their progress based on timeline
   const activeLaunches = useMemo(() => {
@@ -68,7 +70,7 @@ function GlobeScene() {
     ) {
       timelineActive.push({
         launch: selectedLaunch,
-        progress: trajectoryProgress > 0 ? trajectoryProgress : 0.7,
+        progress: trajectoryProgress,
         active: true,
       });
     }
@@ -76,20 +78,26 @@ function GlobeScene() {
     return timelineActive;
   }, [launches, timelineDate, selectedLaunch, trajectoryProgress]);
 
-  const setCinematicPhase = useAppStore((s) => s.setCinematicPhase);
-  const setSequentialState = useAppStore((s) => s.setSequentialState);
-  const setPlaybackState = useAppStore((s) => s.setPlaybackState);
-
   const handleInteractionStart = useCallback(() => {
-    // When user grabs globe during cinematic, break out entirely
-    const state = useAppStore.getState();
-    if (state.cinematicPhase && state.cameraMode === "auto") {
-      setCinematicPhase(null);
-      setSequentialState("idle");
-      setPlaybackState("paused");
-    }
     setCameraMode("free");
-  }, [setCameraMode, setCinematicPhase, setSequentialState, setPlaybackState]);
+  }, [setCameraMode]);
+
+  // Set orbit target based on orbitCenter mode
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+    let target: THREE.Vector3;
+    if (orbitCenter === "usa") {
+      target = getUSAOrbitTarget();
+    } else if (orbitCenter === "launch" && selectedLaunch) {
+      const { lat, lng } = selectedLaunch.launchSite;
+      target = latLngToVector3(lat, lng);
+    } else {
+      target = new THREE.Vector3(0, 0, 0);
+    }
+    controls.target.copy(target);
+    controls.update();
+  }, [orbitCenter, selectedLaunch]);
 
   // Reset camera to initial position when resetView is triggered
   useEffect(() => {
@@ -97,11 +105,14 @@ function GlobeScene() {
     const controls = controlsRef.current;
     if (!controls) return;
 
-    controls.target.set(0, 0, 0);
+    const orbitTarget = useAppStore.getState().orbitCenter === "usa"
+      ? getUSAOrbitTarget()
+      : new THREE.Vector3(0, 0, 0);
+    controls.target.copy(orbitTarget);
     const cam = controls.object;
     const initial = new THREE.Vector3(...GLOBE.CAMERA_INITIAL);
     cam.position.copy(initial);
-    cam.lookAt(0, 0, 0);
+    cam.lookAt(orbitTarget);
     controls.enabled = true;
     controls.update();
   }, [cameraResetCounter]);
@@ -134,19 +145,15 @@ function GlobeScene() {
       {/* Camera Controller */}
       <CameraController controlsRef={controlsRef} />
 
-      {/* Launch Markers */}
-      {launches.map((launch) => (
+      {/* Launch Marker — only for selected launch (site labels provide permanent dots) */}
+      {selectedLaunch && (
         <LaunchMarker
-          key={launch.id}
-          launch={launch}
-          isSelected={selectedLaunch?.id === launch.id}
-          onClick={() =>
-            setSelectedLaunch(
-              selectedLaunch?.id === launch.id ? null : launch
-            )
-          }
+          key={selectedLaunch.id}
+          launch={selectedLaunch}
+          isSelected={true}
+          onClick={() => setSelectedLaunch(null)}
         />
-      ))}
+      )}
 
       {/* Trajectory Arcs */}
       {activeLaunches.map(({ launch, progress }) => (
@@ -180,7 +187,8 @@ function GlobeScene() {
         maxDistance={GLOBE.MAX_ZOOM}
         autoRotate={false}
         autoRotateSpeed={0}
-        enablePan={false}
+        enablePan={true}
+        panSpeed={0.4}
         minPolarAngle={0.1}
         maxPolarAngle={Math.PI - 0.1}
         onStart={handleInteractionStart}

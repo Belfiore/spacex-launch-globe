@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useMemo, useState } from "react";
+import { useRef, useEffect, useMemo, useState, useCallback } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import LaunchCard from "./LaunchCard";
 import FilterBar from "./FilterBar";
@@ -27,8 +27,22 @@ export default function LaunchPanel() {
   const togglePanel = useAppStore((s) => s.togglePanel);
   const filters = useAppStore((s) => s.filters);
 
+  const setTrajectoryProgress = useAppStore((s) => s.setTrajectoryProgress);
+  const startMissionPlayback = useAppStore((s) => s.startMissionPlayback);
+  const pauseMissionPlayback = useAppStore((s) => s.pauseMissionPlayback);
+
   const isMobile = useIsMobile();
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Play mission for selected launch
+  const handlePlay = useCallback(() => {
+    startMissionPlayback();
+  }, [startMissionPlayback]);
+
+  // Pause playback
+  const handlePause = useCallback(() => {
+    pauseMissionPlayback();
+  }, [pauseMissionPlayback]);
 
   // Filter launches
   const filteredLaunches = useMemo(() => {
@@ -42,6 +56,12 @@ export default function LaunchPanel() {
         return false;
       if (filters.status && l.status !== filters.status) return false;
       if (filters.site && l.launchSite.id !== filters.site) return false;
+      // Jellyfish filter
+      if (
+        filters.jellyfish &&
+        (!l.jellyfish || l.jellyfish.potential === "none")
+      )
+        return false;
       // Multi-select site filter
       if (filters.sites.length > 0) {
         const matchesSiteGroup = SITE_GROUPS.some(
@@ -63,26 +83,42 @@ export default function LaunchPanel() {
     );
   }, [filteredLaunches]);
 
-  // Auto-scroll to selected or next upcoming launch on mount
+  // Auto-scroll to next upcoming launch on mount
   useEffect(() => {
-    if (!scrollRef.current) return;
-    const targetId = selectedLaunch?.id ?? nextUpcoming?.id;
-    if (!targetId) return;
-
+    if (!scrollRef.current || selectedLaunch || !nextUpcoming) return;
     const timer = setTimeout(() => {
       const el = scrollRef.current?.querySelector(
-        `[data-launch-id="${targetId}"]`
+        `[data-launch-id="${nextUpcoming.id}"]`
       );
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }, 100);
-
     return () => clearTimeout(timer);
-  }, [selectedLaunch?.id, nextUpcoming?.id]);
+  }, [nextUpcoming?.id, selectedLaunch]);
+
+  // Scroll to selected launch when it changes (e.g. from timeline click)
+  // Also open the panel if it's closed
+  useEffect(() => {
+    if (!selectedLaunch) return;
+    if (!panelOpen) togglePanel();
+    if (!scrollRef.current) return;
+    const timer = setTimeout(() => {
+      const el = scrollRef.current?.querySelector(
+        `[data-launch-id="${selectedLaunch.id}"]`
+      );
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLaunch?.id]);
 
   function handleCardClick(launch: (typeof launches)[0]) {
     const isDeselect = selectedLaunch?.id === launch.id;
+    // Stop any active playback when switching launches
+    pauseMissionPlayback();
     setSelectedLaunch(isDeselect ? null : launch);
     if (!isDeselect) {
       setCameraTarget({
@@ -90,8 +126,11 @@ export default function LaunchPanel() {
         lng: launch.launchSite.lng,
       });
       setTimelineDate(new Date(launch.dateUtc));
+      // Set trajectory to 0 = static preview (rocket on pad, planned path shown)
+      setTrajectoryProgress(0);
     } else {
       setCameraTarget(null);
+      setTrajectoryProgress(0);
     }
   }
 
@@ -271,6 +310,8 @@ export default function LaunchPanel() {
                   isSelected={selectedLaunch?.id === launch.id}
                   isNext={nextUpcoming?.id === launch.id}
                   onClick={() => handleCardClick(launch)}
+                  onPlay={handlePlay}
+                  onPause={handlePause}
                 />
               </div>
             ))

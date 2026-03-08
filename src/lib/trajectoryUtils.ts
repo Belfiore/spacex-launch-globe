@@ -133,34 +133,37 @@ export function computeTrajectoryEndpoint(
 // ── Trajectory Arc Generation ───────────────────────────────────
 
 /**
- * Generate a QuadraticBezierCurve3 for a launch trajectory.
+ * Generate a CubicBezierCurve3 for a launch trajectory.
  * Uses real launch azimuth computed from orbital inclination + site latitude.
+ * Asymmetric shape: steep ascent → gravity turn → flattening into orbit.
+ * End point is at orbital altitude (not surface), so the payload stays in orbit.
  */
 export function generateTrajectoryArcCurve(
   launch: Launch
-): THREE.QuadraticBezierCurve3 {
+): THREE.CubicBezierCurve3 {
   const { lat, lng } = launch.launchSite;
   const orbitType = launch.payloadOrbit ?? "default";
   const heightMult = ORBIT_HEIGHTS[orbitType] ?? ORBIT_HEIGHTS["default"];
-  const maxHeight = GLOBE.RADIUS * heightMult;
+  const orbitAlt = GLOBE.RADIUS * heightMult;
 
   // Start position on globe surface
   const start = latLngToVector3(lat, lng, GLOBE.RADIUS);
 
-  // End position — computed from real azimuth and orbit-specific range
+  // End position — at ORBITAL ALTITUDE, not surface
   const azimuth = computeLaunchAzimuth(lat, orbitType);
   const rangeDeg = RANGE_DEG[orbitType] ?? RANGE_DEG["default"];
   const endCoords = computeTrajectoryEndpoint(lat, lng, azimuth, rangeDeg);
-  const end = latLngToVector3(endCoords.lat, endCoords.lng, GLOBE.RADIUS);
+  const end = latLngToVector3(endCoords.lat, endCoords.lng, GLOBE.RADIUS + orbitAlt);
 
-  // Control point — midpoint raised above surface
-  const mid = new THREE.Vector3()
-    .addVectors(start, end)
-    .multiplyScalar(0.5)
-    .normalize()
-    .multiplyScalar(GLOBE.RADIUS + maxHeight);
+  // CP1: Controls initial steep ascent — slightly forward along azimuth
+  const cp1Coords = computeTrajectoryEndpoint(lat, lng, azimuth, rangeDeg * 0.15);
+  const cp1 = latLngToVector3(cp1Coords.lat, cp1Coords.lng, GLOBE.RADIUS + orbitAlt * 0.3);
 
-  return new THREE.QuadraticBezierCurve3(start, mid, end);
+  // CP2: Controls flattening into orbit — near the end at orbital altitude
+  const cp2Coords = computeTrajectoryEndpoint(lat, lng, azimuth, rangeDeg * 0.75);
+  const cp2 = latLngToVector3(cp2Coords.lat, cp2Coords.lng, GLOBE.RADIUS + orbitAlt);
+
+  return new THREE.CubicBezierCurve3(start, cp1, cp2, end);
 }
 
 /**
@@ -194,22 +197,22 @@ export function generateTrajectoryArc(
   numPoints: number = 64
 ): THREE.Vector3[] {
   const heightMult = ORBIT_HEIGHTS[orbitType] ?? ORBIT_HEIGHTS["default"];
-  const maxHeight = GLOBE.RADIUS * heightMult;
+  const orbitAlt = GLOBE.RADIUS * heightMult;
 
   const start = latLngToVector3(lat, lng, GLOBE.RADIUS);
 
   const azimuth = computeLaunchAzimuth(lat, orbitType);
   const rangeDeg = RANGE_DEG[orbitType] ?? RANGE_DEG["default"];
   const endCoords = computeTrajectoryEndpoint(lat, lng, azimuth, rangeDeg);
-  const end = latLngToVector3(endCoords.lat, endCoords.lng, GLOBE.RADIUS);
+  const end = latLngToVector3(endCoords.lat, endCoords.lng, GLOBE.RADIUS + orbitAlt);
 
-  const mid = new THREE.Vector3()
-    .addVectors(start, end)
-    .multiplyScalar(0.5)
-    .normalize()
-    .multiplyScalar(GLOBE.RADIUS + maxHeight);
+  const cp1Coords = computeTrajectoryEndpoint(lat, lng, azimuth, rangeDeg * 0.15);
+  const cp1 = latLngToVector3(cp1Coords.lat, cp1Coords.lng, GLOBE.RADIUS + orbitAlt * 0.3);
 
-  const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
+  const cp2Coords = computeTrajectoryEndpoint(lat, lng, azimuth, rangeDeg * 0.75);
+  const cp2 = latLngToVector3(cp2Coords.lat, cp2Coords.lng, GLOBE.RADIUS + orbitAlt);
+
+  const curve = new THREE.CubicBezierCurve3(start, cp1, cp2, end);
   return curve.getPoints(numPoints);
 }
 

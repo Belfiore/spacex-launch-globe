@@ -20,7 +20,7 @@
       "landingCoords": { "lat": 30.4, "lng": -74.0 }
     },
     "details": "Batch deployment of Starlink v2 Mini satellites to low Earth orbit.",
-    "webcastUrl": "https://www.youtube.com/watch?v=nnqiH2gMJeE"
+    "webcastUrl": "https://www.youtube.com/watch?v=4SzQTz_7i_k"
   },
   {
     "id": "fb-002",
@@ -42,7 +42,7 @@
       "landingCoords": { "lat": 33.2, "lng": -119.5 }
     },
     "details": "Classified national security payload for the National Reconnaissance Office.",
-    "webcastUrl": "https://www.youtube.com/watch?v=_gRMD4ufnMY"
+    "webcastUrl": "https://www.youtube.com/watch?v=VccVHpw5LVI"
   },
   {
     "id": "fb-003",
@@ -60,7 +60,7 @@
     "rocketType": "Starship",
     "payloadOrbit": "LEO",
     "details": "Orbital test flight of Starship with booster catch attempt.",
-    "webcastUrl": "https://www.youtube.com/watch?v=RBxMX1iJOsA"
+    "webcastUrl": "https://www.youtube.com/watch?v=YOJKZYSOsGs"
   },
   {
     "id": "fb-004",
@@ -83,7 +83,7 @@
       "landingCoords": { "lat": 30.4, "lng": -74.0 }
     },
     "details": "Starlink satellite deployment mission.",
-    "webcastUrl": "https://www.youtube.com/watch?v=izpUn4a_MMs"
+    "webcastUrl": "https://www.youtube.com/watch?v=r7ps1PByBfg"
   },
   {
     "id": "fb-005",
@@ -104,7 +104,8 @@
       "landingType": "ASDS",
       "landingCoords": { "lat": 28.4, "lng": -76.0 }
     },
-    "details": "Geostationary transfer orbit delivery for Eutelsat communications satellite."
+    "details": "Geostationary transfer orbit delivery for Eutelsat communications satellite.",
+    "webcastUrl": "https://www.youtube.com/watch?v=CqBuJMOfP_M"
   },
   {
     "id": "fb-006",
@@ -125,7 +126,8 @@
       "landingType": "ASDS",
       "landingCoords": { "lat": 33.2, "lng": -119.5 }
     },
-    "details": "Rideshare mission carrying multiple small satellites to sun-synchronous orbit."
+    "details": "Rideshare mission carrying multiple small satellites to sun-synchronous orbit.",
+    "webcastUrl": "https://www.youtube.com/watch?v=_cmrLaEAF9o"
   },
   {
     "id": "fb-007",
@@ -148,7 +150,7 @@
       "landingCoords": { "lat": 28.485, "lng": -80.544 }
     },
     "details": "Commercial Resupply Services mission to the International Space Station.",
-    "webcastUrl": "https://www.youtube.com/watch?v=OPHbqY9LHCs"
+    "webcastUrl": "https://www.youtube.com/watch?v=34kIzC_QJgM"
   },
   {
     "id": "fb-008",
@@ -171,7 +173,7 @@
       "landingCoords": { "lat": 30.4, "lng": -74.0 }
     },
     "details": "Starlink v2 Mini satellite deployment.",
-    "webcastUrl": "https://www.youtube.com/watch?v=jGF-yT6rWDM"
+    "webcastUrl": "https://www.youtube.com/watch?v=o0gd0bDqbmk"
   },
   {
     "id": "fb-009",
@@ -189,7 +191,7 @@
     "rocketType": "Starship",
     "payloadOrbit": "LEO",
     "details": "Tenth integrated flight test of Starship launch system.",
-    "webcastUrl": "https://www.youtube.com/watch?v=bJqtsDnI_lQ"
+    "webcastUrl": "https://www.youtube.com/watch?v=gLZ0_2zrDpY"
   },
   {
     "id": "fb-010",
@@ -211,7 +213,7 @@
       "landingCoords": { "lat": 28.485, "lng": -80.544 }
     },
     "details": "US Space Force geostationary payload delivery.",
-    "webcastUrl": "https://www.youtube.com/watch?v=5AT6VU-Npks"
+    "webcastUrl": "https://www.youtube.com/watch?v=kdpbgyWwVsY"
   },
   {
     "id": "fb-011",
@@ -234,7 +236,7 @@
       "landingCoords": { "lat": 30.4, "lng": -74.0 }
     },
     "details": "Starlink constellation expansion mission.",
-    "webcastUrl": "https://www.youtube.com/watch?v=Y8V8GPKK7QY"
+    "webcastUrl": "https://www.youtube.com/watch?v=Y1WAe3Dv5vE"
   },
   {
     "id": "fb-012",
@@ -255,7 +257,30 @@
       "landingType": "ASDS",
       "landingCoords": { "lat": 33.2, "lng": -119.5 }
     },
-    "details": "Earth observation satellite deployment for Maxar."
+    "details": "Earth observation satellite deployment for Maxar.",
+    "webcastUrl": "https://www.youtube.com/watch?v=_BghEK_4U2A"
+  },
+  {
+    "id": "fb-012b",
+    "name": "Starlink 10-40",
+    "dateUtc": "2026-03-04T10:52:00.000Z",
+    "dateUnix": 1741085520,
+    "launchSite": {
+      "id": "cape-canaveral-slc40",
+      "name": "CCSFS SLC-40",
+      "fullName": "Cape Canaveral Space Force Station SLC-40",
+      "lat": 28.5618,
+      "lng": -80.577
+    },
+    "status": "success",
+    "rocketType": "Falcon 9",
+    "payloadOrbit": "LEO",
+    "boosterReturn": {
+      "landingType": "ASDS",
+      "landingCoords": { "lat": 30.4, "lng": -74.0 }
+    },
+    "details": "Starlink satellite deployment. Created visible 'space jellyfish' effect due to pre-dawn twilight launch conditions.",
+    "webcastUrl": "https://www.youtube.com/watch?v=N3JBoubQ7qY"
   },
   {
     "id": "fb-013",
@@ -278,7 +303,7 @@
       "landingCoords": { "lat": 28.485, "lng": -80.544 }
     },
     "details": "NASA Commercial Crew rotation mission to the ISS.",
-    "webcastUrl": "https://www.youtube.com/watch?v=Y_K4lG7YkHE"
+    "webcastUrl": "https://www.youtube.com/watch?v=zCM-Kwq91cc"
   },
   {
     "id": "fb-014",
@@ -300,8 +325,7 @@
       "landingType": "ASDS",
       "landingCoords": { "lat": 30.4, "lng": -74.0 }
     },
-    "details": "Next generation Starlink satellite deployment.",
-    "webcastUrl": "https://www.youtube.com/watch?v=p8R5e28YD6g"
+    "details": "Next generation Starlink satellite deployment."
   },
   {
     "id": "fb-015",
@@ -318,8 +342,7 @@
     "status": "upcoming",
     "rocketType": "Starship",
     "payloadOrbit": "LEO",
-    "details": "Starship orbital test with payload deployment demonstration.",
-    "webcastUrl": "https://www.youtube.com/watch?v=N3kCb_JnKjc"
+    "details": "Starship orbital test with payload deployment demonstration."
   },
   {
     "id": "fb-016",

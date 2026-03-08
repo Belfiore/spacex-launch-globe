@@ -70,8 +70,9 @@ export default function VideoThumbnail() {
     };
   }, []);
 
-  // ── Don't render if no webcast URL ─────────────────────────────
+  // ── Don't render if no webcast URL or if launch is upcoming ────
   if (!selectedLaunch?.webcastUrl) return null;
+  if (selectedLaunch.status === "upcoming") return null;
 
   const videoId = extractVideoId(selectedLaunch.webcastUrl);
   if (!videoId) return null;

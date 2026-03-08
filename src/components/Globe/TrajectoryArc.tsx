@@ -110,25 +110,39 @@ export default function TrajectoryArc({
     }
   });
 
-  if (!visible || progress <= 0.01) return null;
+  if (!visible) return null;
 
-  const clampedProgress = Math.min(progress, 0.99);
-  const rocketIdx = Math.floor(clampedProgress * NUM_POINTS);
+  // ── Static preview mode (progress === 0): show full planned path + rocket on pad ──
+  const isStaticPreview = progress <= 0.01;
+
+  const clampedProgress = Math.min(Math.max(progress, 0), 0.99);
+  const rocketIdx = isStaticPreview ? 0 : Math.floor(clampedProgress * NUM_POINTS);
   const rocketPoint = allPoints[Math.min(rocketIdx, allPoints.length - 1)];
-  const rocketTangent = curve.getTangentAt(clampedProgress);
-
-  const trailLen = Math.max(2, rocketIdx + 1);
-  const s1End = Math.max(2, Math.floor(trailLen * 0.4));
-  const s2End = Math.max(2, Math.floor(trailLen * 0.75));
-
-  const seg1 = allPoints.slice(0, s1End).map(toTuple);
-  const seg2 = allPoints.slice(Math.max(0, s1End - 1), s2End).map(toTuple);
-  const seg3 = allPoints.slice(Math.max(0, s2End - 1), trailLen).map(toTuple);
-  const plannedPoints = allPoints.slice(Math.max(0, rocketIdx)).map(toTuple);
+  const rocketTangent = curve.getTangentAt(Math.max(0.001, clampedProgress));
 
   const accentColor = "#00E5FF";
 
-  const showBoosterReturn = hasBoosterReturn && progress >= STAGING_PROGRESS;
+  // ── Trail segments (only during active flight) ──
+  let seg1: [number, number, number][] = [];
+  let seg2: [number, number, number][] = [];
+  let seg3: [number, number, number][] = [];
+  let plannedPoints: [number, number, number][] = [];
+
+  if (isStaticPreview) {
+    // Show entire path as dim planned line
+    plannedPoints = allPoints.map(toTuple);
+  } else {
+    const trailLen = Math.max(2, rocketIdx + 1);
+    const s1End = Math.max(2, Math.floor(trailLen * 0.4));
+    const s2End = Math.max(2, Math.floor(trailLen * 0.75));
+
+    seg1 = allPoints.slice(0, s1End).map(toTuple);
+    seg2 = allPoints.slice(Math.max(0, s1End - 1), s2End).map(toTuple);
+    seg3 = allPoints.slice(Math.max(0, s2End - 1), trailLen).map(toTuple);
+    plannedPoints = allPoints.slice(Math.max(0, rocketIdx)).map(toTuple);
+  }
+
+  const showBoosterReturn = !isStaticPreview && hasBoosterReturn && progress >= STAGING_PROGRESS;
   const boosterProgress = showBoosterReturn
     ? Math.min(1, (progress - STAGING_PROGRESS) / (0.55 * (1 - STAGING_PROGRESS)))
     : 0;
@@ -145,7 +159,7 @@ export default function TrajectoryArc({
     ? boosterAllPoints.slice(0, Math.max(2, boosterRocketIdx + 1)).map(toTuple)
     : null;
 
-  const showStageSeparation = progress >= STAGING_PROGRESS && hasBoosterReturn;
+  const showStageSeparation = !isStaticPreview && progress >= STAGING_PROGRESS && hasBoosterReturn;
   const stagingTuple = toTuple(stagingPoint);
 
   const landingPos =
@@ -169,11 +183,11 @@ export default function TrajectoryArc({
         <Line points={seg3} color={accentColor} lineWidth={2.5} transparent opacity={0.9} />
       )}
       {plannedPoints.length >= 2 && (
-        <Line points={plannedPoints} color="#475569" lineWidth={1} transparent opacity={0.18} />
+        <Line points={plannedPoints} color="#475569" lineWidth={1} transparent opacity={0.10} />
       )}
 
-      {/* Glowing tip */}
-      {rocketPoint && (
+      {/* Glowing tip — only during active flight */}
+      {!isStaticPreview && rocketPoint && (
         <mesh position={toTuple(rocketPoint)}>
           <sphereGeometry args={[0.012, 8, 8]} />
           <meshBasicMaterial
@@ -210,8 +224,8 @@ export default function TrajectoryArc({
         </mesh>
       )}
 
-      {/* Orbit insertion ring */}
-      {progress > 0.7 && (
+      {/* Orbit insertion ring — only during active flight */}
+      {!isStaticPreview && progress > 0.7 && (
         <mesh rotation={[(inclDeg * Math.PI) / 180, 0, 0]}>
           <torusGeometry args={[orbitRadius, 0.004, 8, 120]} />
           <meshBasicMaterial
@@ -224,8 +238,8 @@ export default function TrajectoryArc({
         </mesh>
       )}
 
-      {/* Orbit insertion badge — fixed screen-space, NO distanceFactor */}
-      {progress >= 0.99 && rocketPoint && (
+      {/* Orbit insertion badge — only for past launches (success/failure), not upcoming */}
+      {progress >= 0.99 && rocketPoint && launch.status !== "upcoming" && (
         <Html
           position={toTuple(rocketPoint)}
           center
@@ -317,8 +331,8 @@ export default function TrajectoryArc({
         </mesh>
       )}
 
-      {/* ── Starlink satellite train ─────────────────────────── */}
-      {starlinkPositions &&
+      {/* ── Starlink satellite train (only during active flight) ── */}
+      {!isStaticPreview && starlinkPositions &&
         starlinkPositions.map((pos, i) => (
           <mesh key={`sat-${i}`} position={pos}>
             <sphereGeometry args={[0.005, 6, 6]} />

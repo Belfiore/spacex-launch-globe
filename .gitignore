@@ -40,5 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# 3D model assets (download from Sketchfab — see scripts/download-models.sh)
+public/models/*.glb
+public/models/raw/
+
 # claude
 .claude/

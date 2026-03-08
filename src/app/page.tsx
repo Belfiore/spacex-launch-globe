@@ -4,9 +4,9 @@ import dynamic from "next/dynamic";
 import { useSpaceXData } from "@/hooks/useSpaceXData";
 import LaunchPanel from "@/components/LaunchPanel/LaunchPanel";
 import Timeline from "@/components/Timeline/Timeline";
-import PlaybackControls from "@/components/UI/PlaybackControls";
+
 import LoadingScreen from "@/components/UI/LoadingScreen";
-import ISSToggle from "@/components/UI/ISSToggle";
+import ControlsPanel from "@/components/UI/ControlsPanel";
 import MiniTimeline from "@/components/UI/MiniTimeline";
 import VideoThumbnail from "@/components/UI/VideoThumbnail";
 
@@ -21,6 +21,9 @@ export default function Home() {
   return (
     <main className="relative w-screen h-screen overflow-hidden">
       <Globe />
+
+      {/* Controls panel — bottom left */}
+      <ControlsPanel />
 
       {/* Title overlay - top left */}
       <div
@@ -56,9 +59,6 @@ export default function Home() {
         </p>
       </div>
 
-      {/* ISS toggle — top right area */}
-      <ISSToggle />
-
       {/* Mini mission timeline — above main timeline */}
       <MiniTimeline />
 
@@ -66,7 +66,6 @@ export default function Home() {
       <VideoThumbnail />
 
       <LaunchPanel />
-      <PlaybackControls />
       <Timeline />
       <LoadingScreen />
     </main>
