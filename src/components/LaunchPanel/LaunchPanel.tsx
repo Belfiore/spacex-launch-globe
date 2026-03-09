@@ -1,21 +1,12 @@
 "use client";
 
-import { useRef, useEffect, useMemo, useState, useCallback } from "react";
+import { useRef, useEffect, useMemo, useCallback } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import LaunchCard from "./LaunchCard";
 import FilterBar from "./FilterBar";
+import ControlsPanel from "@/components/UI/ControlsPanel";
 import { TIMELINE, SITE_GROUPS } from "@/lib/constants";
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-  return isMobile;
-}
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 export default function LaunchPanel() {
   const launches = useAppStore((s) => s.launches);
@@ -177,12 +168,14 @@ export default function LaunchPanel() {
     }
   }
 
+  const mobileTimelineHeight = TIMELINE.MOBILE_HEIGHT;
+
   // Mobile: bottom drawer styles
   const mobileDrawerStyle: React.CSSProperties = {
     position: "fixed",
     left: 0,
     right: 0,
-    bottom: `${TIMELINE.HEIGHT}px`,
+    bottom: `${mobileTimelineHeight}px`,
     height: panelOpen ? "55vh" : "0",
     zIndex: 40,
     transition: "height 0.3s ease",
@@ -214,62 +207,106 @@ export default function LaunchPanel() {
     flexDirection: "column",
   };
 
-  // Toggle button position
-  const toggleStyle: React.CSSProperties = isMobile
-    ? {
-        position: "fixed",
-        bottom: panelOpen ? `calc(55vh + ${TIMELINE.HEIGHT}px + 8px)` : `${TIMELINE.HEIGHT + 8}px`,
-        right: "16px",
-        zIndex: 50,
-        width: "36px",
-        height: "36px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "8px",
-        background: "rgba(18, 24, 41, 0.8)",
-        backdropFilter: "blur(20px)",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
-        color: "#94a3b8",
-        cursor: "pointer",
-        fontSize: "16px",
-        transition: "all 0.3s ease",
-      }
-    : {
-        position: "fixed",
-        top: "16px",
-        right: panelOpen ? "396px" : "16px",
-        zIndex: 50,
-        width: "36px",
-        height: "36px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "8px",
-        background: "rgba(18, 24, 41, 0.8)",
-        backdropFilter: "blur(20px)",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
-        color: "#94a3b8",
-        cursor: "pointer",
-        fontSize: "16px",
-        transition: "all 0.3s ease",
-      };
-
   const toggleIcon = isMobile
-    ? panelOpen ? "▼" : "▲"
-    : panelOpen ? "›" : "‹";
+    ? panelOpen ? "\u25BC" : "\u25B2"
+    : panelOpen ? "\u203A" : "\u2039";
+
+  // Mobile: simple toggle button
+  const mobileToggleStyle: React.CSSProperties = {
+    position: "fixed",
+    bottom: panelOpen ? `calc(55vh + ${mobileTimelineHeight}px + 8px)` : `${mobileTimelineHeight + 8}px`,
+    right: "16px",
+    zIndex: 50,
+    width: "36px",
+    height: "36px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: "8px",
+    background: "rgba(18, 24, 41, 0.8)",
+    backdropFilter: "blur(20px)",
+    border: "1px solid rgba(255, 255, 255, 0.08)",
+    color: "#94a3b8",
+    cursor: "pointer",
+    fontSize: "16px",
+    transition: "all 0.3s ease",
+  };
+
+  // Desktop: toolbar container (controls + toggle) positioned top-right
+  const desktopToolbarStyle: React.CSSProperties = {
+    position: "fixed",
+    top: "16px",
+    right: panelOpen ? "396px" : "16px",
+    zIndex: 50,
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    background: "rgba(18, 24, 41, 0.8)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    border: "1px solid rgba(255, 255, 255, 0.08)",
+    borderRadius: "8px",
+    padding: "4px",
+    transition: "right 0.3s ease",
+  };
 
   return (
     <>
-      {/* Toggle button */}
+      {/* Toolbar + Toggle (desktop) / Toggle button (mobile) */}
       {!focusMode && (
-        <button
-          onClick={togglePanel}
-          style={toggleStyle}
-          title={panelOpen ? "Hide panel" : "Show launches"}
-        >
-          {toggleIcon}
-        </button>
+        isMobile ? (
+          <button
+            onClick={togglePanel}
+            style={mobileToggleStyle}
+            title={panelOpen ? "Hide panel" : "Show launches"}
+          >
+            {toggleIcon}
+          </button>
+        ) : (
+          <div style={desktopToolbarStyle}>
+            <ControlsPanel />
+            {/* Separator */}
+            <div
+              style={{
+                width: "1px",
+                height: "18px",
+                background: "rgba(255, 255, 255, 0.08)",
+                flexShrink: 0,
+              }}
+            />
+            {/* Toggle panel button */}
+            <button
+              onClick={togglePanel}
+              title={panelOpen ? "Hide panel" : "Show launches"}
+              style={{
+                width: "28px",
+                height: "28px",
+                borderRadius: "6px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+                border: "none",
+                color: "#94a3b8",
+                cursor: "pointer",
+                fontSize: "16px",
+                padding: 0,
+                transition: "all 0.15s ease",
+                flexShrink: 0,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+                e.currentTarget.style.color = "#e2e8f0";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "#94a3b8";
+              }}
+            >
+              {toggleIcon}
+            </button>
+          </div>
+        )
       )}
 
       {/* Panel */}

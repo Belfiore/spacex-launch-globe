@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAppStore } from "@/store/useAppStore";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface Props {
   onComplete: () => void;
@@ -107,6 +108,8 @@ export default function GuidedOnboarding({ onComplete }: Props) {
     return () => clearTimeout(timer);
   }, [dismiss]);
 
+  const isMobile = useIsMobile();
+
   if (!show || !nextUpcoming) return null;
 
   return (
@@ -114,8 +117,9 @@ export default function GuidedOnboarding({ onComplete }: Props) {
       role="tooltip"
       style={{
         position: "fixed",
-        top: 170,
-        right: 40,
+        ...(isMobile
+          ? { bottom: 70, left: 16, right: 16, top: "auto" }
+          : { top: 170, right: 40 }),
         background: "rgba(6, 182, 212, 0.10)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",

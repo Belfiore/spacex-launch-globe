@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import type { Launch, BoosterRecoveryDetail, FlightHistoryEvent } from "@/lib/types";
 import { TIMELINE } from "@/lib/constants";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 /** Extract YouTube video ID from a URL */
 function extractVideoId(url: string): string | null {
@@ -500,6 +501,7 @@ export default function InfoPanel() {
   const closeInfoPanel = useAppStore((s) => s.closeInfoPanel);
   const launches = useAppStore((s) => s.launches);
   const focusMode = useAppStore((s) => s.focusMode);
+  const isMobile = useIsMobile();
 
   const launch = useMemo(() => {
     if (!infoPanelLaunchId) return null;
@@ -508,9 +510,21 @@ export default function InfoPanel() {
 
   const isOpen = launch !== null;
 
-  return (
-    <div
-      style={{
+  const panelStyle: React.CSSProperties = isMobile
+    ? {
+        position: "fixed",
+        inset: 0,
+        zIndex: 60,
+        background: "rgba(18, 24, 41, 0.96)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        display: "flex",
+        flexDirection: "column",
+        opacity: isOpen && !focusMode ? 1 : 0,
+        pointerEvents: isOpen && !focusMode ? "auto" : "none",
+        transition: "opacity 0.25s ease",
+      }
+    : {
         position: "fixed",
         top: 0,
         left: 0,
@@ -526,12 +540,16 @@ export default function InfoPanel() {
         display: "flex",
         flexDirection: "column",
         pointerEvents: isOpen && !focusMode ? "auto" : "none",
-      }}
-    >
+      };
+
+  const closeButtonSize = isMobile ? 44 : 28;
+
+  return (
+    <div style={panelStyle}>
       {/* Header */}
       <div
         style={{
-          padding: "16px",
+          padding: isMobile ? "16px 16px 12px" : "16px",
           borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
           display: "flex",
           alignItems: "flex-start",
@@ -558,14 +576,14 @@ export default function InfoPanel() {
         <button
           onClick={closeInfoPanel}
           style={{
-            width: "28px",
-            height: "28px",
+            width: `${closeButtonSize}px`,
+            height: `${closeButtonSize}px`,
             borderRadius: "6px",
             background: "rgba(255, 255, 255, 0.05)",
             border: "1px solid rgba(255, 255, 255, 0.08)",
             color: "#94a3b8",
             cursor: "pointer",
-            fontSize: "14px",
+            fontSize: isMobile ? "18px" : "14px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

@@ -151,21 +151,6 @@ export default function CinematicLoading({
           textAlign: "center",
         }}
       >
-        {/* Rocket Globe Icon */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/rocket-globe.svg"
-          alt="Rocket Manifest"
-          width={64}
-          height={64}
-          style={{
-            marginBottom: 20,
-            opacity: 0,
-            animation: `subtitle-fade 0.6s ease-out 0.1s forwards`,
-            filter: "drop-shadow(0 0 12px rgba(6, 182, 212, 0.3))",
-          }}
-        />
-
         {/* Phase 1: Title */}
         <div
           style={{

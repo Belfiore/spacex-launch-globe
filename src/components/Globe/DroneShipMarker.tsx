@@ -33,7 +33,10 @@ export default function DroneShipMarker({ boosterReturn }: DroneShipMarkerProps)
     return q;
   }, [boosterReturn.landingCoords]);
 
-  const label = boosterReturn.landingType === "RTLS" ? "LZ" : "ASDS";
+  const isStarbase =
+    Math.abs(boosterReturn.landingCoords.lat - 25.9972) < 0.01 &&
+    Math.abs(boosterReturn.landingCoords.lng + 97.1561) < 0.01;
+  const label = isStarbase ? "CATCH" : boosterReturn.landingType === "RTLS" ? "LZ" : "ASDS";
   const color = "#f59e0b";
 
   return (

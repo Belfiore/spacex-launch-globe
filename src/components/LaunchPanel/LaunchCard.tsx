@@ -83,8 +83,6 @@ export default function LaunchCard({
     return "none";
   }, [isSelected, isNext, accentColor]);
 
-  const patchSize = isSelected ? 48 : 36;
-
   return (
     <div
       onClick={onClick}
@@ -123,45 +121,6 @@ export default function LaunchCard({
           marginBottom: "7px",
         }}
       >
-        {/* Mission patch (or rocket emoji placeholder) */}
-        {launch.missionPatch ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={launch.missionPatch}
-            alt={`${launch.name} patch`}
-            width={patchSize}
-            height={patchSize}
-            style={{
-              borderRadius: "50%",
-              objectFit: "cover",
-              border: `1px solid ${accentColor}30`,
-              flexShrink: 0,
-              transition: "width 0.2s, height 0.2s",
-            }}
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              width: `${patchSize}px`,
-              height: `${patchSize}px`,
-              borderRadius: "50%",
-              background: `${accentColor}15`,
-              border: `1px solid ${accentColor}30`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: isSelected ? "18px" : "14px",
-              flexShrink: 0,
-              transition: "all 0.2s",
-            }}
-          >
-            🚀
-          </div>
-        )}
-
         {/* Name + badges + play button */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div

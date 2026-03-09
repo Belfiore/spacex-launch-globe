@@ -95,6 +95,7 @@ export const TIMELINE = {
   RANGE_MONTHS_FUTURE: 6,
   PLAYBACK_TIME_SCALE: 43200, // 12 hours of real time per second of playback (25% of original)
   HEIGHT: 80,
+  MOBILE_HEIGHT: 60,
 };
 
 export const STATUS_COLORS: Record<string, string> = {
@@ -130,6 +131,12 @@ export const SITE_GROUPS: SiteGroup[] = [
     label: "Vandenberg",
     color: "#a78bfa", // violet
     siteIds: ["vandenberg-slc4e"],
+  },
+  {
+    key: "OI",
+    label: "Omelek Island",
+    color: "#fb923c", // orange
+    siteIds: ["kwajalein"],
   },
 ];
 

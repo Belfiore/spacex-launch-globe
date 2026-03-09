@@ -71,6 +71,18 @@ const SITE_LABELS: SiteLabel[] = [
     lng: -120.611,
     color: "#a78bfa", // violet
   },
+  {
+    id: "kwajalein",
+    abbr: "OI",
+    name: "Omelek Island",
+    fullName: "Kwajalein Atoll Omelek Island",
+    pads: [
+      { id: "kwajalein", name: "Omelek Is.", lat: 9.0477, lng: 167.7431 },
+    ],
+    lat: 9.0477,
+    lng: 167.7431,
+    color: "#fb923c", // orange
+  },
 ];
 
 /** Individual site label with zoom-awareness */

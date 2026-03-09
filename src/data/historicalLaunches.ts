@@ -28,6 +28,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "Heliocentric",
     details:
       "First Falcon Heavy flight. Launched Elon Musk's Tesla Roadster with Starman mannequin into heliocentric orbit.",
+    boosterReturn: {
+      landingType: "RTLS",
+      landingCoords: { lat: 28.485, lng: -80.544 },
+    },
     webcastUrl: "https://www.youtube.com/watch?v=wbSwFU6tY1c",
     flightHistory: {
       flightNumber: 1,
@@ -104,6 +108,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "GTO",
     details:
       "First commercial Falcon Heavy mission. All three boosters landed successfully for the first (and only) time.",
+    boosterReturn: {
+      landingType: "RTLS",
+      landingCoords: { lat: 28.485, lng: -80.544 },
+    },
     webcastUrl: "https://www.youtube.com/watch?v=TXMGu2d8c8g",
     flightHistory: {
       flightNumber: 2,
@@ -159,6 +167,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "LEO (multiple)",
     details:
       "Most complex FH mission — 25 small satellites deployed via 4 upper-stage burns over 6 hours.",
+    boosterReturn: {
+      landingType: "RTLS",
+      landingCoords: { lat: 28.485, lng: -80.544 },
+    },
     webcastUrl: "https://www.youtube.com/watch?v=WxH4CAlhtiQ",
     flightHistory: {
       flightNumber: 3,
@@ -218,6 +230,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "GEO",
     details:
       "First NSSL-certified FH flight. Debuted the B1064/B1065 booster pair that flew 6 missions total.",
+    boosterReturn: {
+      landingType: "RTLS",
+      landingCoords: { lat: 28.485, lng: -80.544 },
+    },
     webcastUrl: "https://www.youtube.com/watch?v=pY628jRd6gM",
     flightHistory: {
       flightNumber: 4,
@@ -277,6 +293,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "GEO",
     details:
       "Classified USSF payload, believed to include CBAS-2 military communications relay satellite.",
+    boosterReturn: {
+      landingType: "RTLS",
+      landingCoords: { lat: 28.485, lng: -80.544 },
+    },
     webcastUrl: "https://www.youtube.com/watch?v=nfxyF1_Ylkk",
     flightHistory: {
       flightNumber: 5,
@@ -330,6 +350,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "GTO",
     details:
       "Launch successful. The ViaSat-3 satellite later experienced a reflector antenna deployment failure (unrelated to launch).",
+    boosterReturn: {
+      landingType: "RTLS",
+      landingCoords: { lat: 28.485, lng: -80.544 },
+    },
     webcastUrl: "https://www.youtube.com/watch?v=YFbp6PVbJQA",
     flightHistory: {
       flightNumber: 6,
@@ -382,6 +406,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "GTO",
     details:
       "Heaviest geostationary satellite launched by Falcon Heavy (~9,200 kg).",
+    boosterReturn: {
+      landingType: "RTLS",
+      landingCoords: { lat: 28.485, lng: -80.544 },
+    },
     webcastUrl: "https://www.youtube.com/watch?v=5ixbPMe6684",
     flightHistory: {
       flightNumber: 7,
@@ -435,6 +463,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "Interplanetary",
     details:
       "NASA mission to asteroid 16 Psyche — a metal-rich asteroid believed to be a protoplanet core. Arrival expected 2029.",
+    boosterReturn: {
+      landingType: "RTLS",
+      landingCoords: { lat: 28.485, lng: -80.544 },
+    },
     webcastUrl: "https://www.youtube.com/watch?v=npIDMxrzm_o",
     flightHistory: {
       flightNumber: 8,
@@ -491,6 +523,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "High orbit (classified)",
     details:
       "X-37B military spaceplane OTV-7. First X-37B launch on FH. Returned March 2025 after 434 days.",
+    boosterReturn: {
+      landingType: "RTLS",
+      landingCoords: { lat: 28.485, lng: -80.544 },
+    },
     webcastUrl: "",
     flightHistory: {
       flightNumber: 9,
@@ -548,6 +584,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     details:
       "Final GOES-R series weather satellite for NOAA. Now operational as GOES-19.",
     webcastUrl: "",
+    boosterReturn: {
+      landingType: "RTLS",
+      landingCoords: { lat: 28.485, lng: -80.544 },
+    },
     flightHistory: {
       flightNumber: 10,
       missionOutcome: "success",
@@ -601,6 +641,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     details:
       "NASA's largest planetary science spacecraft. Fully expendable configuration — all 3 boosters sacrificed. Jupiter arrival 2030.",
     webcastUrl: "https://www.youtube.com/watch?v=lQToTWKwtuw",
+    boosterReturn: {
+      landingType: "expended",
+      landingCoords: { lat: 28.485, lng: -80.544 },
+    },
     flightHistory: {
       flightNumber: 11,
       missionOutcome: "success",
@@ -796,6 +840,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "First Starship to reach space. Payload bay door test and propellant transfer demo achieved. Ship broke apart during reentry.",
+    boosterReturn: {
+      landingType: "ASDS",
+      landingCoords: { lat: 26.0, lng: -95.5 },
+    },
     webcastUrl: "https://www.youtube.com/watch?v=ApMrILhTulI",
     flightHistory: {
       flightNumber: 3,
@@ -866,6 +914,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "First fully successful Starship flight. Ship survived reentry for the first time — despite a damaged flap, completed landing flip and ocean splashdown.",
+    boosterReturn: {
+      landingType: "ASDS",
+      landingCoords: { lat: 26.0, lng: -95.5 },
+    },
     webcastUrl: "https://www.youtube.com/watch?v=j2BdNDTlWbo",
     flightHistory: {
       flightNumber: 4,
@@ -934,6 +986,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "Historic first booster catch by Mechazilla tower arms! Ship successfully reentered and splashed down in Indian Ocean.",
+    boosterReturn: {
+      landingType: "RTLS",
+      landingCoords: { lat: 25.9972, lng: -97.1561 },
+    },
     webcastUrl: "https://www.youtube.com/watch?v=hI9HQfCAw64",
     flightHistory: {
       flightNumber: 5,
@@ -1000,6 +1056,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "First in-space Raptor engine relight. Tower catch aborted — booster splashed down in Gulf. Ship survived reentry.",
+    boosterReturn: {
+      landingType: "ASDS",
+      landingCoords: { lat: 26.0, lng: -95.5 },
+    },
     webcastUrl: "https://www.youtube.com/watch?v=CMGiNKcVSek",
     flightHistory: {
       flightNumber: 6,
@@ -1069,6 +1129,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "First Block 2 flight. Second tower catch! Ship deployed 10 Starlink sims but destroyed by propulsion leak/fire at T+8.5 min.",
+    boosterReturn: {
+      landingType: "RTLS",
+      landingCoords: { lat: 25.9972, lng: -97.1561 },
+    },
     webcastUrl: "https://www.youtube.com/watch?v=Pn6e1O5bEyA",
     flightHistory: {
       flightNumber: 7,
@@ -1144,6 +1208,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "Third tower catch (despite 2 engines failing during boostback). Ship destroyed at T+9:30 — Raptor engine part failure.",
+    boosterReturn: {
+      landingType: "RTLS",
+      landingCoords: { lat: 25.9972, lng: -97.1561 },
+    },
     webcastUrl: "",
     flightHistory: {
       flightNumber: 8,
@@ -1197,7 +1265,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     id: "starship-flight9",
     name: "Starship Flight 9",
     dateUtc: "2025-05-27T18:09:00.000Z",
-    dateUnix: 1748365740,
+    dateUnix: 1748369340,
     launchSite: {
       id: "boca-chica",
       name: "Starbase",
@@ -1209,6 +1277,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "First Super Heavy booster reuse (B14 from Flight 7). Ship reached orbit — first Block 2 ship to do so — but methane leak caused loss of control.",
+    boosterReturn: {
+      landingType: "ASDS",
+      landingCoords: { lat: 26.0, lng: -95.5 },
+    },
     webcastUrl: "",
     flightHistory: {
       flightNumber: 9,
@@ -1278,7 +1350,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     id: "starship-flight10",
     name: "Starship Flight 10",
     dateUtc: "2025-08-26T16:00:00.000Z",
-    dateUnix: 1756281600,
+    dateUnix: 1756224000,
     launchSite: {
       id: "boca-chica",
       name: "Starbase",
@@ -1290,6 +1362,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "Broke the Block 2 curse. First successful payload deployment! Ship reentered with intentionally missing tiles, splashed down ~3m from target.",
+    boosterReturn: {
+      landingType: "ASDS",
+      landingCoords: { lat: 26.0, lng: -95.5 },
+    },
     webcastUrl: "https://www.youtube.com/watch?v=rcd_SQZDlnk",
     flightHistory: {
       flightNumber: 10,
@@ -1356,7 +1432,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     id: "starship-flight11",
     name: "Starship Flight 11",
     dateUtc: "2025-10-13T15:00:00.000Z",
-    dateUnix: 1760436000,
+    dateUnix: 1760367600,
     launchSite: {
       id: "boca-chica",
       name: "Starbase",
@@ -1368,6 +1444,10 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "Final Block 2 flight. Second booster reuse (B15). Ship deployed 8 sims, performed banking maneuver during reentry, precision splashdown.",
+    boosterReturn: {
+      landingType: "ASDS",
+      landingCoords: { lat: 26.5, lng: -96.0 },
+    },
     webcastUrl: "",
     flightHistory: {
       flightNumber: 11,
@@ -2345,7 +2425,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     id: "fb-001",
     name: "Starlink Group 12-1",
     dateUtc: "2025-09-15T06:00:00.000Z",
-    dateUnix: 1726380000,
+    dateUnix: 1757916000,
     launchSite: { id: "cape-canaveral-slc40", name: "CCSFS SLC-40", fullName: "Cape Canaveral SLC-40", lat: 28.5618, lng: -80.5770 },
     status: "success",
     rocketType: "Falcon 9",
@@ -2373,7 +2453,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     id: "fb-002",
     name: "NROL-167",
     dateUtc: "2025-10-03T10:00:00.000Z",
-    dateUnix: 1727949600,
+    dateUnix: 1759485600,
     launchSite: { id: "vandenberg-slc4e", name: "VSFB SLC-4E", fullName: "Vandenberg SLC-4E", lat: 34.6321, lng: -120.6108 },
     status: "success",
     rocketType: "Falcon 9",

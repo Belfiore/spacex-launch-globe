@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { STATUS_COLORS, TIMELINE } from "@/lib/constants";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import type { Launch } from "@/lib/types";
 
 function getTimeRange(selectedYear: number | "all") {
@@ -67,7 +68,7 @@ function getSiteAbbr(siteId: string): string {
   if (siteId.includes("cape-canaveral") || siteId.includes("ksc")) return "CC";
   if (siteId.includes("boca-chica")) return "BC";
   if (siteId.includes("vandenberg")) return "V";
-  if (siteId.includes("kwajalein")) return "KW";
+  if (siteId.includes("kwajalein")) return "OI";
   return "";
 }
 
@@ -81,6 +82,8 @@ export default function Timeline() {
   const [isDragging, setIsDragging] = useState(false);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [mounted, setMounted] = useState(false);
+  const isMobile = useIsMobile();
+  const timelineHeight = isMobile ? TIMELINE.MOBILE_HEIGHT : TIMELINE.HEIGHT;
 
   const launches = useAppStore((s) => s.launches);
   const timelineDate = useAppStore((s) => s.timelineDate);
@@ -164,6 +167,29 @@ export default function Timeline() {
     };
   }, [isDragging, updateFromMouse]);
 
+  // Touch event handlers for mobile
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      setIsDragging(true);
+      updateFromMouse(e.touches[0].clientX);
+    },
+    [updateFromMouse]
+  );
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (isDragging) {
+        e.preventDefault();
+        updateFromMouse(e.touches[0].clientX);
+      }
+    },
+    [isDragging, updateFromMouse]
+  );
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
   function handleLaunchTickClick(launch: Launch) {
     setTimelineDate(new Date(launch.dateUtc));
     setSelectedLaunch(launch);
@@ -180,7 +206,7 @@ export default function Timeline() {
         bottom: 0,
         left: 0,
         right: 0,
-        height: `${TIMELINE.HEIGHT}px`,
+        height: `${timelineHeight}px`,
         zIndex: 30,
         background: "rgba(18, 24, 41, 0.85)",
         backdropFilter: "blur(20px)",
@@ -188,7 +214,7 @@ export default function Timeline() {
         borderTop: "1px solid rgba(255, 255, 255, 0.06)",
         display: "flex",
         flexDirection: "column",
-        padding: "8px 24px 12px",
+        padding: isMobile ? "4px 12px 6px" : "8px 24px 12px",
         userSelect: "none",
         transition: "transform 0.3s ease, opacity 0.3s ease",
         transform: focusMode ? "translateY(100%)" : "translateY(0)",
@@ -201,17 +227,17 @@ export default function Timeline() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "6px",
-          fontSize: "11px",
+          marginBottom: isMobile ? "2px" : "6px",
+          fontSize: isMobile ? "9px" : "11px",
           color: "#94a3b8",
-          minHeight: "16px",
+          minHeight: isMobile ? "12px" : "16px",
         }}
       >
         {mounted && (
           <>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              {/* Year dropdown */}
-              <select
+              {/* Year dropdown — hidden on mobile (already in FilterBar) */}
+              {!isMobile && <select
                 value={selectedYear}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -257,10 +283,10 @@ export default function Timeline() {
                     {year}
                   </option>
                 ))}
-              </select>
+              </select>}
               <span>
                 {timelineDate.toLocaleDateString("en-US", {
-                  weekday: "short",
+                  weekday: isMobile ? undefined : "short",
                   month: "short",
                   day: "numeric",
                   year: "numeric",
@@ -291,6 +317,9 @@ export default function Timeline() {
           cursor: isDragging ? "grabbing" : "pointer",
         }}
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Track line */}
         <div
@@ -337,7 +366,7 @@ export default function Timeline() {
                     style={{
                       position: "absolute",
                       bottom: "-2px",
-                      fontSize: "9px",
+                      fontSize: isMobile ? "7px" : "9px",
                       color: "#475569",
                       whiteSpace: "nowrap",
                     }}
@@ -437,8 +466,8 @@ export default function Timeline() {
                 >
                   <div
                     style={{
-                      width: "8px",
-                      height: "8px",
+                      width: isMobile ? "6px" : "8px",
+                      height: isMobile ? "6px" : "8px",
                       borderRadius: "50%",
                       background: color,
                       boxShadow: `0 0 6px ${color}80`,

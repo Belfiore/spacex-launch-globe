@@ -124,10 +124,15 @@ function mergeWithHistorical(apiLaunches: Launch[]): Launch[] {
     if (!apiIds.has(hist.id)) {
       merged.push(hist);
     } else {
-      // Attach flightHistory to existing API launch
+      // Attach flightHistory and boosterReturn to existing API launch
       const idx = merged.findIndex((l) => l.id === hist.id);
-      if (idx !== -1 && hist.flightHistory) {
-        merged[idx] = { ...merged[idx], flightHistory: hist.flightHistory };
+      if (idx !== -1) {
+        if (hist.flightHistory) {
+          merged[idx] = { ...merged[idx], flightHistory: hist.flightHistory };
+        }
+        if (hist.boosterReturn) {
+          merged[idx] = { ...merged[idx], boosterReturn: hist.boosterReturn };
+        }
       }
     }
   }

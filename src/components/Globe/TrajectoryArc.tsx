@@ -45,8 +45,7 @@ export default function TrajectoryArc({
 
   const hasBoosterReturn =
     launch.boosterReturn &&
-    launch.boosterReturn.landingType !== "expended" &&
-    (launch.rocketType === "Falcon 9" || launch.rocketType === "Falcon Heavy");
+    launch.boosterReturn.landingType !== "expended";
 
   const boosterCurve = useMemo(() => {
     if (!hasBoosterReturn || !launch.boosterReturn) return null;
@@ -144,7 +143,7 @@ export default function TrajectoryArc({
 
   const showBoosterReturn = !isStaticPreview && hasBoosterReturn && progress >= STAGING_PROGRESS;
   const boosterProgress = showBoosterReturn
-    ? Math.min(1, (progress - STAGING_PROGRESS) / (0.55 * (1 - STAGING_PROGRESS)))
+    ? Math.min(1, (progress - STAGING_PROGRESS) / ((launch.rocketType === "Starship" ? 0.45 : 0.55) * (1 - STAGING_PROGRESS)))
     : 0;
 
   const boosterRocketIdx = Math.floor(boosterProgress * 60);
@@ -270,7 +269,7 @@ export default function TrajectoryArc({
 
       {/* Booster rocket model */}
       {showBoosterReturn && boosterPoint && boosterTangent && boosterProgress < 0.9 && (
-        <RocketModel position={boosterPoint} tangent={boosterTangent} rocketType="Falcon 9" progress={0.4} />
+        <RocketModel position={boosterPoint} tangent={boosterTangent} rocketType={launch.rocketType} progress={0.4} />
       )}
 
       {/* Atmospheric reentry glow — visible during booster entry phase */}

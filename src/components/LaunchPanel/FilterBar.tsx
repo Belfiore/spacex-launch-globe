@@ -1,10 +1,33 @@
 "use client";
 
+import { useState } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { SITE_GROUPS } from "@/lib/constants";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const ROCKET_TYPES = ["Falcon 9", "Falcon Heavy", "Starship", "Falcon 1"];
 const STATUSES = ["upcoming", "success", "failure"];
+
+/** Short tooltip descriptions for each filter */
+const TOOLTIPS: Record<string, string> = {
+  // Rocket types
+  "Falcon 9": "Workhorse medium-lift rocket",
+  "Falcon Heavy": "Triple-booster heavy-lift rocket",
+  "Starship": "Super heavy-lift next-gen vehicle",
+  "Falcon 1": "SpaceX's first small-lift rocket",
+  // Statuses
+  "upcoming": "Scheduled future launches",
+  "success": "Mission objectives achieved",
+  "failure": "Vehicle or mission loss",
+  // Sites
+  "CC": "Cape Canaveral, Florida",
+  "BC": "Boca Chica / Starbase, Texas",
+  "V": "Vandenberg SFB, California",
+  "OI": "Omelek Island, Kwajalein Atoll",
+  // Special
+  "jellyfish": "Exhaust plume glows in twilight sunlight",
+  "clear": "Remove all active filters",
+};
 
 export default function FilterBar() {
   const filters = useAppStore((s) => s.filters);
@@ -14,6 +37,8 @@ export default function FilterBar() {
   const setSelectedYear = useAppStore((s) => s.setSelectedYear);
   const availableYears = useAppStore((s) => s.availableYears);
   const setTimelineDate = useAppStore((s) => s.setTimelineDate);
+  const isMobile = useIsMobile();
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
 
   const hasActiveFilters =
     filters.search ||
@@ -23,6 +48,14 @@ export default function FilterBar() {
     filters.sites.length > 0 ||
     filters.jellyfish;
 
+  const activeFilterCount = [
+    filters.rocketType,
+    filters.status,
+    filters.site,
+    filters.sites.length > 0,
+    filters.jellyfish,
+  ].filter(Boolean).length;
+
   function toggleSite(key: string) {
     const current = filters.sites;
     const next = current.includes(key)
@@ -31,10 +64,12 @@ export default function FilterBar() {
     setFilters({ sites: next });
   }
 
+  const chipPadding = isMobile ? "6px 12px" : "3px 8px";
+
   return (
     <div
       style={{
-        padding: "10px 14px",
+        padding: isMobile ? "8px 12px" : "10px 14px",
         borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
         display: "flex",
         flexDirection: "column",
@@ -42,46 +77,112 @@ export default function FilterBar() {
         flexShrink: 0,
       }}
     >
-      {/* Search */}
-      <div style={{ position: "relative" }}>
-        <input
-          type="text"
-          placeholder="Search missions..."
-          value={filters.search}
-          onChange={(e) => setFilters({ search: e.target.value })}
-          style={{
-            width: "100%",
-            padding: "7px 10px 7px 30px",
-            borderRadius: "6px",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            background: "rgba(255, 255, 255, 0.03)",
-            color: "#e2e8f0",
-            fontSize: "12px",
-            outline: "none",
-            transition: "border-color 0.2s ease",
-          }}
-          onFocus={(e) =>
-            (e.target.style.borderColor = "rgba(34, 211, 238, 0.3)")
+      {/* Year dropdown — above search */}
+      <select
+        value={selectedYear}
+        onChange={(e) => {
+          const val = e.target.value;
+          if (val === "all") {
+            setSelectedYear("all");
+            setTimelineDate(new Date());
+          } else {
+            const year = Number(val);
+            setSelectedYear(year);
+            const now = new Date();
+            if (year === now.getFullYear()) {
+              setTimelineDate(now);
+            } else {
+              setTimelineDate(new Date(year, 6, 1));
+            }
           }
-          onBlur={(e) =>
-            (e.target.style.borderColor = "rgba(255, 255, 255, 0.08)")
-          }
-        />
-        <span
-          style={{
-            position: "absolute",
-            left: "10px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            fontSize: "12px",
-            opacity: 0.4,
-          }}
-        >
-          🔍
-        </span>
+        }}
+        style={{
+          padding: isMobile ? "7px 6px" : "4px 6px",
+          borderRadius: isMobile ? "6px" : "4px",
+          border: "1px solid rgba(34, 211, 238, 0.3)",
+          background: "rgba(34, 211, 238, 0.08)",
+          color: "#22d3ee",
+          cursor: "pointer",
+          fontSize: isMobile ? "12px" : "11px",
+          fontWeight: 600,
+          outline: "none",
+          fontFamily: "inherit",
+          width: "100%",
+        }}
+      >
+        <option value="all" style={{ background: "#0a0e1a", color: "#e2e8f0" }}>
+          All Years
+        </option>
+        {availableYears.map((year) => (
+          <option key={year} value={year} style={{ background: "#0a0e1a", color: "#e2e8f0" }}>
+            {year}
+          </option>
+        ))}
+      </select>
+
+      {/* Row 2: Search + mobile filters toggle */}
+      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+        <div style={{ position: "relative", flex: 1 }}>
+          <input
+            type="text"
+            placeholder="Search missions..."
+            value={filters.search}
+            onChange={(e) => setFilters({ search: e.target.value })}
+            style={{
+              width: "100%",
+              padding: "7px 10px 7px 30px",
+              borderRadius: "6px",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              background: "rgba(255, 255, 255, 0.03)",
+              color: "#e2e8f0",
+              fontSize: "12px",
+              outline: "none",
+              transition: "border-color 0.2s ease",
+            }}
+            onFocus={(e) =>
+              (e.target.style.borderColor = "rgba(34, 211, 238, 0.3)")
+            }
+            onBlur={(e) =>
+              (e.target.style.borderColor = "rgba(255, 255, 255, 0.08)")
+            }
+          />
+          <span
+            style={{
+              position: "absolute",
+              left: "10px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              fontSize: "12px",
+              opacity: 0.4,
+            }}
+          >
+            {"🔍"}
+          </span>
+        </div>
+        {/* Mobile: Filters toggle button */}
+        {isMobile && (
+          <button
+            onClick={() => setFiltersExpanded(!filtersExpanded)}
+            style={{
+              padding: "6px 10px",
+              borderRadius: "6px",
+              border: `1px solid ${hasActiveFilters || filtersExpanded ? "rgba(34, 211, 238, 0.4)" : "rgba(255, 255, 255, 0.08)"}`,
+              background: hasActiveFilters || filtersExpanded ? "rgba(34, 211, 238, 0.1)" : "rgba(255, 255, 255, 0.02)",
+              color: hasActiveFilters || filtersExpanded ? "#22d3ee" : "#64748b",
+              cursor: "pointer",
+              fontSize: "11px",
+              fontWeight: 600,
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}
+          >
+            Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""} {filtersExpanded ? "\u25B4" : "\u25BE"}
+          </button>
+        )}
       </div>
 
-      {/* Year selector + filter chips */}
+      {/* Filter chips — always shown on desktop, collapsible on mobile */}
+      {(!isMobile || filtersExpanded) && (
       <div
         style={{
           display: "flex",
@@ -91,50 +192,6 @@ export default function FilterBar() {
           alignItems: "center",
         }}
       >
-        {/* Year dropdown */}
-        <select
-          value={selectedYear}
-          onChange={(e) => {
-            const val = e.target.value;
-            if (val === "all") {
-              setSelectedYear("all");
-              setTimelineDate(new Date());
-            } else {
-              const year = Number(val);
-              setSelectedYear(year);
-              const now = new Date();
-              if (year === now.getFullYear()) {
-                setTimelineDate(now);
-              } else {
-                setTimelineDate(new Date(year, 6, 1));
-              }
-            }
-          }}
-          style={{
-            padding: "3px 4px",
-            borderRadius: "4px",
-            border: "1px solid rgba(34, 211, 238, 0.3)",
-            background: "rgba(34, 211, 238, 0.08)",
-            color: "#22d3ee",
-            cursor: "pointer",
-            fontSize: "10px",
-            fontWeight: 600,
-            outline: "none",
-            fontFamily: "inherit",
-          }}
-        >
-          <option value="all" style={{ background: "#0a0e1a", color: "#e2e8f0" }}>
-            All Years
-          </option>
-          {availableYears.map((year) => (
-            <option key={year} value={year} style={{ background: "#0a0e1a", color: "#e2e8f0" }}>
-              {year}
-            </option>
-          ))}
-        </select>
-
-        <span style={{ color: "#334155", margin: "0 2px" }}>|</span>
-
         {/* Rocket types */}
         {ROCKET_TYPES.map((type) => (
           <button
@@ -144,8 +201,9 @@ export default function FilterBar() {
                 rocketType: filters.rocketType === type ? null : type,
               })
             }
+            title={TOOLTIPS[type]}
             style={{
-              padding: "3px 8px",
+              padding: chipPadding,
               borderRadius: "4px",
               border: `1px solid ${
                 filters.rocketType === type
@@ -178,8 +236,9 @@ export default function FilterBar() {
                 status: filters.status === status ? null : status,
               })
             }
+            title={TOOLTIPS[status]}
             style={{
-              padding: "3px 8px",
+              padding: chipPadding,
               borderRadius: "4px",
               border: `1px solid ${
                 filters.status === status
@@ -211,8 +270,9 @@ export default function FilterBar() {
             <button
               key={group.key}
               onClick={() => toggleSite(group.key)}
+              title={TOOLTIPS[group.key]}
               style={{
-                padding: "3px 8px",
+                padding: chipPadding,
                 borderRadius: "4px",
                 border: `1px solid ${
                   isActive ? `${group.color}66` : "rgba(255, 255, 255, 0.08)"
@@ -250,8 +310,9 @@ export default function FilterBar() {
         {/* Jellyfish filter */}
         <button
           onClick={() => setFilters({ jellyfish: !filters.jellyfish })}
+          title={TOOLTIPS["jellyfish"]}
           style={{
-            padding: "3px 8px",
+            padding: chipPadding,
             borderRadius: "4px",
             border: `1px solid ${
               filters.jellyfish
@@ -287,8 +348,9 @@ export default function FilterBar() {
         {hasActiveFilters && (
           <button
             onClick={resetFilters}
+            title={TOOLTIPS["clear"]}
             style={{
-              padding: "3px 8px",
+              padding: chipPadding,
               borderRadius: "4px",
               border: "1px solid rgba(239, 68, 68, 0.3)",
               background: "rgba(239, 68, 68, 0.08)",
@@ -302,6 +364,7 @@ export default function FilterBar() {
           </button>
         )}
       </div>
+      )}
     </div>
   );
 }

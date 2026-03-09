@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useCallback, useState, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface MissionPhase {
   label: string;
@@ -247,6 +248,7 @@ export default function MiniTimeline() {
   }, [displayT, phases]);
 
   const focusMode = useAppStore((s) => s.focusMode);
+  const isMobile = useIsMobile();
 
   if (!selectedLaunch || displayT === null || phases.length === 0) return null;
 
@@ -260,9 +262,10 @@ export default function MiniTimeline() {
     <div
       style={{
         position: "fixed",
-        bottom: "92px",
+        bottom: isMobile ? "68px" : "92px",
         left: "50%",
         transform: "translateX(-50%)",
+        width: isMobile ? "90vw" : "auto",
         zIndex: 45,
         display: "flex",
         flexDirection: "column",
@@ -327,8 +330,8 @@ export default function MiniTimeline() {
               : "rgba(34, 211, 238, 0.15)",
             border: "1px solid rgba(34, 211, 238, 0.5)",
             borderRadius: "50%",
-            width: "36px",
-            height: "36px",
+            width: isMobile ? "30px" : "36px",
+            height: isMobile ? "30px" : "36px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

@@ -9,7 +9,7 @@ import Timeline from "@/components/Timeline/Timeline";
 
 import CinematicEntry from "@/components/Entry/CinematicEntry";
 import Wordmark from "@/components/Entry/Wordmark";
-import ControlsPanel from "@/components/UI/ControlsPanel";
+
 import MiniTimeline from "@/components/UI/MiniTimeline";
 import InfoPanel from "@/components/InfoPanel/InfoPanel";
 
@@ -78,8 +78,7 @@ export default function Home() {
     <main className="relative w-screen h-screen overflow-hidden">
       <Globe />
 
-      {/* Controls panel — bottom right */}
-      <ControlsPanel />
+      {/* Controls toolbar — integrated into LaunchPanel header */}
 
       {/* Persistent wordmark — top left */}
       <Wordmark />

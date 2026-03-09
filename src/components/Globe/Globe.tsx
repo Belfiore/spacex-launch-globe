@@ -195,6 +195,11 @@ function GlobeScene() {
         panSpeed={0.4}
         minPolarAngle={0.1}
         maxPolarAngle={Math.PI - 0.1}
+        mouseButtons={{
+          LEFT: THREE.MOUSE.ROTATE,
+          MIDDLE: THREE.MOUSE.PAN,
+          RIGHT: THREE.MOUSE.PAN,
+        }}
         onStart={handleInteractionStart}
       />
     </>
