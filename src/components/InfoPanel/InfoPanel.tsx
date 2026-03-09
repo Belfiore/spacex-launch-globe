@@ -360,7 +360,7 @@ function InfoPanelContent({ launch }: { launch: Launch }) {
                     lineHeight: 1,
                   }}
                 >
-                  {"\\u2715"}
+                  {"\u2715"}
                 </button>
               </div>
               <iframe

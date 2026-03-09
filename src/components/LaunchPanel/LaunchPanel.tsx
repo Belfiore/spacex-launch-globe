@@ -78,8 +78,10 @@ export default function LaunchPanel() {
   const filteredLaunches = useMemo(() => {
     return launches.filter((l) => {
       // Year filter
-      const launchYear = new Date(l.dateUtc).getFullYear();
-      if (launchYear !== selectedYear) return false;
+      if (selectedYear !== "all") {
+        const launchYear = new Date(l.dateUtc).getFullYear();
+        if (launchYear !== selectedYear) return false;
+      }
 
       if (
         filters.search &&
@@ -149,10 +151,14 @@ export default function LaunchPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedLaunch?.id]);
 
+  const closeInfoPanel = useAppStore((s) => s.closeInfoPanel);
+
   function handleCardClick(launch: (typeof launches)[0]) {
     const isDeselect = selectedLaunch?.id === launch.id;
     // Stop any active playback when switching launches
     pauseMissionPlayback();
+    // Close info panel when clicking any card
+    closeInfoPanel();
     setSelectedLaunch(isDeselect ? null : launch);
     if (!isDeselect) {
       setCameraTarget({
@@ -196,7 +202,7 @@ export default function LaunchPanel() {
     top: 0,
     right: 0,
     bottom: `${TIMELINE.HEIGHT}px`,
-    width: "320px",
+    width: "380px",
     zIndex: 40,
     transform: panelOpen && !focusMode ? "translateX(0)" : "translateX(100%)",
     transition: "transform 0.3s ease",
@@ -232,7 +238,7 @@ export default function LaunchPanel() {
     : {
         position: "fixed",
         top: "16px",
-        right: panelOpen ? "336px" : "16px",
+        right: panelOpen ? "396px" : "16px",
         zIndex: 50,
         width: "36px",
         height: "36px",

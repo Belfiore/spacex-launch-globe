@@ -86,8 +86,8 @@ interface AppState {
   toggleFocusMode: () => void;
 
   // Year navigation
-  selectedYear: number;
-  setSelectedYear: (year: number) => void;
+  selectedYear: number | "all";
+  setSelectedYear: (year: number | "all") => void;
   availableYears: number[];
   setAvailableYears: (years: number[]) => void;
 }
@@ -206,7 +206,7 @@ export const useAppStore = create<AppState>((set) => ({
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
 
   // Year navigation
-  selectedYear: new Date().getFullYear(),
+  selectedYear: "all",
   setSelectedYear: (year) => set({ selectedYear: year }),
   availableYears: [new Date().getFullYear()],
   setAvailableYears: (years) => set({ availableYears: years }),

@@ -159,7 +159,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "LEO (multiple)",
     details:
       "Most complex FH mission — 25 small satellites deployed via 4 upper-stage burns over 6 hours.",
-    webcastUrl: "https://www.youtube.com/watch?v=LB4Rbi0GhCo",
+    webcastUrl: "https://www.youtube.com/watch?v=WxH4CAlhtiQ",
     flightHistory: {
       flightNumber: 3,
       missionOutcome: "success",
@@ -218,7 +218,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "GEO",
     details:
       "First NSSL-certified FH flight. Debuted the B1064/B1065 booster pair that flew 6 missions total.",
-    webcastUrl: "https://www.youtube.com/watch?v=YMMH6eO8YuM",
+    webcastUrl: "https://www.youtube.com/watch?v=pY628jRd6gM",
     flightHistory: {
       flightNumber: 4,
       missionOutcome: "success",
@@ -277,7 +277,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "GEO",
     details:
       "Classified USSF payload, believed to include CBAS-2 military communications relay satellite.",
-    webcastUrl: "https://www.youtube.com/watch?v=GZdMpVCT0Co",
+    webcastUrl: "https://www.youtube.com/watch?v=nfxyF1_Ylkk",
     flightHistory: {
       flightNumber: 5,
       missionOutcome: "success",
@@ -330,7 +330,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "GTO",
     details:
       "Launch successful. The ViaSat-3 satellite later experienced a reflector antenna deployment failure (unrelated to launch).",
-    webcastUrl: "https://www.youtube.com/watch?v=5gCnB7LBT-0",
+    webcastUrl: "https://www.youtube.com/watch?v=YFbp6PVbJQA",
     flightHistory: {
       flightNumber: 6,
       missionOutcome: "success",
@@ -382,7 +382,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "GTO",
     details:
       "Heaviest geostationary satellite launched by Falcon Heavy (~9,200 kg).",
-    webcastUrl: "https://www.youtube.com/watch?v=GpUbY3JXZCA",
+    webcastUrl: "https://www.youtube.com/watch?v=5ixbPMe6684",
     flightHistory: {
       flightNumber: 7,
       missionOutcome: "success",
@@ -435,7 +435,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "Interplanetary",
     details:
       "NASA mission to asteroid 16 Psyche — a metal-rich asteroid believed to be a protoplanet core. Arrival expected 2029.",
-    webcastUrl: "https://www.youtube.com/watch?v=0mOb3u0mPRY",
+    webcastUrl: "https://www.youtube.com/watch?v=npIDMxrzm_o",
     flightHistory: {
       flightNumber: 8,
       missionOutcome: "success",
@@ -491,7 +491,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "High orbit (classified)",
     details:
       "X-37B military spaceplane OTV-7. First X-37B launch on FH. Returned March 2025 after 434 days.",
-    webcastUrl: "https://www.youtube.com/watch?v=tD_xYjCsXpU",
+    webcastUrl: "",
     flightHistory: {
       flightNumber: 9,
       missionOutcome: "success",
@@ -547,7 +547,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "GTO",
     details:
       "Final GOES-R series weather satellite for NOAA. Now operational as GOES-19.",
-    webcastUrl: "https://www.youtube.com/watch?v=6w5CkeU8wSc",
+    webcastUrl: "",
     flightHistory: {
       flightNumber: 10,
       missionOutcome: "success",
@@ -600,7 +600,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "Interplanetary (Jupiter)",
     details:
       "NASA's largest planetary science spacecraft. Fully expendable configuration — all 3 boosters sacrificed. Jupiter arrival 2030.",
-    webcastUrl: "https://www.youtube.com/watch?v=CMLD0Lp0JBg",
+    webcastUrl: "https://www.youtube.com/watch?v=lQToTWKwtuw",
     flightHistory: {
       flightNumber: 11,
       missionOutcome: "success",
@@ -666,7 +666,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "First-ever integrated Starship/Super Heavy flight. Multiple engine failures, vehicle tumbled, AFTS triggered at T+4 min. Pad severely damaged.",
-    webcastUrl: "https://www.youtube.com/watch?v=L5QXreqOrTA",
+    webcastUrl: "https://www.youtube.com/watch?v=_krgcofiM6M",
     flightHistory: {
       flightNumber: 1,
       missionOutcome: "failure",
@@ -729,7 +729,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "First successful hot staging. Booster exploded during boostback. Ship destroyed by AFTS at T+8 min due to propellant fire.",
-    webcastUrl: "https://www.youtube.com/watch?v=8ZGpJBa2Ts0",
+    webcastUrl: "https://www.youtube.com/watch?v=C3iHAgwIYtI",
     flightHistory: {
       flightNumber: 2,
       missionOutcome: "failure",
@@ -796,7 +796,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "First Starship to reach space. Payload bay door test and propellant transfer demo achieved. Ship broke apart during reentry.",
-    webcastUrl: "https://www.youtube.com/watch?v=j4PL59Iu31I",
+    webcastUrl: "https://www.youtube.com/watch?v=ApMrILhTulI",
     flightHistory: {
       flightNumber: 3,
       missionOutcome: "failure",
@@ -866,7 +866,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "First fully successful Starship flight. Ship survived reentry for the first time — despite a damaged flap, completed landing flip and ocean splashdown.",
-    webcastUrl: "https://www.youtube.com/watch?v=mRIMaZaCS4I",
+    webcastUrl: "https://www.youtube.com/watch?v=j2BdNDTlWbo",
     flightHistory: {
       flightNumber: 4,
       missionOutcome: "success",
@@ -934,7 +934,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "Historic first booster catch by Mechazilla tower arms! Ship successfully reentered and splashed down in Indian Ocean.",
-    webcastUrl: "https://www.youtube.com/watch?v=OMXDM4JrMOA",
+    webcastUrl: "https://www.youtube.com/watch?v=hI9HQfCAw64",
     flightHistory: {
       flightNumber: 5,
       missionOutcome: "success",
@@ -1000,7 +1000,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "First in-space Raptor engine relight. Tower catch aborted — booster splashed down in Gulf. Ship survived reentry.",
-    webcastUrl: "https://www.youtube.com/watch?v=PNSxKb7t0P4",
+    webcastUrl: "https://www.youtube.com/watch?v=CMGiNKcVSek",
     flightHistory: {
       flightNumber: 6,
       missionOutcome: "success",
@@ -1069,7 +1069,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "First Block 2 flight. Second tower catch! Ship deployed 10 Starlink sims but destroyed by propulsion leak/fire at T+8.5 min.",
-    webcastUrl: "https://www.youtube.com/watch?v=99n-HkGEuCM",
+    webcastUrl: "https://www.youtube.com/watch?v=Pn6e1O5bEyA",
     flightHistory: {
       flightNumber: 7,
       missionOutcome: "partial",
@@ -1144,7 +1144,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "Third tower catch (despite 2 engines failing during boostback). Ship destroyed at T+9:30 — Raptor engine part failure.",
-    webcastUrl: "https://www.youtube.com/watch?v=5CJFpTg7kCQ",
+    webcastUrl: "",
     flightHistory: {
       flightNumber: 8,
       missionOutcome: "partial",
@@ -1209,7 +1209,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "First Super Heavy booster reuse (B14 from Flight 7). Ship reached orbit — first Block 2 ship to do so — but methane leak caused loss of control.",
-    webcastUrl: "https://www.youtube.com/watch?v=5lE38MYRtjk",
+    webcastUrl: "",
     flightHistory: {
       flightNumber: 9,
       missionOutcome: "partial",
@@ -1290,7 +1290,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "Broke the Block 2 curse. First successful payload deployment! Ship reentered with intentionally missing tiles, splashed down ~3m from target.",
-    webcastUrl: "https://www.youtube.com/watch?v=DLphFGcfnDk",
+    webcastUrl: "https://www.youtube.com/watch?v=rcd_SQZDlnk",
     flightHistory: {
       flightNumber: 10,
       missionOutcome: "success",
@@ -1368,7 +1368,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     rocketType: "Starship",
     details:
       "Final Block 2 flight. Second booster reuse (B15). Ship deployed 8 sims, performed banking maneuver during reentry, precision splashdown.",
-    webcastUrl: "https://www.youtube.com/watch?v=nQCefECyIbs",
+    webcastUrl: "",
     flightHistory: {
       flightNumber: 11,
       missionOutcome: "success",
@@ -1669,7 +1669,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "SSO",
     details:
       "Record 143 satellites on a single launch — most ever deployed on one mission at the time.",
-    webcastUrl: "https://www.youtube.com/watch?v=ScHI3WOlIyQ",
+    webcastUrl: "https://www.youtube.com/watch?v=ScHI1cbkUv4",
     flightHistory: {
       flightNumber: 105,
       missionOutcome: "success",
@@ -1758,7 +1758,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "Interplanetary",
     details:
       "NASA planetary defense mission. Spacecraft impacted asteroid Dimorphos in Sep 2022, successfully altering its orbit.",
-    webcastUrl: "https://www.youtube.com/watch?v=vr_C6abC_Kw",
+    webcastUrl: "https://www.youtube.com/watch?v=XKRf6-NcMqI",
     flightHistory: {
       flightNumber: 132,
       missionOutcome: "success",
@@ -1802,7 +1802,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "LEO (ISS)",
     details:
       "First fully private crewed mission to ISS. Axiom Space mission with 4 private astronauts. 17-day mission.",
-    webcastUrl: "https://www.youtube.com/watch?v=awnS7-5wD_E",
+    webcastUrl: "https://www.youtube.com/watch?v=5nLk_Vqp7nw",
     flightHistory: {
       flightNumber: 150,
       missionOutcome: "success",
@@ -1846,7 +1846,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     payloadOrbit: "LEO (1,400 km apogee)",
     details:
       "First commercial EVA (spacewalk). Reached 1,400 km — highest crewed orbit since Apollo. Tested SpaceX EVA suits.",
-    webcastUrl: "https://www.youtube.com/watch?v=snMJmHW7zuk",
+    webcastUrl: "https://www.youtube.com/watch?v=rQEqKZ7CJlk",
     flightHistory: {
       flightNumber: 371,
       missionOutcome: "success",
@@ -2085,6 +2085,565 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
         "First launch from SLC-40 for a crewed mission",
       ],
       significance: "Rescued Boeing Starliner crew with empty Dragon seats",
+    },
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // EARLY FALCON FAILURES & MILESTONES
+  // ═══════════════════════════════════════════════════════════════
+
+  {
+    id: "f1-flight1",
+    name: "Falcon 1 Flight 1",
+    dateUtc: "2006-03-24T22:30:00.000Z",
+    dateUnix: 1143243000,
+    launchSite: {
+      id: "kwajalein",
+      name: "Omelek Island",
+      fullName: "Reagan Test Site, Kwajalein Atoll",
+      lat: 9.0477,
+      lng: 167.7431,
+    },
+    status: "failure",
+    rocketType: "Falcon 1",
+    details: "First-ever SpaceX launch. Engine fire at T+33 seconds caused by corroded fuel line nut.",
+    webcastUrl: "https://www.youtube.com/watch?v=0a_00nJ_Y88",
+    flightHistory: {
+      flightNumber: 1,
+      missionOutcome: "failure",
+      missionSummary: "Engine fire at T+33s. Corroded aluminum nut on a fuel line allowed a fuel leak that ignited. Vehicle fell back onto launch pad.",
+      payloadInfo: "FalconSAT-2 (US Air Force Academy 20 kg satellite)",
+      customer: "DARPA / US Air Force Academy",
+      boosterRecovery: [
+        { boosterId: "Merlin 1A", landingType: "N/A", landingLocation: "Launch pad", outcome: "failure", note: "Crashed back onto launch pad — destroyed" },
+      ],
+      keyEvents: [
+        { time: "T+0:00", event: "Liftoff", detail: "First-ever SpaceX launch" },
+        { time: "T+0:25", event: "Engine fire begins", detail: "Fuel leak from corroded nut" },
+        { time: "T+0:33", event: "Loss of thrust", detail: "Vehicle falls back to pad" },
+      ],
+      notes: [
+        "First-ever SpaceX launch attempt",
+        "Elon Musk had invested $100M of his own money",
+        "Corroded aluminum nut from sea air caused the leak",
+        "SpaceX had only 3 more Falcon 1 rockets available",
+      ],
+      significance: "First SpaceX launch (failure)",
+    },
+  },
+
+  {
+    id: "f1-flight2",
+    name: "Falcon 1 Flight 2",
+    dateUtc: "2007-03-21T01:10:00.000Z",
+    dateUnix: 1174439400,
+    launchSite: {
+      id: "kwajalein",
+      name: "Omelek Island",
+      fullName: "Reagan Test Site, Kwajalein Atoll",
+      lat: 9.0477,
+      lng: 167.7431,
+    },
+    status: "failure",
+    rocketType: "Falcon 1",
+    details: "Reached 289 km altitude but fuel slosh in second stage caused roll oscillation — failed to reach orbit.",
+    webcastUrl: "https://www.youtube.com/watch?v=Lk4zQ2wP-Nc",
+    flightHistory: {
+      flightNumber: 2,
+      missionOutcome: "failure",
+      missionSummary: "First stage performed well. Second stage reached 289 km but fuel slosh caused roll oscillation during coast phase — failed to circularize orbit.",
+      payloadInfo: "Demo payload (mass simulator)",
+      customer: "SpaceX / DARPA",
+      boosterRecovery: [
+        { boosterId: "Merlin 1A", landingType: "N/A", landingLocation: "Pacific Ocean", outcome: "expended", note: "First stage performed nominally" },
+      ],
+      keyEvents: [
+        { time: "T+0:00", event: "Liftoff" },
+        { time: "T+2:30", event: "MECO + stage separation", detail: "First stage worked perfectly" },
+        { time: "T+5:00", event: "Second stage roll oscillation", detail: "Fuel slosh caused instability" },
+        { time: "T+7:30", event: "Loss of vehicle", detail: "Failed to reach orbit — 289 km altitude" },
+      ],
+      notes: [
+        "Major improvement over Flight 1 — first stage worked",
+        "Only 2 Falcon 1 rockets remaining",
+        "SpaceX nearly ran out of money",
+      ],
+      significance: "First stage success but orbit not reached",
+    },
+  },
+
+  {
+    id: "f1-flight3",
+    name: "Falcon 1 Flight 3",
+    dateUtc: "2008-08-03T03:34:00.000Z",
+    dateUnix: 1217730840,
+    launchSite: {
+      id: "kwajalein",
+      name: "Omelek Island",
+      fullName: "Reagan Test Site, Kwajalein Atoll",
+      lat: 9.0477,
+      lng: 167.7431,
+    },
+    status: "failure",
+    rocketType: "Falcon 1",
+    details: "First stage worked perfectly with new Merlin 1C. Stage separation collision — residual thrust pushed first stage into second stage.",
+    webcastUrl: "https://www.youtube.com/watch?v=v0w9p3U8860",
+    flightHistory: {
+      flightNumber: 3,
+      missionOutcome: "failure",
+      missionSummary: "New Merlin 1C engine worked perfectly. At stage separation, residual thrust from the first stage caused it to re-contact the second stage, damaging the engine.",
+      payloadInfo: "Trailblazer (DoD satellite) + NanoSail-D + PRESat + Celestis cremation capsule",
+      customer: "US DoD / NASA",
+      boosterRecovery: [
+        { boosterId: "Merlin 1C", landingType: "N/A", landingLocation: "Pacific Ocean", outcome: "expended", note: "Stage performed perfectly — new Merlin 1C engine" },
+      ],
+      keyEvents: [
+        { time: "T+0:00", event: "Liftoff", detail: "First Merlin 1C engine flight" },
+        { time: "T+2:30", event: "MECO", detail: "Flawless first stage performance" },
+        { time: "T+2:34", event: "Stage collision", detail: "Residual thrust pushed stages together" },
+        { time: "T+2:40", event: "Second stage damaged", detail: "Nozzle damaged — orbit unreachable" },
+      ],
+      notes: [
+        "Heartbreaking failure — everything worked except timing",
+        "Only 1 Falcon 1 rocket left — SpaceX near bankruptcy",
+        "Elon Musk was running out of personal funds",
+        "Carried cremated remains of astronaut Gordon Cooper and actor James Doohan",
+      ],
+      significance: "Near-success — stage separation timing issue",
+    },
+  },
+
+  {
+    id: "f1-flight4",
+    name: "Falcon 1 Flight 4",
+    dateUtc: "2008-09-28T23:15:00.000Z",
+    dateUnix: 1222643700,
+    launchSite: {
+      id: "kwajalein",
+      name: "Omelek Island",
+      fullName: "Reagan Test Site, Kwajalein Atoll",
+      lat: 9.0477,
+      lng: 167.7431,
+    },
+    status: "success",
+    rocketType: "Falcon 1",
+    details: "First privately developed liquid-fueled rocket to reach orbit. SpaceX was weeks away from bankruptcy.",
+    webcastUrl: "https://www.youtube.com/watch?v=mq2hymWPN1I",
+    flightHistory: {
+      flightNumber: 4,
+      missionOutcome: "success",
+      missionSummary: "First privately developed liquid-fuel rocket to reach Earth orbit. Used longer delay between stage separation and second stage ignition to solve Flight 3's issue.",
+      payloadInfo: "165 kg mass simulator (RatSat)",
+      customer: "SpaceX",
+      boosterRecovery: [
+        { boosterId: "Merlin 1C", landingType: "N/A", landingLocation: "Pacific Ocean", outcome: "expended" },
+      ],
+      keyEvents: [
+        { time: "T+0:00", event: "Liftoff", detail: "Last chance for SpaceX — final Falcon 1" },
+        { time: "T+2:30", event: "MECO + separation", detail: "Longer coast phase to prevent re-contact" },
+        { time: "T+2:39", event: "Second stage ignition" },
+        { time: "T+9:28", event: "SECO — ORBIT!", detail: "First privately funded liquid-fuel rocket in orbit!" },
+      ],
+      notes: [
+        "SpaceX was weeks from bankruptcy — this saved the company",
+        "Elon Musk had split his last $100M between SpaceX and Tesla",
+        "NASA awarded SpaceX a $1.6B CRS contract days later",
+        "Fourth time's the charm — 3 failures before this success",
+      ],
+      significance: "First privately developed liquid-fuel rocket to orbit — saved SpaceX",
+    },
+  },
+
+  {
+    id: "f9-crs7",
+    name: "CRS-7",
+    dateUtc: "2015-06-28T14:21:11.000Z",
+    dateUnix: 1435500071,
+    launchSite: {
+      id: "cape-canaveral-slc40",
+      name: "CCSFS SLC-40",
+      fullName: "Cape Canaveral SLC-40",
+      lat: 28.5618,
+      lng: -80.5770,
+    },
+    status: "failure",
+    rocketType: "Falcon 9",
+    details: "Dragon cargo resupply to ISS. Vehicle broke apart at T+139s due to a faulty strut holding a helium pressure vessel.",
+    webcastUrl: "https://www.youtube.com/watch?v=PuNymhcTtSQ",
+    flightHistory: {
+      flightNumber: 19,
+      missionOutcome: "failure",
+      missionSummary: "At T+139 seconds, a steel strut supporting a helium COPV inside the second-stage LOX tank failed under 3,500 PSI load (rated for 10,000). Helium burst into the tank, overpressurizing and destroying the vehicle.",
+      payloadInfo: "Dragon CRS-7 cargo (~1,800 kg supplies for ISS + IDA-1 docking adapter)",
+      payloadMassKg: 1800,
+      customer: "NASA",
+      boosterRecovery: [
+        { boosterId: "B1018", landingType: "N/A", landingLocation: "Atlantic Ocean", outcome: "failure", note: "Vehicle destroyed at ~45 km altitude — strut failure" },
+      ],
+      keyEvents: [
+        { time: "T+0:00", event: "Liftoff" },
+        { time: "T+1:00", event: "Max-Q" },
+        { time: "T+2:19", event: "Strut failure", detail: "Steel strut holding helium COPV breaks inside LOX tank" },
+        { time: "T+2:19", event: "Vehicle breakup", detail: "Second stage overpressurization — vehicle destroyed at ~45 km" },
+      ],
+      notes: [
+        "First Falcon 9 mission failure",
+        "Dragon capsule survived briefly but no parachute deploy command sent",
+        "Lost IDA-1 docking adapter needed for Commercial Crew",
+        "SpaceX redesigned COPV struts after this failure",
+        "Grounded Falcon 9 for 6 months",
+      ],
+      significance: "First Falcon 9 mission failure — strut design flaw",
+    },
+  },
+
+  {
+    id: "f9-amos6",
+    name: "AMOS-6",
+    dateUtc: "2016-09-01T13:07:00.000Z",
+    dateUnix: 1472738820,
+    launchSite: {
+      id: "cape-canaveral-slc40",
+      name: "CCSFS SLC-40",
+      fullName: "Cape Canaveral SLC-40",
+      lat: 28.5618,
+      lng: -80.5770,
+    },
+    status: "failure",
+    rocketType: "Falcon 9",
+    details: "Falcon 9 exploded on the pad during fueling for a routine static fire test. $200M AMOS-6 satellite destroyed.",
+    webcastUrl: "https://www.youtube.com/watch?v=_BgJEXQkjNQ",
+    flightHistory: {
+      missionOutcome: "failure",
+      missionSummary: "During propellant loading for a static fire test, a helium COPV buckled inside the second-stage LOX tank, causing rapid unscheduled disassembly (explosion) on the pad.",
+      payloadInfo: "AMOS-6 communications satellite ($200M — Spacecom)",
+      customer: "Spacecom / Facebook (Internet.org)",
+      boosterRecovery: [
+        { boosterId: "B1028", landingType: "N/A", landingLocation: "SLC-40 Pad", outcome: "failure", note: "Exploded on pad during fueling — total vehicle and payload loss" },
+      ],
+      keyEvents: [
+        { time: "T-8:00", event: "LOX loading", detail: "Routine propellant loading for static fire" },
+        { time: "T-3:00", event: "Anomaly", detail: "COPV buckled in super-chilled LOX environment" },
+        { time: "T-3:00", event: "Explosion", detail: "Rapid unscheduled disassembly — pad severely damaged" },
+      ],
+      notes: [
+        "Not a launch failure — exploded during pad fueling for static fire",
+        "Destroyed $200M AMOS-6 satellite (owned by Spacecom)",
+        "Facebook's Internet.org satellite was part of the payload",
+        "SLC-40 launch pad heavily damaged — took 14 months to repair",
+        "Led to COPV design changes and helium loading procedure updates",
+      ],
+      significance: "Pad explosion during fueling — COPV design overhaul",
+    },
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // FLIGHT HISTORY FOR 2025-2026 MISSIONS (matches fallback IDs)
+  // ═══════════════════════════════════════════════════════════════
+
+  {
+    id: "fb-001",
+    name: "Starlink Group 12-1",
+    dateUtc: "2025-09-15T06:00:00.000Z",
+    dateUnix: 1726380000,
+    launchSite: { id: "cape-canaveral-slc40", name: "CCSFS SLC-40", fullName: "Cape Canaveral SLC-40", lat: 28.5618, lng: -80.5770 },
+    status: "success",
+    rocketType: "Falcon 9",
+    details: "Starlink v2 Mini batch deployment to shell 4. Booster B1081 on its 12th flight.",
+    flightHistory: {
+      missionOutcome: "success",
+      missionSummary: "Deployed 23 Starlink v2 Mini satellites to 530 km orbit. B1081 on 12th flight — landed on ASDS 'Just Read the Instructions' in the Atlantic.",
+      payloadInfo: "23 Starlink v2 Mini satellites (~18,000 kg total)",
+      payloadMassKg: 18000,
+      customer: "SpaceX (Starlink)",
+      boosterRecovery: [
+        { boosterId: "B1081", flightNumber: 12, landingType: "ASDS", landingLocation: "JRTI (Atlantic)", outcome: "success" },
+      ],
+      keyEvents: [
+        { time: "T+0:00", event: "Liftoff" },
+        { time: "T+2:33", event: "MECO + stage separation" },
+        { time: "T+8:30", event: "Booster landing", detail: "12th landing for B1081" },
+        { time: "T+15:30", event: "SECO" },
+        { time: "T+63:00", event: "Satellite deployment", detail: "23 Starlink v2 Mini released" },
+      ],
+    },
+  },
+
+  {
+    id: "fb-002",
+    name: "NROL-167",
+    dateUtc: "2025-10-03T10:00:00.000Z",
+    dateUnix: 1727949600,
+    launchSite: { id: "vandenberg-slc4e", name: "VSFB SLC-4E", fullName: "Vandenberg SLC-4E", lat: 34.6321, lng: -120.6108 },
+    status: "success",
+    rocketType: "Falcon 9",
+    details: "Classified NRO mission from Vandenberg. Booster returned to LZ-4.",
+    flightHistory: {
+      missionOutcome: "success",
+      missionSummary: "Classified payload for the National Reconnaissance Office. Booster landed at LZ-4. Payload details classified.",
+      payloadInfo: "Classified NRO payload",
+      customer: "National Reconnaissance Office (NRO)",
+      boosterRecovery: [
+        { boosterId: "B1075", flightNumber: 8, landingType: "RTLS", landingLocation: "LZ-4, Vandenberg", outcome: "success" },
+      ],
+      keyEvents: [
+        { time: "T+0:00", event: "Liftoff" },
+        { time: "T+2:30", event: "MECO" },
+        { time: "T+7:30", event: "Booster RTLS landing", detail: "LZ-4 — 8th flight for B1075" },
+      ],
+      notes: ["Classified NRO mission — orbit and payload undisclosed"],
+    },
+  },
+
+  {
+    id: "fb-004",
+    name: "Starlink Group 12-5",
+    dateUtc: "2025-11-01T14:00:00.000Z",
+    dateUnix: 1730469600,
+    launchSite: { id: "cape-canaveral-slc40", name: "CCSFS SLC-40", fullName: "Cape Canaveral SLC-40", lat: 28.5618, lng: -80.5770 },
+    status: "success",
+    rocketType: "Falcon 9",
+    details: "Starlink v2 Mini deployment. Booster B1078 on 15th flight — new reuse record.",
+    flightHistory: {
+      missionOutcome: "success",
+      missionSummary: "Deployed 23 Starlink v2 Mini satellites. B1078 achieved 15th flight — setting a new booster reuse record at the time.",
+      payloadInfo: "23 Starlink v2 Mini satellites",
+      payloadMassKg: 18000,
+      customer: "SpaceX (Starlink)",
+      boosterRecovery: [
+        { boosterId: "B1078", flightNumber: 15, landingType: "ASDS", landingLocation: "JRTI (Atlantic)", outcome: "success", note: "New booster reuse record at the time — 15th flight" },
+      ],
+      keyEvents: [
+        { time: "T+0:00", event: "Liftoff" },
+        { time: "T+8:30", event: "Booster landing", detail: "15th landing — new record" },
+        { time: "T+63:00", event: "Satellite deployment" },
+      ],
+      notes: ["B1078 set a new reuse record with 15 flights"],
+      significance: "New booster reuse record — 15th flight",
+    },
+  },
+
+  {
+    id: "fb-005",
+    name: "Eutelsat 36X",
+    dateUtc: "2025-11-14T22:00:00.000Z",
+    dateUnix: 1731621600,
+    launchSite: { id: "cape-canaveral-slc40", name: "CCSFS SLC-40", fullName: "Cape Canaveral SLC-40", lat: 28.5618, lng: -80.5770 },
+    status: "success",
+    rocketType: "Falcon 9",
+    payloadOrbit: "GTO",
+    details: "Eutelsat communications satellite to GTO. Direct-to-home TV services for Africa and Middle East.",
+    flightHistory: {
+      missionOutcome: "success",
+      missionSummary: "Launched Eutelsat 36X communications satellite to geostationary transfer orbit for TV broadcast services across Africa and the Middle East.",
+      payloadInfo: "Eutelsat 36X communications satellite (~5,500 kg)",
+      payloadMassKg: 5500,
+      customer: "Eutelsat",
+      boosterRecovery: [
+        { boosterId: "B1083", flightNumber: 5, landingType: "ASDS", landingLocation: "ASOG (Atlantic)", outcome: "success" },
+      ],
+      keyEvents: [
+        { time: "T+0:00", event: "Liftoff" },
+        { time: "T+8:30", event: "Booster landing" },
+        { time: "T+32:00", event: "Satellite deployment", detail: "GTO injection — satellite will raise orbit using onboard propulsion" },
+      ],
+    },
+  },
+
+  {
+    id: "fb-006",
+    name: "Transporter-13",
+    dateUtc: "2025-11-28T18:00:00.000Z",
+    dateUnix: 1732816800,
+    launchSite: { id: "vandenberg-slc4e", name: "VSFB SLC-4E", fullName: "Vandenberg SLC-4E", lat: 34.6321, lng: -120.6108 },
+    status: "success",
+    rocketType: "Falcon 9",
+    details: "SmallSat rideshare mission deploying 60+ satellites for various customers to SSO.",
+    flightHistory: {
+      missionOutcome: "success",
+      missionSummary: "SmallSat rideshare mission deploying 60+ satellites for dozens of commercial and government customers to sun-synchronous orbit.",
+      payloadInfo: "60+ smallsats from various customers (~6,000 kg total)",
+      payloadMassKg: 6000,
+      customer: "Various (rideshare)",
+      boosterRecovery: [
+        { boosterId: "B1071", flightNumber: 18, landingType: "RTLS", landingLocation: "LZ-4, Vandenberg", outcome: "success" },
+      ],
+      keyEvents: [
+        { time: "T+0:00", event: "Liftoff" },
+        { time: "T+7:30", event: "Booster RTLS", detail: "18th flight for B1071" },
+        { time: "T+58:00", event: "Deployment sequence begins", detail: "60+ satellites deployed over 30 minutes" },
+      ],
+    },
+  },
+
+  {
+    id: "fb-007",
+    name: "CRS-32",
+    dateUtc: "2025-12-10T12:00:00.000Z",
+    dateUnix: 1733832000,
+    launchSite: { id: "ksc-lc39a", name: "KSC LC-39A", fullName: "Kennedy Space Center Launch Complex 39A", lat: 28.6082, lng: -80.6041 },
+    status: "success",
+    rocketType: "Falcon 9",
+    details: "Dragon cargo resupply mission to the ISS carrying experiments, crew supplies, and hardware.",
+    flightHistory: {
+      missionOutcome: "success",
+      missionSummary: "Dragon cargo spacecraft delivered ~2,500 kg of supplies, experiments, and hardware to the ISS. Successfully berthed and later splashed down off Florida coast.",
+      payloadInfo: "Dragon CRS-32 (~2,500 kg cargo for ISS)",
+      payloadMassKg: 2500,
+      customer: "NASA",
+      boosterRecovery: [
+        { boosterId: "B1077", flightNumber: 10, landingType: "ASDS", landingLocation: "ASOG (Atlantic)", outcome: "success" },
+      ],
+      keyEvents: [
+        { time: "T+0:00", event: "Liftoff" },
+        { time: "T+8:30", event: "Booster landing" },
+        { time: "T+12:00", event: "Dragon separation" },
+        { time: "T+24h", event: "ISS approach and berth" },
+      ],
+    },
+  },
+
+  {
+    id: "fb-008",
+    name: "Starlink Group 13-1",
+    dateUtc: "2025-12-22T04:00:00.000Z",
+    dateUnix: 1734836400,
+    launchSite: { id: "cape-canaveral-slc40", name: "CCSFS SLC-40", fullName: "Cape Canaveral SLC-40", lat: 28.5618, lng: -80.5770 },
+    status: "success",
+    rocketType: "Falcon 9",
+    details: "Starlink v2 Mini batch. B1080 on 13th flight.",
+    flightHistory: {
+      missionOutcome: "success",
+      missionSummary: "Deployed 23 Starlink v2 Mini satellites. B1080 on its 13th flight landed successfully on JRTI.",
+      payloadInfo: "23 Starlink v2 Mini satellites",
+      payloadMassKg: 18000,
+      customer: "SpaceX (Starlink)",
+      boosterRecovery: [
+        { boosterId: "B1080", flightNumber: 13, landingType: "ASDS", landingLocation: "JRTI (Atlantic)", outcome: "success" },
+      ],
+    },
+  },
+
+  {
+    id: "fb-010",
+    name: "USSF-124",
+    dateUtc: "2026-01-20T06:45:00.000Z",
+    dateUnix: 1737352800,
+    launchSite: { id: "ksc-lc39a", name: "KSC LC-39A", fullName: "Kennedy Space Center Launch Complex 39A", lat: 28.6082, lng: -80.6041 },
+    status: "success",
+    rocketType: "Falcon Heavy",
+    details: "Classified USSF payload launched on Falcon Heavy. All three cores expended.",
+    flightHistory: {
+      missionOutcome: "success",
+      missionSummary: "Classified United States Space Force payload launched to high-energy orbit. All three Falcon Heavy cores expended — no landing attempts due to mission profile requirements.",
+      payloadInfo: "Classified USSF-124 payload (likely GEO or HEO)",
+      customer: "United States Space Force",
+      boosterRecovery: [
+        { boosterId: "Center core", landingType: "Expended", landingLocation: "Atlantic Ocean", outcome: "expended", note: "Expended — high-energy mission required all fuel" },
+        { boosterId: "Side booster L", landingType: "Expended", landingLocation: "Atlantic Ocean", outcome: "expended" },
+        { boosterId: "Side booster R", landingType: "Expended", landingLocation: "Atlantic Ocean", outcome: "expended" },
+      ],
+      keyEvents: [
+        { time: "T+0:00", event: "Liftoff", detail: "27 Merlin engines" },
+        { time: "T+2:30", event: "Side booster separation" },
+        { time: "T+3:30", event: "Center core separation" },
+        { time: "T+30:00", event: "Payload deployment", detail: "Classified orbit" },
+      ],
+      notes: ["All three cores expended — no recovery attempted"],
+    },
+  },
+
+  {
+    id: "fb-011",
+    name: "Starlink Group 13-4",
+    dateUtc: "2026-02-02T15:30:00.000Z",
+    dateUnix: 1738510200,
+    launchSite: { id: "cape-canaveral-slc40", name: "CCSFS SLC-40", fullName: "Cape Canaveral SLC-40", lat: 28.5618, lng: -80.5770 },
+    status: "success",
+    rocketType: "Falcon 9",
+    details: "Starlink v2 Mini deployment. B1082 on its 11th flight.",
+    flightHistory: {
+      missionOutcome: "success",
+      missionSummary: "Deployed 23 Starlink v2 Mini satellites. Booster B1082 completed its 11th successful flight and landing.",
+      payloadInfo: "23 Starlink v2 Mini satellites",
+      payloadMassKg: 18000,
+      customer: "SpaceX (Starlink)",
+      boosterRecovery: [
+        { boosterId: "B1082", flightNumber: 11, landingType: "ASDS", landingLocation: "ASOG (Atlantic)", outcome: "success" },
+      ],
+    },
+  },
+
+  {
+    id: "fb-012",
+    name: "WorldView Legion-5",
+    dateUtc: "2026-02-18T09:00:00.000Z",
+    dateUnix: 1739858400,
+    launchSite: { id: "vandenberg-slc4e", name: "VSFB SLC-4E", fullName: "Vandenberg SLC-4E", lat: 34.6321, lng: -120.6108 },
+    status: "success",
+    rocketType: "Falcon 9",
+    payloadOrbit: "SSO",
+    details: "Maxar WorldView Legion-5 Earth observation satellite to SSO from Vandenberg.",
+    flightHistory: {
+      missionOutcome: "success",
+      missionSummary: "Launched Maxar WorldView Legion-5 high-resolution Earth observation satellite to sun-synchronous orbit. 30 cm resolution imaging capability.",
+      payloadInfo: "WorldView Legion-5 Earth observation satellite (~700 kg)",
+      payloadMassKg: 700,
+      customer: "Maxar Technologies",
+      boosterRecovery: [
+        { boosterId: "B1076", flightNumber: 9, landingType: "RTLS", landingLocation: "LZ-4, Vandenberg", outcome: "success" },
+      ],
+    },
+  },
+
+  {
+    id: "fb-012b",
+    name: "Starlink 10-40",
+    dateUtc: "2026-03-04T10:52:00.000Z",
+    dateUnix: 1741085520,
+    launchSite: { id: "cape-canaveral-slc40", name: "CCSFS SLC-40", fullName: "Cape Canaveral SLC-40", lat: 28.5618, lng: -80.5770 },
+    status: "success",
+    rocketType: "Falcon 9",
+    details: "Starlink v2 Mini batch. Twilight launch — potential jellyfish plume visible from Florida coast.",
+    flightHistory: {
+      missionOutcome: "success",
+      missionSummary: "Deployed 23 Starlink v2 Mini satellites. Launched during twilight creating a spectacular jellyfish-shaped exhaust plume visible across Florida.",
+      payloadInfo: "23 Starlink v2 Mini satellites",
+      payloadMassKg: 18000,
+      customer: "SpaceX (Starlink)",
+      boosterRecovery: [
+        { boosterId: "B1079", flightNumber: 16, landingType: "ASDS", landingLocation: "ASOG (Atlantic)", outcome: "success" },
+      ],
+      notes: ["Twilight launch created spectacular jellyfish-effect plume visible from the ground"],
+    },
+  },
+
+  {
+    id: "fb-013",
+    name: "Crew-12",
+    dateUtc: "2026-03-01T10:00:00.000Z",
+    dateUnix: 1740826800,
+    launchSite: { id: "ksc-lc39a", name: "KSC LC-39A", fullName: "Kennedy Space Center Launch Complex 39A", lat: 28.6082, lng: -80.6041 },
+    status: "success",
+    rocketType: "Falcon 9",
+    details: "Crew Dragon mission carrying 4 astronauts to ISS for Expedition 75/76.",
+    flightHistory: {
+      missionOutcome: "success",
+      missionSummary: "Crew Dragon 'Endeavour' carried 4 astronauts to ISS for ~6 month Expedition 75/76 stay. Successful docking ~24 hours after launch.",
+      payloadInfo: "4 astronauts (2 NASA + 1 JAXA + 1 ESA) aboard Crew Dragon 'Endeavour'",
+      customer: "NASA (Commercial Crew Program)",
+      boosterRecovery: [
+        { boosterId: "B1084", flightNumber: 4, landingType: "ASDS", landingLocation: "ASOG (Atlantic)", outcome: "success" },
+      ],
+      keyEvents: [
+        { time: "T+0:00", event: "Liftoff", detail: "4 crew aboard Crew Dragon Endeavour" },
+        { time: "T+2:33", event: "Stage separation" },
+        { time: "T+8:30", event: "Booster landing" },
+        { time: "T+12:00", event: "Dragon in orbit" },
+        { time: "T+24h", event: "ISS docking", detail: "Harmony module forward port" },
+      ],
+      notes: ["12th operational Crew Dragon mission for NASA"],
+      significance: "12th operational Commercial Crew mission",
     },
   },
 ];

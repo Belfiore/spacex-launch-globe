@@ -99,7 +99,7 @@ export default function ControlsPanel() {
       style={{
         position: "fixed",
         bottom: "100px",
-        right: panelOpen ? "336px" : "16px",
+        right: panelOpen ? "396px" : "16px",
         zIndex: 40,
         transition: "right 0.3s ease, opacity 0.3s ease, transform 0.3s ease",
         opacity: focusMode ? 0 : 1,

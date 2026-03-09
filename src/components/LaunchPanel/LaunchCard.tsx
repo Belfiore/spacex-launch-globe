@@ -95,7 +95,7 @@ export default function LaunchCard({
         border: borderStyle,
         boxShadow: shadowStyle,
         borderRadius: "10px",
-        padding: "11px 12px",
+        padding: "14px 14px",
         cursor: "pointer",
         transition: "all 0.2s ease",
         marginBottom: "8px",

@@ -2,20 +2,25 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAppStore } from "@/store/useAppStore";
-import "./entry-animations.css";
 
 interface Props {
   onComplete: () => void;
 }
 
 /**
- * Simplified onboarding — shows a tooltip prompting user to click a launch.
- * No auto-click, no auto-play. The user interacts at their own pace.
- * Once the user clicks any card, onboarding completes.
+ * Shows a "View Next Launch" tooltip that the user can click
+ * to focus on the next upcoming launch and start playback.
+ * Dismisses when clicked, when user clicks a card, or after 12s.
  */
 export default function GuidedOnboarding({ onComplete }: Props) {
   const launches = useAppStore((s) => s.launches);
   const setPanelOpen = useAppStore((s) => s.setPanelOpen);
+  const setSelectedLaunch = useAppStore((s) => s.setSelectedLaunch);
+  const setCameraTarget = useAppStore((s) => s.setCameraTarget);
+  const setTimelineDate = useAppStore((s) => s.setTimelineDate);
+  const setOrbitCenter = useAppStore((s) => s.setOrbitCenter);
+  const setTrajectoryProgress = useAppStore((s) => s.setTrajectoryProgress);
+  const startMissionPlayback = useAppStore((s) => s.startMissionPlayback);
 
   const [show, setShow] = useState(false);
   const dismissedRef = useRef(false);
@@ -35,13 +40,38 @@ export default function GuidedOnboarding({ onComplete }: Props) {
     onComplete();
   }, [onComplete]);
 
+  // Focus on next launch and start playback
+  const handleViewNext = useCallback(() => {
+    if (!nextUpcoming) return;
+    setPanelOpen(true);
+    setSelectedLaunch(nextUpcoming);
+    setCameraTarget({
+      lat: nextUpcoming.launchSite.lat,
+      lng: nextUpcoming.launchSite.lng,
+    });
+    setTimelineDate(new Date(nextUpcoming.dateUtc));
+    setTrajectoryProgress(0);
+    setOrbitCenter("launch");
+    setTimeout(() => startMissionPlayback(), 100);
+    dismiss();
+  }, [
+    nextUpcoming,
+    setPanelOpen,
+    setSelectedLaunch,
+    setCameraTarget,
+    setTimelineDate,
+    setTrajectoryProgress,
+    setOrbitCenter,
+    startMissionPlayback,
+    dismiss,
+  ]);
+
   // Open panel and show tooltip after a brief delay
   useEffect(() => {
     if (!nextUpcoming || dismissedRef.current) return;
 
     setPanelOpen(true);
 
-    // Brief delay to let panel open & scroll, then show tooltip
     const timer = setTimeout(() => {
       if (!dismissedRef.current) {
         setShow(true);
@@ -71,9 +101,9 @@ export default function GuidedOnboarding({ onComplete }: Props) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [dismiss]);
 
-  // Auto-dismiss after 15 seconds
+  // Auto-dismiss after 12 seconds
   useEffect(() => {
-    const timer = setTimeout(dismiss, 15000);
+    const timer = setTimeout(dismiss, 12000);
     return () => clearTimeout(timer);
   }, [dismiss]);
 
@@ -84,39 +114,61 @@ export default function GuidedOnboarding({ onComplete }: Props) {
       role="tooltip"
       style={{
         position: "fixed",
-        // Position in the top-right area, inside the panel
-        top: 80,
-        right: 24,
-        background: "rgba(6, 182, 212, 0.12)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        border: "1px solid rgba(6, 182, 212, 0.4)",
+        top: 170,
+        right: 40,
+        background: "rgba(6, 182, 212, 0.10)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        border: "1px solid rgba(6, 182, 212, 0.35)",
         borderRadius: 10,
-        padding: "10px 16px",
+        padding: "12px 16px",
         fontSize: 13,
         color: "#e2e8f0",
         lineHeight: 1.5,
-        maxWidth: 280,
+        maxWidth: 300,
         boxShadow:
-          "0 4px 20px rgba(0,0,0,0.4), 0 0 15px rgba(6, 182, 212, 0.15)",
+          "0 4px 24px rgba(0,0,0,0.5), 0 0 20px rgba(6, 182, 212, 0.12)",
         zIndex: 82,
         pointerEvents: "auto",
         animation: "toast-slide-in 0.4s ease-out",
+        cursor: "pointer",
       }}
+      onClick={handleViewNext}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ fontSize: 14 }}>{"👆"}</span>
-        <span>
-          Tap the <strong style={{ color: "#22d3ee" }}>next launch</strong> to
-          preview the mission
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={{ fontSize: 18 }}>{"🚀"}</span>
+        <div>
+          <div style={{ fontWeight: 600, marginBottom: 2 }}>
+            View Next Launch
+          </div>
+          <div style={{ fontSize: 11, color: "#94a3b8" }}>
+            {nextUpcoming.name} &middot;{" "}
+            {new Date(nextUpcoming.dateUtc).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })}
+          </div>
+        </div>
+        <span
+          style={{
+            marginLeft: "auto",
+            fontSize: 16,
+            color: "#22d3ee",
+            flexShrink: 0,
+          }}
+        >
+          {"▶"}
         </span>
       </div>
       <button
-        onClick={dismiss}
+        onClick={(e) => {
+          e.stopPropagation();
+          dismiss();
+        }}
         style={{
           position: "absolute",
-          top: 2,
-          right: 6,
+          top: 4,
+          right: 8,
           background: "none",
           border: "none",
           color: "#64748b",
@@ -125,7 +177,7 @@ export default function GuidedOnboarding({ onComplete }: Props) {
           lineHeight: 1,
           padding: "2px 4px",
         }}
-        aria-label="Dismiss tip"
+        aria-label="Dismiss"
       >
         {"\u00D7"}
       </button>

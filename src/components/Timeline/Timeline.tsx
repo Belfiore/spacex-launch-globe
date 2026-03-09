@@ -5,11 +5,18 @@ import { useAppStore } from "@/store/useAppStore";
 import { STATUS_COLORS, TIMELINE } from "@/lib/constants";
 import type { Launch } from "@/lib/types";
 
-function getTimeRange(selectedYear: number) {
+function getTimeRange(selectedYear: number | "all") {
   const now = new Date();
   const currentYear = now.getFullYear();
 
-  if (selectedYear === currentYear) {
+  if (selectedYear === "all") {
+    // All years: ±6 months around now (same as current year view)
+    const start = new Date(now);
+    start.setMonth(start.getMonth() - TIMELINE.RANGE_MONTHS_PAST);
+    const end = new Date(now);
+    end.setMonth(end.getMonth() + TIMELINE.RANGE_MONTHS_FUTURE);
+    return { start, end, now, isCurrentYear: true };
+  } else if (selectedYear === currentYear) {
     // Current year: ±6 months around now
     const start = new Date(now);
     start.setMonth(start.getMonth() - TIMELINE.RANGE_MONTHS_PAST);
@@ -207,13 +214,19 @@ export default function Timeline() {
               <select
                 value={selectedYear}
                 onChange={(e) => {
-                  const year = Number(e.target.value);
-                  setSelectedYear(year);
-                  const curYear = new Date().getFullYear();
-                  if (year === curYear) {
+                  const val = e.target.value;
+                  if (val === "all") {
+                    setSelectedYear("all");
                     setTimelineDate(new Date());
                   } else {
-                    setTimelineDate(new Date(year, 6, 1));
+                    const year = Number(val);
+                    setSelectedYear(year);
+                    const curYear = new Date().getFullYear();
+                    if (year === curYear) {
+                      setTimelineDate(new Date());
+                    } else {
+                      setTimelineDate(new Date(year, 6, 1));
+                    }
                   }
                 }}
                 style={{
@@ -229,6 +242,12 @@ export default function Timeline() {
                   fontFamily: "inherit",
                 }}
               >
+                <option
+                  value="all"
+                  style={{ background: "#0a0e1a", color: "#e2e8f0" }}
+                >
+                  All
+                </option>
                 {availableYears.map((year) => (
                   <option
                     key={year}

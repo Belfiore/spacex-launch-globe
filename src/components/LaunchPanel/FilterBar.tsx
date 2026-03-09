@@ -3,7 +3,7 @@
 import { useAppStore } from "@/store/useAppStore";
 import { SITE_GROUPS } from "@/lib/constants";
 
-const ROCKET_TYPES = ["Falcon 9", "Falcon Heavy", "Starship"];
+const ROCKET_TYPES = ["Falcon 9", "Falcon Heavy", "Starship", "Falcon 1"];
 const STATUSES = ["upcoming", "success", "failure"];
 
 export default function FilterBar() {
@@ -95,13 +95,19 @@ export default function FilterBar() {
         <select
           value={selectedYear}
           onChange={(e) => {
-            const year = Number(e.target.value);
-            setSelectedYear(year);
-            const now = new Date();
-            if (year === now.getFullYear()) {
-              setTimelineDate(now);
+            const val = e.target.value;
+            if (val === "all") {
+              setSelectedYear("all");
+              setTimelineDate(new Date());
             } else {
-              setTimelineDate(new Date(year, 6, 1));
+              const year = Number(val);
+              setSelectedYear(year);
+              const now = new Date();
+              if (year === now.getFullYear()) {
+                setTimelineDate(now);
+              } else {
+                setTimelineDate(new Date(year, 6, 1));
+              }
             }
           }}
           style={{
@@ -117,6 +123,9 @@ export default function FilterBar() {
             fontFamily: "inherit",
           }}
         >
+          <option value="all" style={{ background: "#0a0e1a", color: "#e2e8f0" }}>
+            All Years
+          </option>
           {availableYears.map((year) => (
             <option key={year} value={year} style={{ background: "#0a0e1a", color: "#e2e8f0" }}>
               {year}
