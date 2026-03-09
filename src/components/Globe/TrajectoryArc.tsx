@@ -110,12 +110,35 @@ export default function TrajectoryArc({
     return sats;
   }, [isStarlink, progress, curve]);
 
+  // ── Landing failure detection ────────────────────────────────
+  const landingFailed = launch.landingSuccess === false;
+
   // ── Reentry glow ref for booster ─────────────────────────────
   const reentryGlowRef = useRef<THREE.Mesh>(null);
-  useFrame(() => {
+  const explosionRef = useRef<THREE.Mesh>(null);
+  const explosionDebrisRef = useRef<THREE.Group>(null);
+  useFrame((_, delta) => {
     if (reentryGlowRef.current) {
       const flicker = 0.7 + Math.random() * 0.6;
       reentryGlowRef.current.scale.setScalar(flicker);
+    }
+    // Animate explosion — pulsing fireball
+    if (explosionRef.current) {
+      const pulse = 1.0 + Math.sin(Date.now() * 0.008) * 0.3 + Math.random() * 0.15;
+      explosionRef.current.scale.setScalar(pulse);
+    }
+    // Animate debris — slowly expand outward
+    if (explosionDebrisRef.current) {
+      explosionDebrisRef.current.children.forEach((child) => {
+        if (child instanceof THREE.Mesh) {
+          const s = child.scale.x + delta * 0.15;
+          child.scale.setScalar(Math.min(s, 2.5));
+          const mat = child.material as THREE.MeshBasicMaterial;
+          if (mat.opacity > 0.05) {
+            mat.opacity -= delta * 0.3;
+          }
+        }
+      });
     }
   });
 
@@ -327,8 +350,8 @@ export default function TrajectoryArc({
           </>
         )}
 
-      {/* Landing flash */}
-      {landingPos && (
+      {/* Landing flash (success) or explosion (failure) */}
+      {landingPos && !landingFailed && (
         <mesh position={toTuple(landingPos)}>
           <sphereGeometry args={[0.03, 8, 8]} />
           <meshBasicMaterial
@@ -339,6 +362,84 @@ export default function TrajectoryArc({
             depthWrite={false}
           />
         </mesh>
+      )}
+
+      {/* ── Failed landing explosion ── */}
+      {landingPos && landingFailed && boosterProgress >= 0.85 && (
+        <>
+          {/* Main fireball — orange/red pulsing sphere */}
+          <mesh
+            ref={explosionRef}
+            position={toTuple(landingPos)}
+          >
+            <sphereGeometry args={[0.04, 12, 12]} />
+            <meshBasicMaterial
+              color="#ff3300"
+              transparent
+              opacity={Math.min(0.9, (boosterProgress - 0.85) * 6)}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Inner white-hot core */}
+          <mesh position={toTuple(landingPos)}>
+            <sphereGeometry args={[0.02, 8, 8]} />
+            <meshBasicMaterial
+              color="#ffcc00"
+              transparent
+              opacity={Math.min(0.95, (boosterProgress - 0.85) * 8)}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Outer shockwave ring */}
+          <mesh
+            position={toTuple(landingPos)}
+            rotation={[Math.PI / 2, 0, 0]}
+          >
+            <torusGeometry
+              args={[
+                0.03 + Math.min(0.06, (boosterProgress - 0.85) * 0.4),
+                0.004,
+                6,
+                24,
+              ]}
+            />
+            <meshBasicMaterial
+              color="#ff6600"
+              transparent
+              opacity={Math.max(0, 0.7 - (boosterProgress - 0.88) * 5)}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Debris particles — small scattered spheres */}
+          <group ref={explosionDebrisRef} position={toTuple(landingPos)}>
+            {[...Array(6)].map((_, i) => {
+              const angle = (i / 6) * Math.PI * 2;
+              const r = 0.015 + Math.random() * 0.01;
+              return (
+                <mesh
+                  key={`debris-${i}`}
+                  position={[
+                    Math.cos(angle) * r,
+                    0.01 + Math.random() * 0.02,
+                    Math.sin(angle) * r,
+                  ]}
+                >
+                  <sphereGeometry args={[0.004, 4, 4]} />
+                  <meshBasicMaterial
+                    color={i % 2 === 0 ? "#ff4400" : "#ffaa00"}
+                    transparent
+                    opacity={0.8}
+                    blending={THREE.AdditiveBlending}
+                    depthWrite={false}
+                  />
+                </mesh>
+              );
+            })}
+          </group>
+        </>
       )}
 
       {/* ── Additional booster return arcs (Falcon Heavy side boosters / center core) ── */}
@@ -360,7 +461,7 @@ export default function TrajectoryArc({
               <Line points={trailPts} color={i === 0 ? "#f59e0b" : "#22d3ee"} lineWidth={2} transparent opacity={0.65} />
             )}
             {bPoint && bTangent && bProg < 0.9 && (
-              <RocketModel position={bPoint} tangent={bTangent} rocketType="Falcon 9" progress={0.4} />
+              <RocketModel position={bPoint} tangent={bTangent} rocketType={launch.rocketType} progress={0.4} />
             )}
             {landPos && (
               <mesh position={toTuple(landPos)}>

@@ -16,6 +16,7 @@ export default function LaunchPanel() {
   const setTimelineDate = useAppStore((s) => s.setTimelineDate);
   const panelOpen = useAppStore((s) => s.panelOpen);
   const togglePanel = useAppStore((s) => s.togglePanel);
+  const setPanelOpen = useAppStore((s) => s.setPanelOpen);
   const filters = useAppStore((s) => s.filters);
 
   const setTrajectoryProgress = useAppStore((s) => s.setTrajectoryProgress);
@@ -30,7 +31,6 @@ export default function LaunchPanel() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Play mission — ensure the launch is selected + centered first
-  // Always resets trajectory to 0 so the animation plays from the beginning
   const handlePlay = useCallback(
     (launch: (typeof launches)[0]) => {
       if (selectedLaunch?.id !== launch.id) {
@@ -43,10 +43,10 @@ export default function LaunchPanel() {
         setTimelineDate(new Date(launch.dateUtc));
         setOrbitCenter("launch");
       }
-      // Reset trajectory to 0 so playback starts from the beginning
       setTrajectoryProgress(0);
-      // Small delay to let state settle, then start playback
       setTimeout(() => startMissionPlayback(), 50);
+      // Auto-close mobile panel on play
+      if (isMobile) setPanelOpen(false);
     },
     [
       selectedLaunch,
@@ -57,10 +57,11 @@ export default function LaunchPanel() {
       setTrajectoryProgress,
       setOrbitCenter,
       startMissionPlayback,
+      isMobile,
+      setPanelOpen,
     ]
   );
 
-  // Pause playback
   const handlePause = useCallback(() => {
     pauseMissionPlayback();
   }, [pauseMissionPlayback]);
@@ -68,12 +69,10 @@ export default function LaunchPanel() {
   // Filter launches (including year filter)
   const filteredLaunches = useMemo(() => {
     return launches.filter((l) => {
-      // Year filter
       if (selectedYear !== "all") {
         const launchYear = new Date(l.dateUtc).getFullYear();
         if (launchYear !== selectedYear) return false;
       }
-
       if (
         filters.search &&
         !l.name.toLowerCase().includes(filters.search.toLowerCase())
@@ -82,7 +81,6 @@ export default function LaunchPanel() {
       if (filters.rocketType && l.rocketType !== filters.rocketType)
         return false;
       if (filters.status) {
-        // "failure" filter matches failure, partial_failure, prelaunch_failure
         if (filters.status === "failure") {
           const ls = l.launchStatus ?? l.status;
           if (ls !== "failure" && ls !== "partial_failure" && ls !== "prelaunch_failure") return false;
@@ -91,13 +89,11 @@ export default function LaunchPanel() {
         }
       }
       if (filters.site && l.launchSite.id !== filters.site) return false;
-      // Jellyfish filter
       if (
         filters.jellyfish &&
         (!l.jellyfish || l.jellyfish.potential === "none")
       )
         return false;
-      // Multi-select site filter
       if (filters.sites.length > 0) {
         const matchesSiteGroup = SITE_GROUPS.some(
           (g) =>
@@ -110,7 +106,6 @@ export default function LaunchPanel() {
     });
   }, [launches, filters, selectedYear]);
 
-  // Find the next upcoming launch
   const nextUpcoming = useMemo(() => {
     const now = Date.now();
     return filteredLaunches.find(
@@ -132,11 +127,11 @@ export default function LaunchPanel() {
     return () => clearTimeout(timer);
   }, [nextUpcoming?.id, selectedLaunch]);
 
-  // Scroll to selected launch when it changes (e.g. from timeline click)
-  // Also open the panel if it's closed
+  // Scroll to selected launch when it changes
   useEffect(() => {
     if (!selectedLaunch) return;
-    if (!panelOpen) togglePanel();
+    // On desktop, auto-open panel when selecting a launch
+    if (!isMobile && !panelOpen) togglePanel();
     if (!scrollRef.current) return;
     const timer = setTimeout(() => {
       const el = scrollRef.current?.querySelector(
@@ -154,9 +149,7 @@ export default function LaunchPanel() {
 
   function handleCardClick(launch: (typeof launches)[0]) {
     const isDeselect = selectedLaunch?.id === launch.id;
-    // Stop any active playback when switching launches
     pauseMissionPlayback();
-    // Close info panel when clicking any card
     closeInfoPanel();
     setSelectedLaunch(isDeselect ? null : launch);
     if (!isDeselect) {
@@ -165,10 +158,10 @@ export default function LaunchPanel() {
         lng: launch.launchSite.lng,
       });
       setTimelineDate(new Date(launch.dateUtc));
-      // Set trajectory to 1 = show full flight path so user can visualize the launch
       setTrajectoryProgress(1);
-      // Center orbit controls on the launch site
       setOrbitCenter("launch");
+      // Auto-close mobile panel when a card is tapped
+      if (isMobile) setPanelOpen(false);
     } else {
       setCameraTarget(null);
       setTrajectoryProgress(0);
@@ -176,28 +169,46 @@ export default function LaunchPanel() {
     }
   }
 
-  const mobileTimelineHeight = TIMELINE.MOBILE_HEIGHT;
+  // ── Mobile: hamburger + slide-in from right ──────────────────
 
-  // Mobile: bottom drawer styles
-  const mobileDrawerStyle: React.CSSProperties = {
+  const mobileOverlayStyle: React.CSSProperties = {
     position: "fixed",
-    left: 0,
-    right: 0,
-    bottom: `${mobileTimelineHeight}px`,
-    height: panelOpen ? "55vh" : "0",
-    zIndex: 40,
-    transition: "height 0.3s ease",
-    background: "rgba(18, 24, 41, 0.92)",
-    backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)",
-    borderTop: "1px solid rgba(255, 255, 255, 0.06)",
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-    borderRadius: "16px 16px 0 0",
+    inset: 0,
+    background: "rgba(0, 0, 0, 0.5)",
+    zIndex: 49,
+    opacity: panelOpen ? 1 : 0,
+    pointerEvents: panelOpen ? "auto" : "none",
+    transition: "opacity 0.3s ease",
   };
 
-  // Desktop: right-side panel styles
+  const mobileSlideInStyle: React.CSSProperties = {
+    position: "fixed",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: "min(85vw, 360px)",
+    zIndex: 50,
+    transform: panelOpen ? "translateX(0)" : "translateX(100%)",
+    transition: "transform 0.3s ease",
+    background: "rgba(18, 24, 41, 0.96)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    borderLeft: "1px solid rgba(255, 255, 255, 0.06)",
+    display: "flex",
+    flexDirection: "column",
+  };
+
+  // Hamburger button style (mobile)
+  const hamburgerBg = panelOpen
+    ? "rgba(34, 211, 238, 0.15)"
+    : "rgba(18, 24, 41, 0.85)";
+  const hamburgerBorder = panelOpen
+    ? "1px solid rgba(34, 211, 238, 0.3)"
+    : "1px solid rgba(255, 255, 255, 0.08)";
+  const barColor = panelOpen ? "#22d3ee" : "#94a3b8";
+
+  // ── Desktop: right-side panel styles ─────────────────────────
+
   const desktopPanelStyle: React.CSSProperties = {
     position: "fixed",
     top: 0,
@@ -215,32 +226,6 @@ export default function LaunchPanel() {
     flexDirection: "column",
   };
 
-  const toggleIcon = isMobile
-    ? panelOpen ? "\u25BC" : "\u25B2"
-    : panelOpen ? "\u203A" : "\u2039";
-
-  // Mobile: simple toggle button
-  const mobileToggleStyle: React.CSSProperties = {
-    position: "fixed",
-    bottom: panelOpen ? `calc(55vh + ${mobileTimelineHeight}px + 8px)` : `${mobileTimelineHeight + 8}px`,
-    right: "16px",
-    zIndex: 50,
-    width: "36px",
-    height: "36px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: "8px",
-    background: "rgba(18, 24, 41, 0.8)",
-    backdropFilter: "blur(20px)",
-    border: "1px solid rgba(255, 255, 255, 0.08)",
-    color: "#94a3b8",
-    cursor: "pointer",
-    fontSize: "16px",
-    transition: "all 0.3s ease",
-  };
-
-  // Desktop: toolbar container (controls + toggle) positioned top-right
   const desktopToolbarStyle: React.CSSProperties = {
     position: "fixed",
     top: "16px",
@@ -258,110 +243,174 @@ export default function LaunchPanel() {
     transition: "right 0.3s ease",
   };
 
+  const toggleIcon = panelOpen ? "\u203A" : "\u2039";
+
   return (
     <>
-      {/* Toolbar + Toggle (desktop) / Toggle button (mobile) */}
-      {!focusMode && (
-        isMobile ? (
+      {/* ── Mobile: Hamburger button (top-right) ── */}
+      {isMobile && !focusMode && (
+        <button
+          onClick={togglePanel}
+          style={{
+            position: "fixed",
+            top: "16px",
+            right: "16px",
+            zIndex: 55,
+            width: "44px",
+            height: "44px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "5px",
+            borderRadius: "10px",
+            background: hamburgerBg,
+            backdropFilter: "blur(12px)",
+            border: hamburgerBorder,
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+            padding: 0,
+          }}
+        >
+          <span
+            style={{
+              width: "20px",
+              height: "2px",
+              background: barColor,
+              borderRadius: "1px",
+              transition: "all 0.2s ease",
+              transform: panelOpen
+                ? "rotate(45deg) translate(2.5px, 2.5px)"
+                : "none",
+            }}
+          />
+          <span
+            style={{
+              width: "20px",
+              height: "2px",
+              background: barColor,
+              borderRadius: "1px",
+              transition: "all 0.2s ease",
+              opacity: panelOpen ? 0 : 1,
+            }}
+          />
+          <span
+            style={{
+              width: "20px",
+              height: "2px",
+              background: barColor,
+              borderRadius: "1px",
+              transition: "all 0.2s ease",
+              transform: panelOpen
+                ? "rotate(-45deg) translate(2.5px, -2.5px)"
+                : "none",
+            }}
+          />
+        </button>
+      )}
+
+      {/* ── Mobile: backdrop overlay ── */}
+      {isMobile && (
+        <div style={mobileOverlayStyle} onClick={() => setPanelOpen(false)} />
+      )}
+
+      {/* ── Desktop: Toolbar + Toggle ── */}
+      {!isMobile && !focusMode && (
+        <div style={desktopToolbarStyle}>
+          <ControlsPanel />
+          <div
+            style={{
+              width: "1px",
+              height: "18px",
+              background: "rgba(255, 255, 255, 0.08)",
+              flexShrink: 0,
+            }}
+          />
           <button
             onClick={togglePanel}
-            style={mobileToggleStyle}
             title={panelOpen ? "Hide panel" : "Show launches"}
+            style={{
+              width: "28px",
+              height: "28px",
+              borderRadius: "6px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "transparent",
+              border: "none",
+              color: "#94a3b8",
+              cursor: "pointer",
+              fontSize: "16px",
+              padding: 0,
+              transition: "all 0.15s ease",
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+              e.currentTarget.style.color = "#e2e8f0";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "#94a3b8";
+            }}
           >
             {toggleIcon}
           </button>
-        ) : (
-          <div style={desktopToolbarStyle}>
-            <ControlsPanel />
-            {/* Separator */}
-            <div
-              style={{
-                width: "1px",
-                height: "18px",
-                background: "rgba(255, 255, 255, 0.08)",
-                flexShrink: 0,
-              }}
-            />
-            {/* Toggle panel button */}
-            <button
-              onClick={togglePanel}
-              title={panelOpen ? "Hide panel" : "Show launches"}
-              style={{
-                width: "28px",
-                height: "28px",
-                borderRadius: "6px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "transparent",
-                border: "none",
-                color: "#94a3b8",
-                cursor: "pointer",
-                fontSize: "16px",
-                padding: 0,
-                transition: "all 0.15s ease",
-                flexShrink: 0,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                e.currentTarget.style.color = "#e2e8f0";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "#94a3b8";
-              }}
-            >
-              {toggleIcon}
-            </button>
-          </div>
-        )
+        </div>
       )}
 
-      {/* Panel */}
-      <div style={isMobile ? mobileDrawerStyle : desktopPanelStyle}>
-        {/* Drag handle for mobile */}
-        {isMobile && (
-          <div
-            onClick={togglePanel}
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "8px",
-              cursor: "pointer",
-              flexShrink: 0,
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "4px",
-                borderRadius: "2px",
-                background: "rgba(255, 255, 255, 0.2)",
-              }}
-            />
-          </div>
-        )}
-
+      {/* ── Panel (mobile = slide-in from right, desktop = right panel) ── */}
+      <div style={isMobile ? mobileSlideInStyle : desktopPanelStyle}>
         {/* Header */}
         <div
           style={{
-            padding: isMobile ? "8px 16px" : "16px 16px 12px",
+            padding: "16px 16px 12px",
             borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
             flexShrink: 0,
           }}
         >
-          <h2
+          <div
             style={{
-              fontSize: "14px",
-              fontWeight: 700,
-              color: "#e2e8f0",
-              letterSpacing: "0.05em",
-              textTransform: "uppercase",
-              marginBottom: "4px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
-            Launch Manifest
-          </h2>
+            <h2
+              style={{
+                fontSize: "14px",
+                fontWeight: 700,
+                color: "#e2e8f0",
+                letterSpacing: "0.05em",
+                textTransform: "uppercase",
+                marginBottom: "4px",
+              }}
+            >
+              Launch Manifest
+            </h2>
+            {/* Close X on mobile header */}
+            {isMobile && (
+              <button
+                onClick={() => setPanelOpen(false)}
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "rgba(255, 255, 255, 0.04)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  color: "#94a3b8",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                  padding: 0,
+                }}
+              >
+                {"\u00D7"}
+              </button>
+            )}
+          </div>
           <p style={{ fontSize: "11px", color: "#64748b" }}>
             {filteredLaunches.length} of {launches.length} missions
           </p>

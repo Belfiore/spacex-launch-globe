@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useSpaceXData } from "@/hooks/useSpaceXData";
 import { useAppStore } from "@/store/useAppStore";
 import LaunchPanel from "@/components/LaunchPanel/LaunchPanel";
+import MiniLaunchCard from "@/components/LaunchPanel/MiniLaunchCard";
 import Timeline from "@/components/Timeline/Timeline";
 
 import CinematicEntry from "@/components/Entry/CinematicEntry";
@@ -90,6 +91,7 @@ export default function Home() {
       <InfoPanel />
 
       <LaunchPanel />
+      <MiniLaunchCard />
       <Timeline />
       <CinematicEntry />
 
