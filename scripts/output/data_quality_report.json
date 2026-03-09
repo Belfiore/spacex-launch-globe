@@ -1,0 +1,169 @@
+{
+  "totalLaunches": 604,
+  "byFamily": {
+    "falcon1": 5,
+    "falcon9": 576,
+    "falconheavy": 12,
+    "starship": 11
+  },
+  "byStatus": {
+    "failure": 8,
+    "success": 572,
+    "partial_failure": 4,
+    "prelaunch_failure": 1,
+    "upcoming": 19
+  },
+  "byYear": {
+    "2006": 1,
+    "2007": 1,
+    "2008": 2,
+    "2009": 1,
+    "2010": 2,
+    "2012": 2,
+    "2013": 3,
+    "2014": 6,
+    "2015": 7,
+    "2016": 9,
+    "2017": 18,
+    "2018": 21,
+    "2019": 13,
+    "2020": 26,
+    "2021": 31,
+    "2022": 62,
+    "2023": 101,
+    "2024": 144,
+    "2025": 130,
+    "2026": 24
+  },
+  "bySite": {
+    "kwajalein": 5,
+    "cape-canaveral-slc40": 319,
+    "vandenberg-slc4e": 169,
+    "ksc-lc39a": 100,
+    "boca-chica": 11
+  },
+  "failures": [
+    {
+      "id": "5eb87cd9ffd86e000604b32a",
+      "name": "FalconSat",
+      "date": "2006-03-24T22:30:00.000Z",
+      "family": "falcon1",
+      "status": "failure",
+      "failureCategory": "engine_failure",
+      "failureSummary": "Engine fire during first Falcon 1 launch led to mission failure."
+    },
+    {
+      "id": "5eb87cdaffd86e000604b32b",
+      "name": "DemoSat",
+      "date": "2007-03-21T01:10:00.000Z",
+      "family": "falcon1",
+      "status": "failure",
+      "failureCategory": "propulsion_anomaly",
+      "failureSummary": "Second Falcon 1 launch failed before reaching orbit."
+    },
+    {
+      "id": "5eb87cdbffd86e000604b32c",
+      "name": "Trailblazer",
+      "date": "2008-08-03T03:34:00.000Z",
+      "family": "falcon1",
+      "status": "failure",
+      "failureCategory": "stage_separation_failure",
+      "failureSummary": "Residual thrust caused stage recontact after separation, leading to mission loss."
+    },
+    {
+      "id": "5eb87ce0ffd86e000604b332",
+      "name": "CRS-1",
+      "date": "2012-10-08T00:35:00.000Z",
+      "family": "falcon9",
+      "status": "partial_failure",
+      "failureCategory": "engine_failure",
+      "failureSummary": "Primary Dragon cargo mission succeeded, but a secondary payload did not reach its intended orbit."
+    },
+    {
+      "id": "5eb87ceeffd86e000604b341",
+      "name": "CRS-7",
+      "date": "2015-06-28T14:21:00.000Z",
+      "family": "falcon9",
+      "status": "failure",
+      "failureCategory": "structural_failure",
+      "failureSummary": "Falcon 9 broke up in flight during the CRS-7 mission."
+    },
+    {
+      "id": "5eb87cfbffd86e000604b34b",
+      "name": "Amos-6",
+      "date": "2016-09-01T13:07:00.000Z",
+      "family": "falcon9",
+      "status": "prelaunch_failure",
+      "failureCategory": "static_fire_anomaly",
+      "failureSummary": "Vehicle and payload destroyed on pad during fueling before planned static fire test."
+    },
+    {
+      "id": "starship-flight1",
+      "name": "Starship Flight 1",
+      "date": "2023-04-20T13:33:00.000Z",
+      "family": "starship",
+      "status": "failure",
+      "failureCategory": "guidance_control_failure",
+      "failureSummary": "Vehicle lost control after multiple engine failures; Autonomous Flight Termination System (AFTS) activated at T+4min. Both booster and ship destroyed."
+    },
+    {
+      "id": "starship-flight2",
+      "name": "Starship Flight 2",
+      "date": "2023-11-18T13:02:00.000Z",
+      "family": "starship",
+      "status": "failure",
+      "failureCategory": "propulsion_anomaly",
+      "failureSummary": "Booster exploded during boostback burn. Ship reached space but AFTS destroyed it during coast phase."
+    },
+    {
+      "id": "starship-flight3",
+      "name": "Starship Flight 3",
+      "date": "2024-03-14T13:25:00.000Z",
+      "family": "starship",
+      "status": "partial_failure",
+      "failureCategory": "propulsion_anomaly",
+      "failureSummary": "Reached space and near-orbital velocity. Ship lost during reentry over Indian Ocean. Booster lost during landing burn over Gulf of Mexico."
+    },
+    {
+      "id": "f9-starlink-9-3-fail",
+      "name": "Starlink Group 9-3",
+      "date": "2024-07-11T18:25:00.000Z",
+      "family": "falcon9",
+      "status": "failure",
+      "failureCategory": "propulsion_anomaly",
+      "failureSummary": "Block 5 failure case referenced in the Falcon 9 / Falcon Heavy launch list."
+    },
+    {
+      "id": "starship-flight6",
+      "name": "Starship Flight 6",
+      "date": "2024-11-19T22:00:00.000Z",
+      "family": "starship",
+      "status": "partial_failure",
+      "failureCategory": "mission_rule_abort",
+      "failureSummary": "Booster catch attempt aborted; booster performed controlled splashdown in Gulf of Mexico. Ship completed successful controlled splashdown in Indian Ocean."
+    },
+    {
+      "id": "starship-flight8",
+      "name": "Starship Flight 8",
+      "date": "2025-03-06T01:37:00.000Z",
+      "family": "starship",
+      "status": "partial_failure",
+      "failureCategory": "engine_failure",
+      "failureSummary": "Ship lost after premature engine shutdowns during ascent; booster was successfully caught."
+    },
+    {
+      "id": "starship-flight9",
+      "name": "Starship Flight 9",
+      "date": "2025-05-27T23:36:00.000Z",
+      "family": "starship",
+      "status": "failure",
+      "failureCategory": "guidance_control_failure",
+      "failureSummary": "Booster was lost before splashdown and ship was lost after payload-door / propellant issues."
+    }
+  ],
+  "missingTrajectory": [],
+  "missingOrbit": [
+    "5f8399fb818d8b59f5740d43"
+  ],
+  "dataWarnings": []
+}

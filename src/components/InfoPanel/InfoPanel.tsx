@@ -214,6 +214,33 @@ function getRocketTypePill(rocketType: string): { bg: string; color: string } {
   return { bg: "rgba(34, 211, 238, 0.12)", color: "#22d3ee" };
 }
 
+/** Format a launch status into a human-readable label */
+function formatLaunchStatus(launch: Launch): string {
+  const ls = launch.launchStatus ?? launch.status;
+  switch (ls) {
+    case "partial_failure": return "Partial Failure";
+    case "prelaunch_failure": return "Prelaunch Failure";
+    default: return ls.charAt(0).toUpperCase() + ls.slice(1);
+  }
+}
+
+/** Status color mapping for the new granular statuses */
+function getStatusColors(launch: Launch): { bg: string; border: string; text: string } {
+  const ls = launch.launchStatus ?? launch.status;
+  switch (ls) {
+    case "success": return OUTCOME_COLORS.success;
+    case "failure":
+    case "prelaunch_failure": return OUTCOME_COLORS.failure;
+    case "partial_failure": return OUTCOME_COLORS.partial;
+    default: return { bg: "rgba(34, 211, 238, 0.12)", border: "rgba(34, 211, 238, 0.4)", text: "#22d3ee" };
+  }
+}
+
+/** Failure category display name */
+function formatFailureCategory(cat: string): string {
+  return cat.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function InfoPanelContent({ launch }: { launch: Launch }) {
   const [videoExpanded, setVideoExpanded] = useState(false);
   const fh = launch.flightHistory;
@@ -223,6 +250,10 @@ function InfoPanelContent({ launch }: { launch: Launch }) {
   const showWebcast =
     videoId && launch.status !== "upcoming";
 
+  const hasFailureInfo = launch.failureCategory || launch.failureSummary;
+  const hasCoreInfo = launch.cores && launch.cores.length > 0;
+  const hasPayloadInfo = launch.payloads && launch.payloads.length > 0;
+
   return (
     <div
       style={{
@@ -231,8 +262,8 @@ function InfoPanelContent({ launch }: { launch: Launch }) {
         flex: 1,
       }}
     >
-      {/* Rocket type pill + date */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+      {/* Rocket type pill + variant + flight number + date */}
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px", flexWrap: "wrap" }}>
         <span
           style={{
             padding: "2px 8px",
@@ -246,9 +277,30 @@ function InfoPanelContent({ launch }: { launch: Launch }) {
         >
           {launch.rocketType}
         </span>
-        {fh?.flightNumber != null && (
+        {launch.vehicleVariant && (
           <span style={{ fontSize: "10px", color: "#64748b" }}>
-            Flight #{fh.flightNumber}
+            {launch.vehicleVariant}
+          </span>
+        )}
+        {(launch.familyFlightNumber || fh?.flightNumber != null) && (
+          <span style={{ fontSize: "10px", color: "#64748b", fontFamily: "monospace" }}>
+            {launch.familyFlightNumber ?? `Flight #${fh?.flightNumber}`}
+          </span>
+        )}
+        {/* Granular launch status badge */}
+        {launch.launchStatus && launch.launchStatus !== launch.status && (
+          <span
+            style={{
+              padding: "2px 6px",
+              borderRadius: "3px",
+              fontSize: "9px",
+              fontWeight: 700,
+              ...getStatusColors(launch),
+              border: `1px solid ${getStatusColors(launch).border}`,
+              textTransform: "uppercase",
+            }}
+          >
+            {formatLaunchStatus(launch)}
           </span>
         )}
       </div>
@@ -377,7 +429,7 @@ function InfoPanelContent({ launch }: { launch: Launch }) {
         </>
       )}
 
-      {/* Flight History content */}
+      {/* Flight History content (rich hand-curated data) */}
       {fh ? (
         <>
           {/* Mission Outcome */}
@@ -462,20 +514,179 @@ function InfoPanelContent({ launch }: { launch: Launch }) {
           )}
         </>
       ) : (
-        /* Basic info for launches without flightHistory */
+        /* Auto-generated info from database fields */
         <div style={{ fontSize: "11px", color: "#94a3b8", lineHeight: 1.5 }}>
+          {/* Failure details (new rich data) */}
+          {hasFailureInfo && (
+            <div
+              style={{
+                background: "rgba(239, 68, 68, 0.06)",
+                border: "1px solid rgba(239, 68, 68, 0.2)",
+                borderRadius: "6px",
+                padding: "10px",
+                marginBottom: "10px",
+              }}
+            >
+              <div style={{ fontSize: "9px", fontWeight: 700, color: "#ef4444", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
+                Failure Detail
+              </div>
+              {launch.failureCategory && (
+                <div style={{ marginBottom: "2px" }}>
+                  <span style={{ color: "#64748b" }}>Category: </span>
+                  <span style={{ color: "#fca5a5" }}>{formatFailureCategory(launch.failureCategory)}</span>
+                </div>
+              )}
+              {launch.explosionPhase && (
+                <div style={{ marginBottom: "2px" }}>
+                  <span style={{ color: "#64748b" }}>Phase: </span>
+                  <span style={{ color: "#fca5a5" }}>{formatFailureCategory(launch.explosionPhase)}</span>
+                </div>
+              )}
+              {launch.failureSummary && (
+                <div style={{ color: "#94a3b8", marginTop: "4px" }}>{launch.failureSummary}</div>
+              )}
+              {launch.failureDetail && (
+                <div style={{ color: "#64748b", marginTop: "4px", fontSize: "10px" }}>{launch.failureDetail}</div>
+              )}
+            </div>
+          )}
+
+          {/* Outcome summary row */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
+            {launch.payloadOutcome && (
+              <span style={{ fontSize: "9px", padding: "2px 6px", borderRadius: "3px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#94a3b8" }}>
+                Payload: {launch.payloadOutcome}
+              </span>
+            )}
+            {launch.boosterRecoveryOutcome && (
+              <span style={{ fontSize: "9px", padding: "2px 6px", borderRadius: "3px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#94a3b8" }}>
+                Booster: {launch.boosterRecoveryOutcome}
+              </span>
+            )}
+            {launch.shipRecoveryOutcome && (
+              <span style={{ fontSize: "9px", padding: "2px 6px", borderRadius: "3px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#94a3b8" }}>
+                Ship: {launch.shipRecoveryOutcome}
+              </span>
+            )}
+          </div>
+
           {launch.payloadOrbit && (
             <div style={{ marginBottom: "4px" }}>
               <span style={{ color: "#64748b" }}>Orbit: </span>
               <span style={{ color: "#22d3ee" }}>{launch.payloadOrbit}</span>
+              {launch.inclinationDeg != null && (
+                <span style={{ color: "#64748b" }}> ({launch.inclinationDeg}°)</span>
+              )}
             </div>
           )}
+
+          {/* Core / booster info (from database) */}
+          {hasCoreInfo && (
+            <>
+              <SectionTitle>Booster Details</SectionTitle>
+              {launch.cores!.map((core, i) => (
+                <div
+                  key={i}
+                  style={{
+                    background: "rgba(255, 255, 255, 0.03)",
+                    border: "1px solid rgba(255, 255, 255, 0.06)",
+                    borderRadius: "6px",
+                    padding: "8px 10px",
+                    marginBottom: "4px",
+                    fontSize: "10px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
+                    {core.core_serial && (
+                      <span style={{ fontWeight: 700, color: "#e2e8f0", fontFamily: "monospace" }}>
+                        {core.core_serial}
+                      </span>
+                    )}
+                    {core.core_flight_number && (
+                      <span style={{ color: "#64748b" }}>Flight #{core.core_flight_number}</span>
+                    )}
+                    {core.reused && (
+                      <span style={{ fontSize: "8px", padding: "1px 4px", borderRadius: "2px", background: "rgba(34, 211, 238, 0.12)", color: "#22d3ee", fontWeight: 600 }}>
+                        REUSED
+                      </span>
+                    )}
+                    {core.landing_success != null && (
+                      <span
+                        style={{
+                          marginLeft: "auto",
+                          fontSize: "9px",
+                          fontWeight: 600,
+                          color: core.landing_success ? "#22c55e" : "#ef4444",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {core.landing_success ? "LANDED" : "LOST"}
+                      </span>
+                    )}
+                  </div>
+                  {core.landing_type && (
+                    <div>
+                      <span style={{ color: "#64748b" }}>Landing: </span>
+                      <span style={{ color: "#94a3b8" }}>{core.landing_type}</span>
+                      {core.landing_pad && <span style={{ color: "#64748b" }}> ({core.landing_pad})</span>}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Payload info (from database) */}
+          {hasPayloadInfo && (
+            <>
+              <SectionTitle>Payloads</SectionTitle>
+              {launch.payloads!.map((pl, i) => (
+                <div
+                  key={i}
+                  style={{
+                    fontSize: "10px",
+                    marginBottom: "4px",
+                    lineHeight: 1.4,
+                  }}
+                >
+                  <span style={{ color: "#e2e8f0", fontWeight: 600 }}>
+                    {pl.payload_name ?? pl.payload_id ?? `Payload ${i + 1}`}
+                  </span>
+                  {pl.payload_type && (
+                    <span style={{ color: "#64748b" }}> ({pl.payload_type})</span>
+                  )}
+                  {pl.customer_name && (
+                    <div>
+                      <span style={{ color: "#64748b" }}>Customer: </span>
+                      <span style={{ color: "#94a3b8" }}>{pl.customer_name}</span>
+                    </div>
+                  )}
+                  {pl.orbit && (
+                    <div>
+                      <span style={{ color: "#64748b" }}>Orbit: </span>
+                      <span style={{ color: "#22d3ee" }}>{pl.orbit}</span>
+                    </div>
+                  )}
+                  {pl.mass_kg != null && (
+                    <div>
+                      <span style={{ color: "#64748b" }}>Mass: </span>
+                      <span style={{ color: "#22d3ee" }}>{pl.mass_kg.toLocaleString()} kg</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </>
+          )}
+
           {launch.boosterReturn && (
             <div style={{ marginBottom: "4px" }}>
               <span style={{ color: "#64748b" }}>Recovery: </span>
               <span style={{ color: "#f59e0b" }}>
                 {launch.boosterReturn.landingType}
               </span>
+              {launch.landingZone && (
+                <span style={{ color: "#64748b" }}> ({launch.landingZone})</span>
+              )}
             </div>
           )}
           {launch.details && (
@@ -485,7 +696,40 @@ function InfoPanelContent({ launch }: { launch: Launch }) {
             <span style={{ color: "#64748b" }}>Site: </span>
             {launch.launchSite.fullName}
           </div>
-          {!launch.details && !launch.payloadOrbit && !launch.boosterReturn && (
+
+          {/* Trajectory inference info */}
+          {launch.trajectoryInference && (
+            <div style={{ marginTop: "8px" }}>
+              <span style={{ color: "#64748b" }}>Trajectory: </span>
+              <span style={{ color: "#2dd4bf" }}>
+                {launch.trajectoryInference.direction_label} ({launch.trajectoryInference.heading_deg}°)
+              </span>
+              <span style={{ color: "#475569", fontSize: "9px" }}>
+                {" "}[{launch.trajectoryInference.confidence}]
+              </span>
+            </div>
+          )}
+
+          {/* UI flags */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginTop: "8px" }}>
+            {launch.isCrewed && (
+              <span style={{ fontSize: "8px", padding: "1px 5px", borderRadius: "3px", background: "rgba(168, 85, 247, 0.12)", color: "#c084fc", fontWeight: 600, border: "1px solid rgba(168, 85, 247, 0.3)" }}>
+                CREWED
+              </span>
+            )}
+            {launch.isStarlink && (
+              <span style={{ fontSize: "8px", padding: "1px 5px", borderRadius: "3px", background: "rgba(34, 211, 238, 0.08)", color: "#67e8f9", fontWeight: 600, border: "1px solid rgba(34, 211, 238, 0.2)" }}>
+                STARLINK
+              </span>
+            )}
+            {launch.testFlight && (
+              <span style={{ fontSize: "8px", padding: "1px 5px", borderRadius: "3px", background: "rgba(245, 158, 11, 0.12)", color: "#fbbf24", fontWeight: 600, border: "1px solid rgba(245, 158, 11, 0.3)" }}>
+                TEST FLIGHT
+              </span>
+            )}
+          </div>
+
+          {!launch.details && !launch.payloadOrbit && !launch.boosterReturn && !hasCoreInfo && !hasPayloadInfo && !hasFailureInfo && (
             <div style={{ color: "#475569", fontStyle: "italic", marginTop: "12px" }}>
               No additional details available
             </div>

@@ -8,6 +8,16 @@ import { computeJellyfish } from "@/lib/jellyfish";
 import fallbackData from "@/data/fallbackLaunches.json";
 import { HISTORICAL_LAUNCHES } from "@/data/historicalLaunches";
 
+// ── Try to import the comprehensive database ────────────────
+let launchDatabase: Launch[] | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  launchDatabase = require("@/data/launchDatabase.json") as Launch[];
+} catch {
+  // Database not yet assembled — will fall back to API + fallback
+}
+
+// ── SpaceX API types ─────────────────────────────────────────
 interface SpaceXLaunch {
   id: string;
   name: string;
@@ -106,6 +116,7 @@ async function fetchSpaceXData(): Promise<Launch[]> {
 /** Enrich launches with jellyfish potential data */
 function enrichWithJellyfish(launches: Launch[]): Launch[] {
   return launches.map((l) => {
+    if (l.jellyfish) return l; // already has jellyfish data
     const jf = computeJellyfish(l.dateUtc, l.launchSite.lat, l.launchSite.lng);
     return jf.potential !== "none" ? { ...l, jellyfish: jf } : l;
   });
@@ -115,24 +126,60 @@ function loadFallbackData(): Launch[] {
   return (fallbackData as Launch[]).sort((a, b) => a.dateUnix - b.dateUnix);
 }
 
-/** Merge API/fallback data with historical launches. API data takes precedence. */
-function mergeWithHistorical(apiLaunches: Launch[]): Launch[] {
-  const apiIds = new Set(apiLaunches.map((l) => l.id));
-  const merged = [...apiLaunches];
+/**
+ * Find matching launch by ID first, then by name+date similarity.
+ * Historical launches use custom IDs (fh-demo, starship-flight1) while
+ * database uses API IDs or supplemental IDs, so we need fuzzy matching.
+ */
+function findMatchIndex(merged: Launch[], hist: Launch): number {
+  // 1. Exact ID match
+  const idIdx = merged.findIndex((l) => l.id === hist.id);
+  if (idIdx !== -1) return idIdx;
+
+  // 2. Same-day (±1 day) + similar name match (handles different ID schemes)
+  const histUnix = hist.dateUnix;
+  const histNameLower = hist.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const DAY_SECS = 86400;
+
+  for (let i = 0; i < merged.length; i++) {
+    const l = merged[i];
+    const timeDiff = Math.abs(l.dateUnix - histUnix);
+    if (timeDiff > DAY_SECS * 1.5) continue; // within ~1.5 days
+
+    const lNameLower = l.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+    // Exact name match (ignoring punctuation/case)
+    if (lNameLower === histNameLower) return i;
+    // One name contains the other (e.g., "FH Demo Mission" vs "Falcon Heavy Demo")
+    if (lNameLower.includes(histNameLower) || histNameLower.includes(lNameLower)) return i;
+    // Same rocket type on same day with same site
+    if (l.rocketType === hist.rocketType && l.launchSite.id === hist.launchSite.id && timeDiff < DAY_SECS) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+/** Merge API/fallback data with historical launches. Historical enrichments take precedence. */
+function mergeWithHistorical(baseLaunches: Launch[]): Launch[] {
+  const merged = [...baseLaunches];
 
   for (const hist of HISTORICAL_LAUNCHES) {
-    if (!apiIds.has(hist.id)) {
+    const idx = findMatchIndex(merged, hist);
+
+    if (idx === -1) {
+      // No match found — add as new entry
       merged.push(hist);
     } else {
-      // Attach flightHistory and boosterReturn to existing API launch
-      const idx = merged.findIndex((l) => l.id === hist.id);
-      if (idx !== -1) {
-        if (hist.flightHistory) {
-          merged[idx] = { ...merged[idx], flightHistory: hist.flightHistory };
-        }
-        if (hist.boosterReturn) {
-          merged[idx] = { ...merged[idx], boosterReturn: hist.boosterReturn };
-        }
+      // Merge enrichment data from historical into existing record
+      const updates: Partial<Launch> = {};
+      if (hist.flightHistory) updates.flightHistory = hist.flightHistory;
+      if (hist.boosterReturn) updates.boosterReturn = hist.boosterReturn;
+      if (hist.webcastUrl && !merged[idx].webcastUrl) updates.webcastUrl = hist.webcastUrl;
+      if (hist.details && !merged[idx].details) updates.details = hist.details;
+      if (hist.payloadOrbit && !merged[idx].payloadOrbit) updates.payloadOrbit = hist.payloadOrbit;
+      if (Object.keys(updates).length > 0) {
+        merged[idx] = { ...merged[idx], ...updates };
       }
     }
   }
@@ -162,17 +209,42 @@ export function useSpaceXData() {
     async function load() {
       setLoading(true);
       try {
-        const data = await fetchSpaceXData();
+        let base: Launch[];
+
+        if (launchDatabase && launchDatabase.length > 0) {
+          // ── Primary: comprehensive database ────────────────
+          base = launchDatabase;
+          console.log(
+            `[SpaceX Data] Loaded ${base.length} launches from comprehensive database`
+          );
+        } else {
+          // ── Fallback: live API or static fallback ──────────
+          try {
+            base = await fetchSpaceXData();
+            if (base.length === 0) throw new Error("Empty API response");
+            console.log(
+              `[SpaceX Data] Loaded ${base.length} launches from SpaceX API`
+            );
+          } catch {
+            console.warn(
+              "[SpaceX Data] API unavailable, using fallback data"
+            );
+            base = loadFallbackData();
+          }
+        }
+
         if (!cancelled) {
-          const base = data.length > 0 ? data : loadFallbackData();
-          const merged = mergeWithHistorical(enrichWithJellyfish(base));
+          const enriched = enrichWithJellyfish(base);
+          const merged = mergeWithHistorical(enriched);
           setLaunches(merged);
           setAvailableYears(computeAvailableYears(merged));
         }
-      } catch {
+      } catch (err) {
+        console.error("[SpaceX Data] Error loading data:", err);
         if (!cancelled) {
-          console.warn("SpaceX API unavailable, using fallback data");
-          const merged = mergeWithHistorical(enrichWithJellyfish(loadFallbackData()));
+          const merged = mergeWithHistorical(
+            enrichWithJellyfish(loadFallbackData())
+          );
           setLaunches(merged);
           setAvailableYears(computeAvailableYears(merged));
         }

@@ -81,7 +81,15 @@ export default function LaunchPanel() {
         return false;
       if (filters.rocketType && l.rocketType !== filters.rocketType)
         return false;
-      if (filters.status && l.status !== filters.status) return false;
+      if (filters.status) {
+        // "failure" filter matches failure, partial_failure, prelaunch_failure
+        if (filters.status === "failure") {
+          const ls = l.launchStatus ?? l.status;
+          if (ls !== "failure" && ls !== "partial_failure" && ls !== "prelaunch_failure") return false;
+        } else if (l.status !== filters.status) {
+          return false;
+        }
+      }
       if (filters.site && l.launchSite.id !== filters.site) return false;
       // Jellyfish filter
       if (

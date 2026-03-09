@@ -32,10 +32,14 @@ function formatTime(dateUtc: string): string {
   });
 }
 
-const statusConfig = {
+const statusConfig: Record<string, { label: string; className: string }> = {
   upcoming: { label: "Upcoming", className: "badge-upcoming" },
   success: { label: "Success", className: "badge-success" },
   failure: { label: "Failure", className: "badge-failure" },
+  partial_failure: { label: "Partial", className: "badge-failure" },
+  prelaunch_failure: { label: "Pad Failure", className: "badge-failure" },
+  scrubbed: { label: "Scrubbed", className: "badge-upcoming" },
+  unknown: { label: "Unknown", className: "badge-upcoming" },
 };
 
 export default function LaunchCard({
@@ -46,7 +50,9 @@ export default function LaunchCard({
   onPlay,
   onPause,
 }: LaunchCardProps) {
-  const status = statusConfig[launch.status];
+  // Use granular launchStatus when available, fall back to simple status
+  const statusKey = launch.launchStatus ?? launch.status;
+  const status = statusConfig[statusKey] ?? statusConfig[launch.status];
   const accentColor = getSiteAccentColor(launch.launchSite.id);
   const selectedLaunch = useAppStore((s) => s.selectedLaunch);
   const playbackState = useAppStore((s) => s.playbackState);
@@ -337,12 +343,33 @@ export default function LaunchCard({
               <span style={{ color: "#f59e0b" }}>
                 {launch.boosterReturn.landingType}
               </span>
+              {launch.landingZone && (
+                <span style={{ color: "#64748b" }}> ({launch.landingZone})</span>
+              )}
+            </div>
+          )}
+          {/* Core info — show booster serial and reuse count */}
+          {launch.cores && launch.cores.length > 0 && launch.cores[0].core_serial && (
+            <div style={{ marginBottom: "4px" }}>
+              <span style={{ color: "#64748b" }}>Booster: </span>
+              <span style={{ color: "#22d3ee", fontFamily: "monospace", fontWeight: 600, fontSize: "10px" }}>
+                {launch.cores[0].core_serial}
+              </span>
+              {launch.cores[0].core_flight_number && (
+                <span style={{ color: "#64748b" }}> (Flight #{launch.cores[0].core_flight_number})</span>
+              )}
+            </div>
+          )}
+          {/* Failure summary */}
+          {launch.failureSummary && (
+            <div style={{ color: "#fca5a5", marginBottom: "4px", fontSize: "10px" }}>
+              {launch.failureSummary}
             </div>
           )}
           {launch.details && (
             <div style={{ color: "#64748b" }}>{launch.details}</div>
           )}
-          {!launch.details && !launch.payloadOrbit && (
+          {!launch.details && !launch.payloadOrbit && !launch.failureSummary && (
             <div style={{ color: "#475569", fontStyle: "italic" }}>
               No additional details available
             </div>

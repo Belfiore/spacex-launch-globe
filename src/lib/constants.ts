@@ -102,6 +102,10 @@ export const STATUS_COLORS: Record<string, string> = {
   upcoming: COLORS.upcoming,
   success: COLORS.success,
   failure: COLORS.failure,
+  partial_failure: COLORS.active, // amber for partial failures
+  prelaunch_failure: COLORS.failure,
+  scrubbed: COLORS.upcoming,
+  unknown: "#64748b",
 };
 
 // ── Site groups for filtering ────────────────────────────────
