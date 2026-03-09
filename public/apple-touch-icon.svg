@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
+  <!-- Dark blue circular background -->
+  <circle cx="90" cy="90" r="90" fill="#0a0e1a"/>
+  <!-- Rocket group, centered in the circle -->
+  <g transform="translate(90,90) scale(3.5) translate(-16,-15)">
+    <!-- Rocket body -->
+    <rect x="12" y="8" width="8" height="14" rx="1" fill="white"/>
+    <!-- Nose cone -->
+    <polygon points="16,2 12,8 20,8" fill="white"/>
+    <!-- Left fin -->
+    <polygon points="12,19 8,24 12,22" fill="white"/>
+    <!-- Right fin -->
+    <polygon points="20,19 24,24 20,22" fill="white"/>
+    <!-- Window -->
+    <circle cx="16" cy="13" r="2" fill="#0a0e1a"/>
+    <!-- Exhaust flame -->
+    <polygon points="13,22 16,28 19,22" fill="#ff6b35"/>
+    <polygon points="14,22 16,26 18,22" fill="#ffd700"/>
+  </g>
+</svg>

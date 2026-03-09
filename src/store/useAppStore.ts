@@ -64,6 +64,13 @@ interface AppState {
   setShowISS: (show: boolean) => void;
   toggleISS: () => void;
 
+  // Starlink constellation toggle
+  showStarlink: boolean;
+  setShowStarlink: (show: boolean) => void;
+  toggleStarlink: () => void;
+  starlinkCount: number;
+  setStarlinkCount: (count: number) => void;
+
   // Entry / onboarding phase
   entryPhase: "loading" | "intro" | "onboarding" | "complete";
   setEntryPhase: (
@@ -184,6 +191,13 @@ export const useAppStore = create<AppState>((set) => ({
   showISS: true,
   setShowISS: (show) => set({ showISS: show }),
   toggleISS: () => set((s) => ({ showISS: !s.showISS })),
+
+  // Starlink constellation toggle
+  showStarlink: false,
+  setShowStarlink: (show) => set({ showStarlink: show }),
+  toggleStarlink: () => set((s) => ({ showStarlink: !s.showStarlink })),
+  starlinkCount: 0,
+  setStarlinkCount: (count) => set({ starlinkCount: count }),
 
   // Entry / onboarding phase
   entryPhase: "loading",

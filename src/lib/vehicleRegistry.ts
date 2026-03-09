@@ -39,7 +39,7 @@ export interface VehicleConfig {
   };
 }
 
-export const VEHICLE_REGISTRY: Record<VehicleFamily, VehicleConfig> = {
+export const VEHICLE_REGISTRY: Partial<Record<VehicleFamily, VehicleConfig>> & Record<"falcon9" | "falconheavy" | "starship", VehicleConfig> = {
   falcon9: {
     family: "falcon9",
     displayName: "Falcon 9",
@@ -63,8 +63,8 @@ export const VEHICLE_REGISTRY: Record<VehicleFamily, VehicleConfig> = {
         "https://sketchfab.com/3d-models/spacex-falcon-9-block-5-61067a8b341c4b4b96053d5fa607f232",
     },
   },
-  falconHeavy: {
-    family: "falconHeavy",
+  falconheavy: {
+    family: "falconheavy",
     displayName: "Falcon Heavy",
     hasGlb: false,
     modelPath: "/models/falconHeavy.glb",
@@ -115,9 +115,11 @@ export const VEHICLE_REGISTRY: Record<VehicleFamily, VehicleConfig> = {
 export function getVehicleFamily(rocketType: string): VehicleFamily {
   switch (rocketType) {
     case "Falcon Heavy":
-      return "falconHeavy";
+      return "falconheavy";
     case "Starship":
       return "starship";
+    case "Falcon 1":
+      return "falcon1";
     case "Falcon 9":
     default:
       return "falcon9";
@@ -126,5 +128,7 @@ export function getVehicleFamily(rocketType: string): VehicleFamily {
 
 /** Get full vehicle configuration for a rocket type */
 export function getVehicleConfig(rocketType: string): VehicleConfig {
-  return VEHICLE_REGISTRY[getVehicleFamily(rocketType)];
+  const family = getVehicleFamily(rocketType);
+  // Falcon 1 and starship_prototype use Falcon 9 config as fallback
+  return VEHICLE_REGISTRY[family] ?? VEHICLE_REGISTRY.falcon9;
 }

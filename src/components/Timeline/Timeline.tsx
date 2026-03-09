@@ -433,7 +433,7 @@ export default function Timeline() {
               );
               if (pct < 0 || pct > 100) return null;
               const color =
-                STATUS_COLORS[launch.status] ?? STATUS_COLORS.upcoming;
+                STATUS_COLORS[launch.launchStatus ?? launch.status] ?? STATUS_COLORS[launch.status] ?? STATUS_COLORS.upcoming;
               const siteAbbr = getSiteAbbr(launch.launchSite.id);
               return (
                 <div

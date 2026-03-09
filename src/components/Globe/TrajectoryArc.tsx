@@ -43,23 +43,33 @@ export default function TrajectoryArc({
 
   const stagingPoint = useMemo(() => curve.getPointAt(STAGING_PROGRESS), [curve]);
 
-  const hasBoosterReturn =
-    launch.boosterReturn &&
-    launch.boosterReturn.landingType !== "expended";
+  // ── Booster return arcs (supports multiple for Falcon Heavy) ──
+  const boosterReturnEntries = useMemo(() => {
+    if (launch.boosterReturns && launch.boosterReturns.length > 0) {
+      return launch.boosterReturns.filter(br => br.landingType !== "expended");
+    }
+    if (launch.boosterReturn && launch.boosterReturn.landingType !== "expended") {
+      return [launch.boosterReturn];
+    }
+    return [];
+  }, [launch.boosterReturn, launch.boosterReturns]);
 
-  const boosterCurve = useMemo(() => {
-    if (!hasBoosterReturn || !launch.boosterReturn) return null;
-    return generateBoosterReturnArc(
-      stagingPoint,
-      launch.boosterReturn.landingCoords.lat,
-      launch.boosterReturn.landingCoords.lng
+  const hasBoosterReturn = boosterReturnEntries.length > 0;
+
+  const boosterCurves = useMemo(() => {
+    return boosterReturnEntries.map((br) =>
+      generateBoosterReturnArc(stagingPoint, br.landingCoords.lat, br.landingCoords.lng)
     );
-  }, [hasBoosterReturn, launch.boosterReturn, stagingPoint]);
+  }, [boosterReturnEntries, stagingPoint]);
 
-  const boosterAllPoints = useMemo(
-    () => boosterCurve?.getPoints(60) ?? null,
-    [boosterCurve]
+  const boosterAllPointsArr = useMemo(
+    () => boosterCurves.map(c => c.getPoints(60)),
+    [boosterCurves]
   );
+
+  // Primary booster for backward compat (first entry)
+  const boosterCurve = boosterCurves[0] ?? null;
+  const boosterAllPoints = boosterAllPointsArr[0] ?? null;
 
   // ── Starlink satellite train ──────────────────────────────────
   const isStarlink =
@@ -100,12 +110,35 @@ export default function TrajectoryArc({
     return sats;
   }, [isStarlink, progress, curve]);
 
+  // ── Landing failure detection ────────────────────────────────
+  const landingFailed = launch.landingSuccess === false;
+
   // ── Reentry glow ref for booster ─────────────────────────────
   const reentryGlowRef = useRef<THREE.Mesh>(null);
-  useFrame(() => {
+  const explosionRef = useRef<THREE.Mesh>(null);
+  const explosionDebrisRef = useRef<THREE.Group>(null);
+  useFrame((_, delta) => {
     if (reentryGlowRef.current) {
       const flicker = 0.7 + Math.random() * 0.6;
       reentryGlowRef.current.scale.setScalar(flicker);
+    }
+    // Animate explosion — pulsing fireball
+    if (explosionRef.current) {
+      const pulse = 1.0 + Math.sin(Date.now() * 0.008) * 0.3 + Math.random() * 0.15;
+      explosionRef.current.scale.setScalar(pulse);
+    }
+    // Animate debris — slowly expand outward
+    if (explosionDebrisRef.current) {
+      explosionDebrisRef.current.children.forEach((child) => {
+        if (child instanceof THREE.Mesh) {
+          const s = child.scale.x + delta * 0.15;
+          child.scale.setScalar(Math.min(s, 2.5));
+          const mat = child.material as THREE.MeshBasicMaterial;
+          if (mat.opacity > 0.05) {
+            mat.opacity -= delta * 0.3;
+          }
+        }
+      });
     }
   });
 
@@ -161,11 +194,12 @@ export default function TrajectoryArc({
   const showStageSeparation = !isStaticPreview && progress >= STAGING_PROGRESS && hasBoosterReturn;
   const stagingTuple = toTuple(stagingPoint);
 
+  const primaryReturn = boosterReturnEntries[0] ?? null;
   const landingPos =
-    launch.boosterReturn && boosterProgress >= 0.9
+    primaryReturn && boosterProgress >= 0.9
       ? latLngToVector3(
-          launch.boosterReturn.landingCoords.lat,
-          launch.boosterReturn.landingCoords.lng,
+          primaryReturn.landingCoords.lat,
+          primaryReturn.landingCoords.lng,
           GLOBE.RADIUS + 0.01
         )
       : null;
@@ -316,8 +350,8 @@ export default function TrajectoryArc({
           </>
         )}
 
-      {/* Landing flash */}
-      {landingPos && (
+      {/* Landing flash (success) or explosion (failure) */}
+      {landingPos && !landingFailed && (
         <mesh position={toTuple(landingPos)}>
           <sphereGeometry args={[0.03, 8, 8]} />
           <meshBasicMaterial
@@ -329,6 +363,115 @@ export default function TrajectoryArc({
           />
         </mesh>
       )}
+
+      {/* ── Failed landing explosion ── */}
+      {landingPos && landingFailed && boosterProgress >= 0.85 && (
+        <>
+          {/* Main fireball — orange/red pulsing sphere */}
+          <mesh
+            ref={explosionRef}
+            position={toTuple(landingPos)}
+          >
+            <sphereGeometry args={[0.04, 12, 12]} />
+            <meshBasicMaterial
+              color="#ff3300"
+              transparent
+              opacity={Math.min(0.9, (boosterProgress - 0.85) * 6)}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Inner white-hot core */}
+          <mesh position={toTuple(landingPos)}>
+            <sphereGeometry args={[0.02, 8, 8]} />
+            <meshBasicMaterial
+              color="#ffcc00"
+              transparent
+              opacity={Math.min(0.95, (boosterProgress - 0.85) * 8)}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Outer shockwave ring */}
+          <mesh
+            position={toTuple(landingPos)}
+            rotation={[Math.PI / 2, 0, 0]}
+          >
+            <torusGeometry
+              args={[
+                0.03 + Math.min(0.06, (boosterProgress - 0.85) * 0.4),
+                0.004,
+                6,
+                24,
+              ]}
+            />
+            <meshBasicMaterial
+              color="#ff6600"
+              transparent
+              opacity={Math.max(0, 0.7 - (boosterProgress - 0.88) * 5)}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Debris particles — small scattered spheres */}
+          <group ref={explosionDebrisRef} position={toTuple(landingPos)}>
+            {[...Array(6)].map((_, i) => {
+              const angle = (i / 6) * Math.PI * 2;
+              const r = 0.015 + Math.random() * 0.01;
+              return (
+                <mesh
+                  key={`debris-${i}`}
+                  position={[
+                    Math.cos(angle) * r,
+                    0.01 + Math.random() * 0.02,
+                    Math.sin(angle) * r,
+                  ]}
+                >
+                  <sphereGeometry args={[0.004, 4, 4]} />
+                  <meshBasicMaterial
+                    color={i % 2 === 0 ? "#ff4400" : "#ffaa00"}
+                    transparent
+                    opacity={0.8}
+                    blending={THREE.AdditiveBlending}
+                    depthWrite={false}
+                  />
+                </mesh>
+              );
+            })}
+          </group>
+        </>
+      )}
+
+      {/* ── Additional booster return arcs (Falcon Heavy side boosters / center core) ── */}
+      {showBoosterReturn && boosterReturnEntries.length > 1 && boosterAllPointsArr.slice(1).map((pts, i) => {
+        const bProg = Math.min(1, (progress - STAGING_PROGRESS) / (0.55 * (1 - STAGING_PROGRESS)));
+        const bIdx = Math.floor(bProg * 60);
+        const trailPts = pts.slice(0, Math.max(2, bIdx + 1)).map(toTuple);
+        const bPoint = pts[Math.min(bIdx, pts.length - 1)];
+        const curve2 = boosterCurves[i + 1];
+        const bTangent = curve2 && bProg < 0.99 ? curve2.getTangentAt(Math.max(0.01, bProg)).negate() : null;
+        const brEntry = boosterReturnEntries[i + 1];
+        const landPos = bProg >= 0.9
+          ? latLngToVector3(brEntry.landingCoords.lat, brEntry.landingCoords.lng, GLOBE.RADIUS + 0.01)
+          : null;
+
+        return (
+          <group key={`booster-${i + 1}`}>
+            {trailPts.length >= 2 && (
+              <Line points={trailPts} color={i === 0 ? "#f59e0b" : "#22d3ee"} lineWidth={2} transparent opacity={0.65} />
+            )}
+            {bPoint && bTangent && bProg < 0.9 && (
+              <RocketModel position={bPoint} tangent={bTangent} rocketType={launch.rocketType} progress={0.4} />
+            )}
+            {landPos && (
+              <mesh position={toTuple(landPos)}>
+                <sphereGeometry args={[0.025, 8, 8]} />
+                <meshBasicMaterial color={i === 0 ? "#f59e0b" : "#22d3ee"} transparent opacity={0.7} blending={THREE.AdditiveBlending} depthWrite={false} />
+              </mesh>
+            )}
+          </group>
+        );
+      })}
 
       {/* ── Starlink satellite train (only during active flight) ── */}
       {!isStaticPreview && starlinkPositions &&

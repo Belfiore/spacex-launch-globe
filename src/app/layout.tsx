@@ -12,9 +12,44 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = "https://rocketmanifest.com";
+
 export const metadata: Metadata = {
-  title: "Rocket Manifest",
-  description: "Interactive 3D visualization of SpaceX rocket launches",
+  title: "Rocket Manifest — SpaceX Launch Explorer",
+  description:
+    "Explore every SpaceX rocket launch in stunning 3D. Watch Falcon 9, Falcon Heavy, and Starship missions animate across an interactive globe with real trajectory data, booster landings, and mission playback.",
+  keywords: [
+    "SpaceX",
+    "rocket launch",
+    "Falcon 9",
+    "Falcon Heavy",
+    "Starship",
+    "3D globe",
+    "launch visualization",
+    "booster landing",
+    "space exploration",
+  ],
+  authors: [{ name: "Rocket Manifest" }],
+  icons: {
+    icon: [{ url: "/rocket-favicon.svg", type: "image/svg+xml" }],
+    apple: "/apple-touch-icon.svg",
+  },
+  openGraph: {
+    title: "Rocket Manifest — SpaceX Launch Explorer",
+    description:
+      "Explore every SpaceX rocket launch in stunning 3D. Real trajectory data, booster landings, and mission playback on an interactive globe.",
+    url: siteUrl,
+    siteName: "Rocket Manifest",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Rocket Manifest — SpaceX Launch Explorer",
+    description:
+      "Explore every SpaceX rocket launch in stunning 3D. Real trajectory data, booster landings, and mission playback.",
+  },
+  metadataBase: new URL(siteUrl),
 };
 
 export default function RootLayout({

@@ -102,6 +102,10 @@ export const STATUS_COLORS: Record<string, string> = {
   upcoming: COLORS.upcoming,
   success: COLORS.success,
   failure: COLORS.failure,
+  partial_failure: COLORS.active, // amber for partial failures
+  prelaunch_failure: COLORS.failure,
+  scrubbed: COLORS.upcoming,
+  unknown: "#64748b",
 };
 
 // ── Site groups for filtering ────────────────────────────────
@@ -158,11 +162,17 @@ export const STAGING_PROGRESS = 0.35;
 
 /** Known drone ship / landing zone coordinates */
 export const DRONE_SHIP_COORDS = {
-  JRTI: { lat: 30.4, lng: -74.0 }, // Just Read the Instructions (Atlantic)
-  OCISLY: { lat: 28.4, lng: -76.0 }, // Of Course I Still Love You (Atlantic)
-  ASOG: { lat: 33.2, lng: -119.5 }, // A Shortfall of Gravitas (Pacific)
-  LZ1: { lat: 28.485, lng: -80.544 }, // Landing Zone 1 (RTLS)
-  LZ2: { lat: 28.485, lng: -80.54 }, // Landing Zone 2 (RTLS)
+  // ── Atlantic (Florida / Cape Canaveral operations) ──
+  OCISLY: { lat: 28.4, lng: -76.0 }, // Of Course I Still Love You — Atlantic (retired ~2023)
+  ASOG: { lat: 28.8, lng: -75.5 }, // A Shortfall of Gravitas — Atlantic (primary East Coast ship since 2021)
+  // ── Pacific (Vandenberg operations) ──
+  JRTI: { lat: 32.5, lng: -118.5 }, // Just Read the Instructions — Pacific (relocated from Atlantic ~2024)
+  // ── RTLS Landing Zones ──
+  LZ1: { lat: 28.485, lng: -80.544 }, // Landing Zone 1 — Cape Canaveral RTLS
+  LZ2: { lat: 28.485, lng: -80.54 }, // Landing Zone 2 — Cape Canaveral RTLS
+  LZ4: { lat: 34.633, lng: -120.615 }, // Landing Zone 4 — Vandenberg RTLS
+  // ── Starbase ──
+  STARBASE_CATCH: { lat: 25.9972, lng: -97.156 }, // Mechazilla catch tower — Boca Chica
 };
 
 // ── Earth textures — progressive loading ────────────────────

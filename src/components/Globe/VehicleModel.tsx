@@ -81,66 +81,171 @@ function GLBModel({ config }: ModelProps) {
   );
 }
 
+// ── Grid Fin (reusable sub-component) ───────────────────────
+
+function GridFin({
+  position,
+  rotation,
+  color,
+}: {
+  position: [number, number, number];
+  rotation: [number, number, number];
+  color: string;
+}) {
+  return (
+    <mesh position={position} rotation={rotation}>
+      <boxGeometry args={[0.014, 0.008, 0.002]} />
+      <meshBasicMaterial color={color} />
+    </mesh>
+  );
+}
+
+// ── Landing Leg (reusable sub-component) ────────────────────
+
+function LandingLeg({
+  position,
+  rotation,
+}: {
+  position: [number, number, number];
+  rotation: [number, number, number];
+}) {
+  return (
+    <mesh position={position} rotation={rotation}>
+      <boxGeometry args={[0.002, 0.025, 0.003]} />
+      <meshBasicMaterial color="#555555" />
+    </mesh>
+  );
+}
+
 // ── Procedural Fallback Model ────────────────────────────────
+// Accurate booster geometry:
+//   F9/FH: elongated cylinder, flat top, grid fins near top, landing legs at base
+//   Starship Super Heavy: wider cylinder, grid fins, no nose cone
 
 function ProceduralModel({ config }: ModelProps) {
   const { procedural } = config;
-  const { bodyRadius, bodyHeight, bodyColor, noseColor } = procedural;
+  const { bodyRadius, bodyHeight, bodyColor } = procedural;
+  const isStarship = procedural.hasFins; // Starship uses fins flag
+
+  // Interstage ring color (slightly lighter than body)
+  const interstageColor = isStarship ? "#c8d0dc" : "#3a3a44";
 
   return (
     <group>
-      {/* Main body */}
+      {/* Main body — flat-topped cylinder (no nose cone) */}
       <mesh>
-        <cylinderGeometry args={[bodyRadius, bodyRadius * 1.05, bodyHeight, 8]} />
+        <cylinderGeometry args={[bodyRadius, bodyRadius, bodyHeight, 12]} />
         <meshBasicMaterial color={bodyColor} />
       </mesh>
 
-      {/* Nose cone */}
-      <mesh position={[0, bodyHeight / 2 + 0.014, 0]}>
-        <coneGeometry args={[bodyRadius, 0.028, 8]} />
-        <meshBasicMaterial color={noseColor} />
+      {/* Flat top cap — interstage ring */}
+      <mesh position={[0, bodyHeight / 2 + 0.002, 0]}>
+        <cylinderGeometry args={[bodyRadius * 1.02, bodyRadius * 1.02, 0.004, 12]} />
+        <meshBasicMaterial color={interstageColor} />
       </mesh>
 
-      {/* Falcon Heavy side boosters */}
-      {procedural.hasSideBoosters && (
+      {/* Grid fins — 4 fins near the top of the booster */}
+      <GridFin
+        position={[bodyRadius + 0.008, bodyHeight / 2 - 0.01, 0]}
+        rotation={[0, 0, 0]}
+        color={isStarship ? "#a0a8b4" : "#2a2a32"}
+      />
+      <GridFin
+        position={[-(bodyRadius + 0.008), bodyHeight / 2 - 0.01, 0]}
+        rotation={[0, 0, 0]}
+        color={isStarship ? "#a0a8b4" : "#2a2a32"}
+      />
+      <GridFin
+        position={[0, bodyHeight / 2 - 0.01, bodyRadius + 0.008]}
+        rotation={[0, Math.PI / 2, 0]}
+        color={isStarship ? "#a0a8b4" : "#2a2a32"}
+      />
+      <GridFin
+        position={[0, bodyHeight / 2 - 0.01, -(bodyRadius + 0.008)]}
+        rotation={[0, Math.PI / 2, 0]}
+        color={isStarship ? "#a0a8b4" : "#2a2a32"}
+      />
+
+      {/* Landing legs — 4 legs at the base (F9/FH only, Starship uses tower catch) */}
+      {!isStarship && (
         <>
-          <mesh position={[-0.026, -0.005, 0]}>
-            <cylinderGeometry args={[0.009, 0.009, 0.065, 8]} />
-            <meshBasicMaterial color={bodyColor} />
-          </mesh>
-          <mesh position={[0.026, -0.005, 0]}>
-            <cylinderGeometry args={[0.009, 0.009, 0.065, 8]} />
-            <meshBasicMaterial color={bodyColor} />
-          </mesh>
-          <mesh position={[-0.026, 0.029, 0]}>
-            <coneGeometry args={[0.009, 0.018, 8]} />
-            <meshBasicMaterial color={noseColor} />
-          </mesh>
-          <mesh position={[0.026, 0.029, 0]}>
-            <coneGeometry args={[0.009, 0.018, 8]} />
-            <meshBasicMaterial color={noseColor} />
-          </mesh>
+          <LandingLeg
+            position={[bodyRadius + 0.004, -bodyHeight / 2 + 0.005, 0]}
+            rotation={[0, 0, 0.25]}
+          />
+          <LandingLeg
+            position={[-(bodyRadius + 0.004), -bodyHeight / 2 + 0.005, 0]}
+            rotation={[0, 0, -0.25]}
+          />
+          <LandingLeg
+            position={[0, -bodyHeight / 2 + 0.005, bodyRadius + 0.004]}
+            rotation={[0.25, 0, 0]}
+          />
+          <LandingLeg
+            position={[0, -bodyHeight / 2 + 0.005, -(bodyRadius + 0.004)]}
+            rotation={[-0.25, 0, 0]}
+          />
         </>
       )}
 
-      {/* Starship fins */}
-      {procedural.hasFins && (
+      {/* Engine cluster glow at the base */}
+      <mesh position={[0, -bodyHeight / 2 - 0.002, 0]}>
+        <circleGeometry args={[bodyRadius * 0.75, 12]} />
+        <meshBasicMaterial
+          color={isStarship ? "#334455" : "#1a1a22"}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Falcon Heavy side boosters — flat-topped cylinders (no nose cones) */}
+      {procedural.hasSideBoosters && (
         <>
-          <mesh
-            position={[bodyRadius + 0.006, -bodyHeight / 2 + 0.01, 0]}
-            rotation={[0, 0, 0.3]}
-          >
-            <boxGeometry args={[0.012, 0.03, 0.004]} />
-            <meshBasicMaterial color="#8090a0" />
-          </mesh>
-          <mesh
-            position={[-(bodyRadius + 0.006), -bodyHeight / 2 + 0.01, 0]}
-            rotation={[0, 0, -0.3]}
-          >
-            <boxGeometry args={[0.012, 0.03, 0.004]} />
-            <meshBasicMaterial color="#8090a0" />
-          </mesh>
+          {/* Left side booster */}
+          <group position={[-0.026, -0.008, 0]}>
+            <mesh>
+              <cylinderGeometry args={[0.009, 0.009, 0.07, 10]} />
+              <meshBasicMaterial color={bodyColor} />
+            </mesh>
+            {/* Left booster grid fins */}
+            <GridFin
+              position={[0.011, 0.028, 0]}
+              rotation={[0, 0, 0]}
+              color="#2a2a32"
+            />
+            <GridFin
+              position={[-0.011, 0.028, 0]}
+              rotation={[0, 0, 0]}
+              color="#2a2a32"
+            />
+          </group>
+
+          {/* Right side booster */}
+          <group position={[0.026, -0.008, 0]}>
+            <mesh>
+              <cylinderGeometry args={[0.009, 0.009, 0.07, 10]} />
+              <meshBasicMaterial color={bodyColor} />
+            </mesh>
+            {/* Right booster grid fins */}
+            <GridFin
+              position={[0.011, 0.028, 0]}
+              rotation={[0, 0, 0]}
+              color="#2a2a32"
+            />
+            <GridFin
+              position={[-0.011, 0.028, 0]}
+              rotation={[0, 0, 0]}
+              color="#2a2a32"
+            />
+          </group>
         </>
+      )}
+
+      {/* Starship Super Heavy hot-staging ring (wider band near top) */}
+      {isStarship && (
+        <mesh position={[0, bodyHeight / 2 - 0.003, 0]}>
+          <cylinderGeometry args={[bodyRadius * 1.08, bodyRadius * 1.08, 0.008, 12]} />
+          <meshBasicMaterial color="#9a9eaa" />
+        </mesh>
       )}
     </group>
   );
