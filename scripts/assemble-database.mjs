@@ -182,34 +182,122 @@ function inferBoosterReturn(launch) {
 
   if (!mode) return null;
 
-  // Landing coordinates by zone name
+  // ── Corrected droneship / landing coordinates ──
+  // ASOG: Atlantic (East Coast) — primary droneship since 2021
+  // JRTI: Pacific (West Coast) — relocated from Atlantic ~2024 for Vandenberg ops
+  // OCISLY: Atlantic (East Coast) — retired ~2023
   const LANDING_COORDS = {
-    "LZ-1": { lat: 28.485, lng: -80.544 },
-    "LZ-2": { lat: 28.485, lng: -80.544 },
-    "LZ-4": { lat: 34.633, lng: -120.615 },
-    OCISLY: { lat: 28.4, lng: -76.0 },
-    "JRTI-1": { lat: 30.4, lng: -74.0 },
-    JRTI: { lat: 30.4, lng: -74.0 },
-    ASOG: { lat: 33.2, lng: -119.5 },
+    "LZ-1": { lat: 28.485, lng: -80.544 }, // Cape Canaveral RTLS
+    "LZ-2": { lat: 28.485, lng: -80.544 }, // Cape Canaveral RTLS
+    "LZ-4": { lat: 34.633, lng: -120.615 }, // Vandenberg RTLS
+    OCISLY: { lat: 28.4, lng: -76.0 },      // Atlantic droneship (retired)
+    "JRTI-1": { lat: 32.5, lng: -118.5 },   // Pacific droneship
+    JRTI: { lat: 32.5, lng: -118.5 },        // Pacific droneship
+    ASOG: { lat: 28.8, lng: -75.5 },         // Atlantic droneship (primary since 2021)
   };
 
   let coords = zone && LANDING_COORDS[zone];
+
+  // ── Site-aware fallback when zone is unknown ──
   if (!coords) {
-    // Default ASDS coords by launch site
     if (site.includes("vandenberg")) {
-      coords = { lat: 33.2, lng: -119.5 };
+      // Vandenberg -> Pacific droneship
+      coords = { lat: 32.5, lng: -118.5 };
+    } else if (site.includes("boca-chica")) {
+      // Starbase -> Gulf of Mexico
+      coords = { lat: 26.0, lng: -96.0 };
     } else {
-      coords = { lat: 28.4, lng: -76.0 };
+      // Florida -> Atlantic droneship
+      coords = { lat: 28.8, lng: -75.5 };
     }
   }
 
-  const landingType =
-    mode === "RTLS" ? "RTLS" : mode === "ASDS" ? "ASDS" : "expended";
+  // ── Cross-coast validation ──
+  // Vandenberg launches must not land in the Atlantic
+  if (site.includes("vandenberg") && coords.lng > -100) {
+    console.warn(`  ⚠ Cross-coast fix: ${launch.name} (${launch.id}) — Vandenberg launch had Atlantic coords, correcting to Pacific`);
+    coords = { lat: 32.5, lng: -118.5 };
+    // Also fix the zone name if it's OCISLY (Atlantic ship)
+    if (zone === "OCISLY" || zone === "ASOG") {
+      launch.landingZone = "JRTI";
+    }
+  }
+  // Florida launches must not land in the Pacific
+  if ((site.includes("cape-canaveral") || site.includes("ksc")) && coords.lng < -100) {
+    console.warn(`  ⚠ Cross-coast fix: ${launch.name} (${launch.id}) — Florida launch had Pacific coords, correcting to Atlantic`);
+    coords = { lat: 28.8, lng: -75.5 };
+    // Fix the zone name if it's JRTI (Pacific ship)
+    if (zone === "JRTI" || zone === "JRTI-1") {
+      launch.landingZone = "ASOG";
+    }
+  }
+
+  // ── Map landing mode to landingType ──
+  let landingType;
+  switch (mode) {
+    case "RTLS":
+      landingType = "RTLS";
+      break;
+    case "ASDS":
+      landingType = "ASDS";
+      break;
+    case "catch":
+      landingType = "catch";
+      // Override coords to exact catch tower position
+      coords = { lat: 25.9972, lng: -97.156 };
+      break;
+    case "ocean":
+      landingType = "ocean";
+      // Controlled ocean splashdown — use site-specific water coords
+      if (site.includes("boca-chica")) {
+        coords = { lat: 26.0, lng: -96.0 }; // Gulf of Mexico near Starbase
+      }
+      break;
+    default:
+      landingType = "expended";
+  }
 
   return {
     landingType,
     landingCoords: coords,
   };
+}
+
+/**
+ * For Falcon Heavy launches with per-core data, generate boosterReturns[]
+ * with separate return arcs for side boosters and center core.
+ */
+function generateFHBoosterReturns(launch) {
+  if (launch.rocketType !== "Falcon Heavy") return;
+  if (!launch.cores || launch.cores.length < 2) return;
+
+  const returns = [];
+  const LANDING_COORDS = {
+    "LZ-1": { lat: 28.485, lng: -80.544 },
+    "LZ-2": { lat: 28.485, lng: -80.544 },
+    "LZ-4": { lat: 34.633, lng: -120.615 },
+    OCISLY: { lat: 28.4, lng: -76.0 },
+    JRTI: { lat: 32.5, lng: -118.5 },
+    ASOG: { lat: 28.8, lng: -75.5 },
+  };
+
+  for (const core of launch.cores) {
+    if (!core.landing_attempt && !core.landing_type) continue;
+    if (core.landing_type === "expended" || (!core.landing_type && !core.landing_pad)) continue;
+
+    const pad = core.landing_pad;
+    const coords = (pad && LANDING_COORDS[pad]) ||
+      (core.landing_type === "RTLS" ? { lat: 28.485, lng: -80.544 } : { lat: 28.8, lng: -75.5 });
+
+    returns.push({
+      landingType: core.landing_type === "RTLS" ? "RTLS" : "ASDS",
+      landingCoords: coords,
+    });
+  }
+
+  if (returns.length >= 2) {
+    launch.boosterReturns = returns;
+  }
 }
 
 // ── Main assembly ────────────────────────────────────────────
@@ -347,8 +435,16 @@ function main() {
       }
     }
   }
+  // 4b. Generate Falcon Heavy multi-booster returns
+  let fhReturnCount = 0;
+  for (const launch of allById.values()) {
+    generateFHBoosterReturns(launch);
+    if (launch.boosterReturns?.length) fhReturnCount++;
+  }
+
   console.log(`  Trajectory inferred: ${trajCount}`);
   console.log(`  Booster return inferred: ${brCount}`);
+  console.log(`  FH multi-booster returns: ${fhReturnCount}`);
 
   // 5. Sort by dateUnix
   const allLaunches = Array.from(allById.values()).sort(

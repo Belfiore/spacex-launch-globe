@@ -10,7 +10,12 @@ export interface LaunchSite {
   lng: number;
 }
 
-export type LandingType = "RTLS" | "ASDS" | "expended";
+export type LandingType =
+  | "RTLS" // Return to Launch Site
+  | "ASDS" // Autonomous Spaceport Drone Ship
+  | "catch" // Mechazilla tower catch (Starship)
+  | "ocean" // Controlled ocean splashdown / water landing test
+  | "expended"; // No recovery attempted
 
 export interface BoosterReturn {
   landingType: LandingType;
@@ -221,6 +226,8 @@ export interface Launch {
 
   // ── Existing enrichment ─────────────────────────────────
   boosterReturn?: BoosterReturn;
+  /** Multiple booster returns for FH (side boosters + center core) */
+  boosterReturns?: BoosterReturn[];
   jellyfish?: JellyfishData;
   flightHistory?: FlightHistory;
 }

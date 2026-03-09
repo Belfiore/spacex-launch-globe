@@ -1,0 +1,95 @@
+{
+  "timestamp": "2026-03-09T18:52:40.811Z",
+  "mode": "audit",
+  "totalLaunches": 604,
+  "violations": 0,
+  "warnings": 11,
+  "fixesApplied": 0,
+  "violationDetails": [],
+  "warningDetails": [
+    {
+      "launchId": "6161c94c6db1a92bfba85349",
+      "rule": "IMPLAUSIBLE_FL_HEADING",
+      "message": "Florida heading 180° is outside typical LEO/GTO range (30-120°)",
+      "heading": 180,
+      "orbit": "PO"
+    },
+    {
+      "launchId": "62a9f0e320413d2695d88713",
+      "rule": "LANDING_SUCCESS_ON_FAILED_MISSION",
+      "message": "Launch marked failure but landing marked success — verify classification"
+    },
+    {
+      "launchId": "fh-ussf67",
+      "rule": "FH_MISSING_CORES",
+      "message": "Falcon Heavy launch has no cores[] data — per-core outcomes unknown"
+    },
+    {
+      "launchId": "fh-viasat3-americas",
+      "rule": "FH_MISSING_CORES",
+      "message": "Falcon Heavy launch has no cores[] data — per-core outcomes unknown"
+    },
+    {
+      "launchId": "fh-jupiter-3",
+      "rule": "FH_MISSING_CORES",
+      "message": "Falcon Heavy launch has no cores[] data — per-core outcomes unknown"
+    },
+    {
+      "launchId": "fh-psyche",
+      "rule": "FH_MISSING_CORES",
+      "message": "Falcon Heavy launch has no cores[] data — per-core outcomes unknown"
+    },
+    {
+      "launchId": "fh-ussf52",
+      "rule": "FH_MISSING_CORES",
+      "message": "Falcon Heavy launch has no cores[] data — per-core outcomes unknown"
+    },
+    {
+      "launchId": "fh-goes-u",
+      "rule": "FH_MISSING_CORES",
+      "message": "Falcon Heavy launch has no cores[] data — per-core outcomes unknown"
+    },
+    {
+      "launchId": "f9-starlink-9-3-fail",
+      "rule": "LANDING_SUCCESS_ON_FAILED_MISSION",
+      "message": "Launch marked failure but landing marked success — verify classification"
+    },
+    {
+      "launchId": "fh-europa-clipper",
+      "rule": "FH_MISSING_CORES",
+      "message": "Falcon Heavy launch has no cores[] data — per-core outcomes unknown"
+    },
+    {
+      "launchId": "starship-flight8",
+      "rule": "LANDING_SUCCESS_ON_FAILED_MISSION",
+      "message": "Launch marked failure but landing marked success — verify classification"
+    }
+  ],
+  "fixDetails": [],
+  "stats": {
+    "byFamily": {
+      "Falcon 1": 5,
+      "Falcon 9": 576,
+      "Falcon Heavy": 12,
+      "Starship": 11
+    },
+    "bySite": {
+      "Kwajalein Atoll": 5,
+      "CCAFS SLC-40": 112,
+      "VAFB SLC-4E": 30,
+      "KSC LC-39A": 100,
+      "CCSFS SLC-40": 207,
+      "VSFB SLC-4E": 139,
+      "Starbase": 11
+    },
+    "byStatus": {
+      "failure": 8,
+      "success": 572,
+      "partial_failure": 5,
+      "prelaunch_failure": 1,
+      "upcoming": 18
+    },
+    "lowConfTrajectory": 8,
+    "needsReview": 11
+  }
+}

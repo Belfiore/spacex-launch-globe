@@ -134,7 +134,11 @@ export function computeTrajectoryEndpoint(
 
 /**
  * Generate a CubicBezierCurve3 for a launch trajectory.
- * Uses real launch azimuth computed from orbital inclination + site latitude.
+ *
+ * Azimuth priority:
+ *   1. Per-launch trajectoryInference.heading_deg (data-driven, from database)
+ *   2. Orbit-inclination formula (computed from payloadOrbit + site latitude)
+ *
  * Asymmetric shape: steep ascent → gravity turn → flattening into orbit.
  * End point is at orbital altitude (not surface), so the payload stays in orbit.
  */
@@ -149,8 +153,18 @@ export function generateTrajectoryArcCurve(
   // Start position on globe surface
   const start = latLngToVector3(lat, lng, GLOBE.RADIUS);
 
-  // End position — at ORBITAL ALTITUDE, not surface
-  const azimuth = computeLaunchAzimuth(lat, orbitType);
+  // ── Azimuth: prefer per-launch data, fall back to orbit formula ──
+  let azimuth: number;
+  if (
+    launch.trajectoryInference?.heading_deg != null &&
+    launch.trajectoryInference.confidence !== "low"
+  ) {
+    // Convert compass heading (degrees CW from north) to radians
+    azimuth = launch.trajectoryInference.heading_deg * DEG_TO_RAD;
+  } else {
+    azimuth = computeLaunchAzimuth(lat, orbitType);
+  }
+
   const rangeDeg = RANGE_DEG[orbitType] ?? RANGE_DEG["default"];
   const endCoords = computeTrajectoryEndpoint(lat, lng, azimuth, rangeDeg);
   const end = latLngToVector3(endCoords.lat, endCoords.lng, GLOBE.RADIUS + orbitAlt);

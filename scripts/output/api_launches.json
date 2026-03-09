@@ -2198,8 +2198,8 @@
     "launchStatus": "prelaunch_failure",
     "payloadOutcome": "lost",
     "boosterRecoveryOutcome": "failure",
-    "failureCategory": "static_fire_anomaly",
-    "failureSummary": "Vehicle and payload destroyed on pad during fueling before planned static fire test.",
+    "failureCategory": "pad_anomaly",
+    "failureSummary": "Vehicle destroyed during propellant loading for a planned static fire",
     "exploded": true,
     "explosionPhase": "pad_static_fire_prep",
     "payloadOrbit": "GTO",
@@ -2241,7 +2241,8 @@
       "direction_label": "E",
       "confidence": "high",
       "notes": "GTO/GEO equatorial launch from Cape"
-    }
+    },
+    "failureDetail": "COPV helium vessel breach inside second stage LOX tank during propellant loading. Vehicle and payload destroyed on pad."
   },
   {
     "id": "5eb87cfdffd86e000604b34c",
@@ -7472,7 +7473,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1060",
@@ -7538,7 +7539,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1051",
@@ -7866,7 +7867,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1058",
@@ -8196,7 +8197,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1060",
@@ -8457,7 +8458,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1063",
@@ -8589,7 +8590,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1061",
@@ -8654,7 +8655,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1062",
@@ -8848,7 +8849,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "OCISLY",
+    "landingZone": "JRTI",
     "cores": [
       {
         "core_serial": "B1049",
@@ -8914,7 +8915,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1062",
@@ -9045,7 +9046,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1058",
@@ -9111,7 +9112,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "OCISLY",
+    "landingZone": "JRTI",
     "cores": [
       {
         "core_serial": "B1063",
@@ -9241,7 +9242,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1061",
@@ -9306,7 +9307,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "OCISLY",
+    "landingZone": "JRTI",
     "cores": [
       {
         "core_serial": "B1051",
@@ -9438,7 +9439,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1069",
@@ -9962,7 +9963,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "OCISLY",
+    "landingZone": "JRTI",
     "cores": [
       {
         "core_serial": "B1063",
@@ -10028,7 +10029,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1060",
@@ -10160,7 +10161,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1051",
@@ -10226,7 +10227,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1061",
@@ -10422,7 +10423,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1060",
@@ -10552,7 +10553,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1062",
@@ -10681,7 +10682,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "OCISLY",
+    "landingZone": "JRTI",
     "cores": [
       {
         "core_serial": "B1063",
@@ -10745,7 +10746,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1073",
@@ -11001,7 +11002,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1062",
@@ -11130,7 +11131,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1061",
@@ -11259,7 +11260,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1058",
@@ -11311,11 +11312,11 @@
     "vehicleVariant": "Block 5",
     "flightNumber": 172,
     "familyFlightNumber": "F9-164",
-    "launchStatus": "upcoming",
+    "launchStatus": "failure",
     "payloadOutcome": null,
     "boosterRecoveryOutcome": "success",
-    "failureCategory": null,
-    "failureSummary": null,
+    "failureCategory": "propulsion_anomaly",
+    "failureSummary": "Satellites failed to reach operational orbit due to geomagnetic storm",
     "exploded": false,
     "explosionPhase": null,
     "payloadOrbit": "VLEO",
@@ -11323,7 +11324,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "OCISLY",
+    "landingZone": "JRTI",
     "cores": [
       {
         "core_serial": "B1063",
@@ -11355,7 +11356,8 @@
       "direction_label": "SSW",
       "confidence": "medium",
       "notes": "Default launch heading from Vandenberg"
-    }
+    },
+    "failureDetail": "Falcon 9 deployed 49 Starlink v1.5 satellites nominally, but a severe geomagnetic storm increased atmospheric drag. Up to 38 satellites reentered and were destroyed before reaching operational altitude."
   },
   {
     "id": "6243ae40af52800c6e919259",
@@ -11451,7 +11453,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1051",
@@ -11515,7 +11517,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "OCISLY",
+    "landingZone": "JRTI",
     "cores": [
       {
         "core_serial": "B1071",
@@ -11641,7 +11643,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1052",
@@ -11769,7 +11771,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "OCISLY",
+    "landingZone": "JRTI",
     "cores": [
       {
         "core_serial": "B1061",
@@ -11961,7 +11963,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "OCISLY",
+    "landingZone": "JRTI",
     "cores": [
       {
         "core_serial": "B1063",
@@ -12025,7 +12027,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1052",
@@ -12151,7 +12153,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1067",
@@ -12215,7 +12217,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1072",
@@ -12279,7 +12281,7 @@
     "landingAttempted": true,
     "landingSuccess": true,
     "landingMode": "ASDS",
-    "landingZone": "JRTI",
+    "landingZone": "ASOG",
     "cores": [
       {
         "core_serial": "B1077",

@@ -9,9 +9,9 @@
   "byStatus": {
     "failure": 8,
     "success": 572,
-    "partial_failure": 4,
+    "partial_failure": 5,
     "prelaunch_failure": 1,
-    "upcoming": 19
+    "upcoming": 18
   },
   "byYear": {
     "2006": 1,
@@ -94,8 +94,17 @@
       "date": "2016-09-01T13:07:00.000Z",
       "family": "falcon9",
       "status": "prelaunch_failure",
-      "failureCategory": "static_fire_anomaly",
-      "failureSummary": "Vehicle and payload destroyed on pad during fueling before planned static fire test."
+      "failureCategory": "pad_anomaly",
+      "failureSummary": "Vehicle destroyed during propellant loading for a planned static fire"
+    },
+    {
+      "id": "62a9f0e320413d2695d88713",
+      "name": "Starlink 3-1 (v1.5)",
+      "date": "2022-07-11T01:39:00.000Z",
+      "family": "falcon9",
+      "status": "failure",
+      "failureCategory": "propulsion_anomaly",
+      "failureSummary": "Satellites failed to reach operational orbit due to geomagnetic storm"
     },
     {
       "id": "starship-flight1",
@@ -104,16 +113,16 @@
       "family": "starship",
       "status": "failure",
       "failureCategory": "guidance_control_failure",
-      "failureSummary": "Vehicle lost control after multiple engine failures; Autonomous Flight Termination System (AFTS) activated at T+4min. Both booster and ship destroyed."
+      "failureSummary": "Vehicle failed to achieve stage separation; FTS activated at T+4 min"
     },
     {
       "id": "starship-flight2",
       "name": "Starship Flight 2",
       "date": "2023-11-18T13:02:00.000Z",
       "family": "starship",
-      "status": "failure",
+      "status": "partial_failure",
       "failureCategory": "propulsion_anomaly",
-      "failureSummary": "Booster exploded during boostback burn. Ship reached space but AFTS destroyed it during coast phase."
+      "failureSummary": "Hot-staging succeeded but both stages lost shortly after"
     },
     {
       "id": "starship-flight3",
@@ -122,7 +131,7 @@
       "family": "starship",
       "status": "partial_failure",
       "failureCategory": "propulsion_anomaly",
-      "failureSummary": "Reached space and near-orbital velocity. Ship lost during reentry over Indian Ocean. Booster lost during landing burn over Gulf of Mexico."
+      "failureSummary": "Successful ascent and staging but ship lost during reentry"
     },
     {
       "id": "f9-starlink-9-3-fail",

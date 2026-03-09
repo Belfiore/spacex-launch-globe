@@ -43,23 +43,33 @@ export default function TrajectoryArc({
 
   const stagingPoint = useMemo(() => curve.getPointAt(STAGING_PROGRESS), [curve]);
 
-  const hasBoosterReturn =
-    launch.boosterReturn &&
-    launch.boosterReturn.landingType !== "expended";
+  // ── Booster return arcs (supports multiple for Falcon Heavy) ──
+  const boosterReturnEntries = useMemo(() => {
+    if (launch.boosterReturns && launch.boosterReturns.length > 0) {
+      return launch.boosterReturns.filter(br => br.landingType !== "expended");
+    }
+    if (launch.boosterReturn && launch.boosterReturn.landingType !== "expended") {
+      return [launch.boosterReturn];
+    }
+    return [];
+  }, [launch.boosterReturn, launch.boosterReturns]);
 
-  const boosterCurve = useMemo(() => {
-    if (!hasBoosterReturn || !launch.boosterReturn) return null;
-    return generateBoosterReturnArc(
-      stagingPoint,
-      launch.boosterReturn.landingCoords.lat,
-      launch.boosterReturn.landingCoords.lng
+  const hasBoosterReturn = boosterReturnEntries.length > 0;
+
+  const boosterCurves = useMemo(() => {
+    return boosterReturnEntries.map((br) =>
+      generateBoosterReturnArc(stagingPoint, br.landingCoords.lat, br.landingCoords.lng)
     );
-  }, [hasBoosterReturn, launch.boosterReturn, stagingPoint]);
+  }, [boosterReturnEntries, stagingPoint]);
 
-  const boosterAllPoints = useMemo(
-    () => boosterCurve?.getPoints(60) ?? null,
-    [boosterCurve]
+  const boosterAllPointsArr = useMemo(
+    () => boosterCurves.map(c => c.getPoints(60)),
+    [boosterCurves]
   );
+
+  // Primary booster for backward compat (first entry)
+  const boosterCurve = boosterCurves[0] ?? null;
+  const boosterAllPoints = boosterAllPointsArr[0] ?? null;
 
   // ── Starlink satellite train ──────────────────────────────────
   const isStarlink =
@@ -161,11 +171,12 @@ export default function TrajectoryArc({
   const showStageSeparation = !isStaticPreview && progress >= STAGING_PROGRESS && hasBoosterReturn;
   const stagingTuple = toTuple(stagingPoint);
 
+  const primaryReturn = boosterReturnEntries[0] ?? null;
   const landingPos =
-    launch.boosterReturn && boosterProgress >= 0.9
+    primaryReturn && boosterProgress >= 0.9
       ? latLngToVector3(
-          launch.boosterReturn.landingCoords.lat,
-          launch.boosterReturn.landingCoords.lng,
+          primaryReturn.landingCoords.lat,
+          primaryReturn.landingCoords.lng,
           GLOBE.RADIUS + 0.01
         )
       : null;
@@ -329,6 +340,37 @@ export default function TrajectoryArc({
           />
         </mesh>
       )}
+
+      {/* ── Additional booster return arcs (Falcon Heavy side boosters / center core) ── */}
+      {showBoosterReturn && boosterReturnEntries.length > 1 && boosterAllPointsArr.slice(1).map((pts, i) => {
+        const bProg = Math.min(1, (progress - STAGING_PROGRESS) / (0.55 * (1 - STAGING_PROGRESS)));
+        const bIdx = Math.floor(bProg * 60);
+        const trailPts = pts.slice(0, Math.max(2, bIdx + 1)).map(toTuple);
+        const bPoint = pts[Math.min(bIdx, pts.length - 1)];
+        const curve2 = boosterCurves[i + 1];
+        const bTangent = curve2 && bProg < 0.99 ? curve2.getTangentAt(Math.max(0.01, bProg)).negate() : null;
+        const brEntry = boosterReturnEntries[i + 1];
+        const landPos = bProg >= 0.9
+          ? latLngToVector3(brEntry.landingCoords.lat, brEntry.landingCoords.lng, GLOBE.RADIUS + 0.01)
+          : null;
+
+        return (
+          <group key={`booster-${i + 1}`}>
+            {trailPts.length >= 2 && (
+              <Line points={trailPts} color={i === 0 ? "#f59e0b" : "#22d3ee"} lineWidth={2} transparent opacity={0.65} />
+            )}
+            {bPoint && bTangent && bProg < 0.9 && (
+              <RocketModel position={bPoint} tangent={bTangent} rocketType="Falcon 9" progress={0.4} />
+            )}
+            {landPos && (
+              <mesh position={toTuple(landPos)}>
+                <sphereGeometry args={[0.025, 8, 8]} />
+                <meshBasicMaterial color={i === 0 ? "#f59e0b" : "#22d3ee"} transparent opacity={0.7} blending={THREE.AdditiveBlending} depthWrite={false} />
+              </mesh>
+            )}
+          </group>
+        );
+      })}
 
       {/* ── Starlink satellite train (only during active flight) ── */}
       {!isStaticPreview && starlinkPositions &&
