@@ -5,13 +5,23 @@ import { useAppStore } from "@/store/useAppStore";
 import { STATUS_COLORS, TIMELINE } from "@/lib/constants";
 import type { Launch } from "@/lib/types";
 
-function getTimeRange() {
+function getTimeRange(selectedYear: number) {
   const now = new Date();
-  const start = new Date(now);
-  start.setMonth(start.getMonth() - TIMELINE.RANGE_MONTHS_PAST);
-  const end = new Date(now);
-  end.setMonth(end.getMonth() + TIMELINE.RANGE_MONTHS_FUTURE);
-  return { start, end, now };
+  const currentYear = now.getFullYear();
+
+  if (selectedYear === currentYear) {
+    // Current year: ±6 months around now
+    const start = new Date(now);
+    start.setMonth(start.getMonth() - TIMELINE.RANGE_MONTHS_PAST);
+    const end = new Date(now);
+    end.setMonth(end.getMonth() + TIMELINE.RANGE_MONTHS_FUTURE);
+    return { start, end, now, isCurrentYear: true };
+  } else {
+    // Historical year: Jan 1 – Dec 31
+    const start = new Date(selectedYear, 0, 1);
+    const end = new Date(selectedYear, 11, 31, 23, 59, 59);
+    return { start, end, now, isCurrentYear: false };
+  }
 }
 
 function dateToPercent(date: Date, start: Date, end: Date): number {
@@ -70,21 +80,36 @@ export default function Timeline() {
   const setTimelineDate = useAppStore((s) => s.setTimelineDate);
   const setSelectedLaunch = useAppStore((s) => s.setSelectedLaunch);
   const setCameraTarget = useAppStore((s) => s.setCameraTarget);
+  const selectedYear = useAppStore((s) => s.selectedYear);
+  const setSelectedYear = useAppStore((s) => s.setSelectedYear);
+  const availableYears = useAppStore((s) => s.availableYears);
+  const focusMode = useAppStore((s) => s.focusMode);
 
   // Only compute time range after mount to avoid SSR/client hydration mismatch
-  const { start, end, now } = useMemo(() => {
+  const { start, end, now, isCurrentYear } = useMemo(() => {
     if (!mounted) {
-      // Return a stable default for SSR — won't be rendered
       const d = new Date(0);
-      return { start: d, end: d, now: d };
+      return { start: d, end: d, now: d, isCurrentYear: true };
     }
-    return getTimeRange();
+    return getTimeRange(selectedYear);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted]);
-  const monthTicks = useMemo(() => (mounted ? getMonthTicks(start, end) : []), [mounted, start, end]);
+  }, [mounted, selectedYear]);
+
+  const monthTicks = useMemo(
+    () => (mounted ? getMonthTicks(start, end) : []),
+    [mounted, start, end]
+  );
+
+  // Filter launches to the visible year range
+  const visibleLaunches = useMemo(() => {
+    return launches.filter((l) => {
+      const d = new Date(l.dateUtc);
+      return d >= start && d <= end;
+    });
+  }, [launches, start, end]);
 
   const playheadPercent = mounted ? dateToPercent(timelineDate, start, end) : 0;
-  const todayPercent = mounted ? dateToPercent(now, start, end) : 0;
+  const todayPercent = mounted && isCurrentYear ? dateToPercent(now, start, end) : -1;
 
   useEffect(() => {
     setMounted(true);
@@ -158,9 +183,12 @@ export default function Timeline() {
         flexDirection: "column",
         padding: "8px 24px 12px",
         userSelect: "none",
+        transition: "transform 0.3s ease, opacity 0.3s ease",
+        transform: focusMode ? "translateY(100%)" : "translateY(0)",
+        opacity: focusMode ? 0 : 1,
       }}
     >
-      {/* Date display */}
+      {/* Date display + year selector */}
       <div
         style={{
           display: "flex",
@@ -174,17 +202,62 @@ export default function Timeline() {
       >
         {mounted && (
           <>
-            <span>
-              {timelineDate.toLocaleDateString("en-US", {
-                weekday: "short",
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              {/* Year dropdown */}
+              <select
+                value={selectedYear}
+                onChange={(e) => {
+                  const year = Number(e.target.value);
+                  setSelectedYear(year);
+                  const curYear = new Date().getFullYear();
+                  if (year === curYear) {
+                    setTimelineDate(new Date());
+                  } else {
+                    setTimelineDate(new Date(year, 6, 1));
+                  }
+                }}
+                style={{
+                  padding: "1px 3px",
+                  borderRadius: "3px",
+                  border: "1px solid rgba(34, 211, 238, 0.3)",
+                  background: "rgba(34, 211, 238, 0.08)",
+                  color: "#22d3ee",
+                  cursor: "pointer",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  outline: "none",
+                  fontFamily: "inherit",
+                }}
+              >
+                {availableYears.map((year) => (
+                  <option
+                    key={year}
+                    value={year}
+                    style={{ background: "#0a0e1a", color: "#e2e8f0" }}
+                  >
+                    {year}
+                  </option>
+                ))}
+              </select>
+              <span>
+                {timelineDate.toLocaleDateString("en-US", {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+            <span style={{ fontSize: "10px", color: "#475569" }}>
+              {start.toLocaleDateString("en-US", {
                 month: "short",
-                day: "numeric",
+                year: "numeric",
+              })}{" "}
+              —{" "}
+              {end.toLocaleDateString("en-US", {
+                month: "short",
                 year: "numeric",
               })}
-            </span>
-            <span style={{ fontSize: "10px", color: "#475569" }}>
-              {start.toLocaleDateString("en-US", { month: "short", year: "numeric" })} —{" "}
-              {end.toLocaleDateString("en-US", { month: "short", year: "numeric" })}
             </span>
           </>
         )}
@@ -256,58 +329,63 @@ export default function Timeline() {
               );
             })}
 
-            {/* Today / NOW marker — amber, more prominent */}
-            <div
-              style={{
-                position: "absolute",
-                left: `${todayPercent}%`,
-                top: "0px",
-                bottom: "0px",
-                width: "2px",
-                background: "rgba(245, 158, 11, 0.6)",
-                transform: "translateX(-50%)",
-                zIndex: 2,
-                boxShadow: "0 0 6px rgba(245, 158, 11, 0.3)",
-              }}
-            >
-              {/* NOW label */}
-              <span
-                style={{
-                  position: "absolute",
-                  top: "-14px",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  fontSize: "8px",
-                  color: "#f59e0b",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  whiteSpace: "nowrap",
-                  textShadow: "0 0 6px rgba(245, 158, 11, 0.4)",
-                }}
-              >
-                NOW
-              </span>
-              {/* Small diamond at center line */}
+            {/* Today / NOW marker — only show for current year */}
+            {isCurrentYear && todayPercent >= 0 && todayPercent <= 100 && (
               <div
                 style={{
                   position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  width: "6px",
-                  height: "6px",
-                  background: "#f59e0b",
-                  transform: "translate(-50%, -50%) rotate(45deg)",
-                  boxShadow: "0 0 6px rgba(245, 158, 11, 0.5)",
+                  left: `${todayPercent}%`,
+                  top: "0px",
+                  bottom: "0px",
+                  width: "2px",
+                  background: "rgba(245, 158, 11, 0.6)",
+                  transform: "translateX(-50%)",
+                  zIndex: 2,
+                  boxShadow: "0 0 6px rgba(245, 158, 11, 0.3)",
                 }}
-              />
-            </div>
+              >
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-14px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    fontSize: "8px",
+                    color: "#f59e0b",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    whiteSpace: "nowrap",
+                    textShadow: "0 0 6px rgba(245, 158, 11, 0.4)",
+                  }}
+                >
+                  NOW
+                </span>
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    width: "6px",
+                    height: "6px",
+                    background: "#f59e0b",
+                    transform: "translate(-50%, -50%) rotate(45deg)",
+                    boxShadow: "0 0 6px rgba(245, 158, 11, 0.5)",
+                  }}
+                />
+              </div>
+            )}
 
-            {/* Launch ticks with site labels */}
-            {launches.map((launch) => {
-              const pct = dateToPercent(new Date(launch.dateUtc), start, end);
+            {/* Launch ticks — only show launches within the visible range */}
+            {visibleLaunches.map((launch) => {
+              const pct = dateToPercent(
+                new Date(launch.dateUtc),
+                start,
+                end
+              );
               if (pct < 0 || pct > 100) return null;
-              const color = STATUS_COLORS[launch.status] ?? STATUS_COLORS.upcoming;
+              const color =
+                STATUS_COLORS[launch.status] ?? STATUS_COLORS.upcoming;
               const siteAbbr = getSiteAbbr(launch.launchSite.id);
               return (
                 <div
@@ -354,7 +432,6 @@ export default function Timeline() {
                       (e.currentTarget.style.transform = "scale(1)")
                     }
                   />
-                  {/* Site abbreviation label */}
                   {siteAbbr && (
                     <span
                       style={{
@@ -395,7 +472,6 @@ export default function Timeline() {
                   boxShadow: "0 0 10px rgba(34, 211, 238, 0.5)",
                 }}
               />
-              {/* Vertical line from playhead */}
               <div
                 style={{
                   position: "absolute",
@@ -432,12 +508,15 @@ export default function Timeline() {
                   {tooltip.launch.name}
                 </div>
                 <div style={{ color: "#94a3b8", fontSize: "10px" }}>
-                  {new Date(tooltip.launch.dateUtc).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                  {" · "}
+                  {new Date(tooltip.launch.dateUtc).toLocaleDateString(
+                    "en-US",
+                    {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    }
+                  )}
+                  {" \u00B7 "}
                   {tooltip.launch.rocketType}
                 </div>
               </div>

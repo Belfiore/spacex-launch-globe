@@ -6,6 +6,7 @@ import { LAUNCHPAD_SITE_MAP, LAUNCH_SITES, ROCKET_NAMES } from "@/lib/constants"
 import type { Launch, LaunchSite } from "@/lib/types";
 import { computeJellyfish } from "@/lib/jellyfish";
 import fallbackData from "@/data/fallbackLaunches.json";
+import { HISTORICAL_LAUNCHES } from "@/data/historicalLaunches";
 
 interface SpaceXLaunch {
   id: string;
@@ -114,9 +115,39 @@ function loadFallbackData(): Launch[] {
   return (fallbackData as Launch[]).sort((a, b) => a.dateUnix - b.dateUnix);
 }
 
+/** Merge API/fallback data with historical launches. API data takes precedence. */
+function mergeWithHistorical(apiLaunches: Launch[]): Launch[] {
+  const apiIds = new Set(apiLaunches.map((l) => l.id));
+  const merged = [...apiLaunches];
+
+  for (const hist of HISTORICAL_LAUNCHES) {
+    if (!apiIds.has(hist.id)) {
+      merged.push(hist);
+    } else {
+      // Attach flightHistory to existing API launch
+      const idx = merged.findIndex((l) => l.id === hist.id);
+      if (idx !== -1 && hist.flightHistory) {
+        merged[idx] = { ...merged[idx], flightHistory: hist.flightHistory };
+      }
+    }
+  }
+
+  return merged.sort((a, b) => a.dateUnix - b.dateUnix);
+}
+
+/** Compute unique years from launches and set in store */
+function computeAvailableYears(launches: Launch[]): number[] {
+  const years = new Set<number>();
+  for (const l of launches) {
+    years.add(new Date(l.dateUtc).getFullYear());
+  }
+  return Array.from(years).sort((a, b) => b - a); // descending
+}
+
 export function useSpaceXData() {
   const setLaunches = useAppStore((s) => s.setLaunches);
   const setLoading = useAppStore((s) => s.setLoading);
+  const setAvailableYears = useAppStore((s) => s.setAvailableYears);
   const launches = useAppStore((s) => s.launches);
   const loading = useAppStore((s) => s.loading);
 
@@ -128,16 +159,17 @@ export function useSpaceXData() {
       try {
         const data = await fetchSpaceXData();
         if (!cancelled) {
-          if (data.length > 0) {
-            setLaunches(enrichWithJellyfish(data));
-          } else {
-            setLaunches(enrichWithJellyfish(loadFallbackData()));
-          }
+          const base = data.length > 0 ? data : loadFallbackData();
+          const merged = mergeWithHistorical(enrichWithJellyfish(base));
+          setLaunches(merged);
+          setAvailableYears(computeAvailableYears(merged));
         }
       } catch {
         if (!cancelled) {
           console.warn("SpaceX API unavailable, using fallback data");
-          setLaunches(enrichWithJellyfish(loadFallbackData()));
+          const merged = mergeWithHistorical(enrichWithJellyfish(loadFallbackData()));
+          setLaunches(merged);
+          setAvailableYears(computeAvailableYears(merged));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -148,7 +180,7 @@ export function useSpaceXData() {
     return () => {
       cancelled = true;
     };
-  }, [setLaunches, setLoading]);
+  }, [setLaunches, setLoading, setAvailableYears]);
 
   return { launches, loading };
 }

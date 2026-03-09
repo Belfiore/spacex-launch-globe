@@ -10,6 +10,10 @@ export default function FilterBar() {
   const filters = useAppStore((s) => s.filters);
   const setFilters = useAppStore((s) => s.setFilters);
   const resetFilters = useAppStore((s) => s.resetFilters);
+  const selectedYear = useAppStore((s) => s.selectedYear);
+  const setSelectedYear = useAppStore((s) => s.setSelectedYear);
+  const availableYears = useAppStore((s) => s.availableYears);
+  const setTimelineDate = useAppStore((s) => s.setTimelineDate);
 
   const hasActiveFilters =
     filters.search ||
@@ -77,15 +81,51 @@ export default function FilterBar() {
         </span>
       </div>
 
-      {/* Filter chips */}
+      {/* Year selector + filter chips */}
       <div
         style={{
           display: "flex",
           gap: "4px",
           flexWrap: "wrap",
           fontSize: "10px",
+          alignItems: "center",
         }}
       >
+        {/* Year dropdown */}
+        <select
+          value={selectedYear}
+          onChange={(e) => {
+            const year = Number(e.target.value);
+            setSelectedYear(year);
+            const now = new Date();
+            if (year === now.getFullYear()) {
+              setTimelineDate(now);
+            } else {
+              setTimelineDate(new Date(year, 6, 1));
+            }
+          }}
+          style={{
+            padding: "3px 4px",
+            borderRadius: "4px",
+            border: "1px solid rgba(34, 211, 238, 0.3)",
+            background: "rgba(34, 211, 238, 0.08)",
+            color: "#22d3ee",
+            cursor: "pointer",
+            fontSize: "10px",
+            fontWeight: 600,
+            outline: "none",
+            fontFamily: "inherit",
+          }}
+        >
+          {availableYears.map((year) => (
+            <option key={year} value={year} style={{ background: "#0a0e1a", color: "#e2e8f0" }}>
+              {year}
+            </option>
+          ))}
+        </select>
+
+        <span style={{ color: "#334155", margin: "0 2px" }}>|</span>
+
         {/* Rocket types */}
         {ROCKET_TYPES.map((type) => (
           <button

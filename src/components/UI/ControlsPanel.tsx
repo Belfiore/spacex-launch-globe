@@ -90,14 +90,21 @@ export default function ControlsPanel() {
   const toggleISS = useAppStore((s) => s.toggleISS);
   const selectedLaunch = useAppStore((s) => s.selectedLaunch);
   const centerOnLaunch = useAppStore((s) => s.centerOnLaunch);
+  const panelOpen = useAppStore((s) => s.panelOpen);
+  const focusMode = useAppStore((s) => s.focusMode);
+  const toggleFocusMode = useAppStore((s) => s.toggleFocusMode);
 
   return (
     <div
       style={{
         position: "fixed",
         bottom: "100px",
-        left: "16px",
+        right: panelOpen ? "336px" : "16px",
         zIndex: 40,
+        transition: "right 0.3s ease, opacity 0.3s ease, transform 0.3s ease",
+        opacity: focusMode ? 0 : 1,
+        transform: focusMode ? "translateX(100px)" : "translateX(0)",
+        pointerEvents: focusMode ? "none" : "auto",
         background: "rgba(10, 14, 26, 0.88)",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
@@ -202,6 +209,21 @@ export default function ControlsPanel() {
           />
         </div>
       </div>
+
+      <div
+        style={{
+          height: "1px",
+          background: "rgba(255, 255, 255, 0.06)",
+          margin: "2px 6px",
+        }}
+      />
+
+      <ControlButton
+        icon="👁"
+        label="Focus Mode"
+        active={false}
+        onClick={toggleFocusMode}
+      />
     </div>
   );
 }

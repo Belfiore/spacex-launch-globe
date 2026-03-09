@@ -30,23 +30,57 @@ export default function LaunchPanel() {
   const setTrajectoryProgress = useAppStore((s) => s.setTrajectoryProgress);
   const startMissionPlayback = useAppStore((s) => s.startMissionPlayback);
   const pauseMissionPlayback = useAppStore((s) => s.pauseMissionPlayback);
+  const setOrbitCenter = useAppStore((s) => s.setOrbitCenter);
+
+  const selectedYear = useAppStore((s) => s.selectedYear);
+  const focusMode = useAppStore((s) => s.focusMode);
 
   const isMobile = useIsMobile();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Play mission for selected launch
-  const handlePlay = useCallback(() => {
-    startMissionPlayback();
-  }, [startMissionPlayback]);
+  // Play mission — ensure the launch is selected + centered first
+  // Always resets trajectory to 0 so the animation plays from the beginning
+  const handlePlay = useCallback(
+    (launch: (typeof launches)[0]) => {
+      if (selectedLaunch?.id !== launch.id) {
+        pauseMissionPlayback();
+        setSelectedLaunch(launch);
+        setCameraTarget({
+          lat: launch.launchSite.lat,
+          lng: launch.launchSite.lng,
+        });
+        setTimelineDate(new Date(launch.dateUtc));
+        setOrbitCenter("launch");
+      }
+      // Reset trajectory to 0 so playback starts from the beginning
+      setTrajectoryProgress(0);
+      // Small delay to let state settle, then start playback
+      setTimeout(() => startMissionPlayback(), 50);
+    },
+    [
+      selectedLaunch,
+      pauseMissionPlayback,
+      setSelectedLaunch,
+      setCameraTarget,
+      setTimelineDate,
+      setTrajectoryProgress,
+      setOrbitCenter,
+      startMissionPlayback,
+    ]
+  );
 
   // Pause playback
   const handlePause = useCallback(() => {
     pauseMissionPlayback();
   }, [pauseMissionPlayback]);
 
-  // Filter launches
+  // Filter launches (including year filter)
   const filteredLaunches = useMemo(() => {
     return launches.filter((l) => {
+      // Year filter
+      const launchYear = new Date(l.dateUtc).getFullYear();
+      if (launchYear !== selectedYear) return false;
+
       if (
         filters.search &&
         !l.name.toLowerCase().includes(filters.search.toLowerCase())
@@ -73,7 +107,7 @@ export default function LaunchPanel() {
       }
       return true;
     });
-  }, [launches, filters]);
+  }, [launches, filters, selectedYear]);
 
   // Find the next upcoming launch
   const nextUpcoming = useMemo(() => {
@@ -126,11 +160,14 @@ export default function LaunchPanel() {
         lng: launch.launchSite.lng,
       });
       setTimelineDate(new Date(launch.dateUtc));
-      // Set trajectory to 0 = static preview (rocket on pad, planned path shown)
-      setTrajectoryProgress(0);
+      // Set trajectory to 1 = show full flight path so user can visualize the launch
+      setTrajectoryProgress(1);
+      // Center orbit controls on the launch site
+      setOrbitCenter("launch");
     } else {
       setCameraTarget(null);
       setTrajectoryProgress(0);
+      setOrbitCenter("usa");
     }
   }
 
@@ -161,7 +198,7 @@ export default function LaunchPanel() {
     bottom: `${TIMELINE.HEIGHT}px`,
     width: "320px",
     zIndex: 40,
-    transform: panelOpen ? "translateX(0)" : "translateX(100%)",
+    transform: panelOpen && !focusMode ? "translateX(0)" : "translateX(100%)",
     transition: "transform 0.3s ease",
     background: "rgba(18, 24, 41, 0.8)",
     backdropFilter: "blur(20px)",
@@ -219,13 +256,15 @@ export default function LaunchPanel() {
   return (
     <>
       {/* Toggle button */}
-      <button
-        onClick={togglePanel}
-        style={toggleStyle}
-        title={panelOpen ? "Hide panel" : "Show launches"}
-      >
-        {toggleIcon}
-      </button>
+      {!focusMode && (
+        <button
+          onClick={togglePanel}
+          style={toggleStyle}
+          title={panelOpen ? "Hide panel" : "Show launches"}
+        >
+          {toggleIcon}
+        </button>
+      )}
 
       {/* Panel */}
       <div style={isMobile ? mobileDrawerStyle : desktopPanelStyle}>
@@ -310,7 +349,7 @@ export default function LaunchPanel() {
                   isSelected={selectedLaunch?.id === launch.id}
                   isNext={nextUpcoming?.id === launch.id}
                   onClick={() => handleCardClick(launch)}
-                  onPlay={handlePlay}
+                  onPlay={() => handlePlay(launch)}
                   onPause={handlePause}
                 />
               </div>

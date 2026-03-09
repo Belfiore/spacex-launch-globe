@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SpaceX Launch Globe",
+  title: "Rocket Manifest",
   description: "Interactive 3D visualization of SpaceX rocket launches",
 };
 

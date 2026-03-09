@@ -1,0 +1,217 @@
+/* ============================================================
+   Rocket Manifest — Cinematic Entry Animations
+   ============================================================ */
+
+/* Phase 1: Scanline sweeps left to right */
+@keyframes scanline-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100vw);
+  }
+}
+
+/* Phase 1: Title text revealed via clip-path */
+@keyframes title-reveal {
+  0% {
+    clip-path: inset(0 100% 0 0);
+  }
+  100% {
+    clip-path: inset(0 0% 0 0);
+  }
+}
+
+/* Phase 1: Subtitle fades in from below */
+@keyframes subtitle-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 0.4;
+    transform: translateY(0);
+  }
+}
+
+/* Phase 2: Status lines slide in from left */
+@keyframes status-line-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Phase 2: Green checkmark pop-in */
+@keyframes check-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.4);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Phase 2: Progress bar fill */
+@keyframes progress-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Phase 3: Iris wipe — circular reveal from center */
+@keyframes iris-open {
+  0% {
+    clip-path: circle(0% at 50% 50%);
+  }
+  100% {
+    clip-path: circle(80% at 50% 50%);
+  }
+}
+
+/* Phase 3: Fast iris (for Escape skip) */
+@keyframes iris-open-fast {
+  0% {
+    clip-path: circle(0% at 50% 50%);
+  }
+  100% {
+    clip-path: circle(80% at 50% 50%);
+  }
+}
+
+/* Phase 3: Glow ring that expands with iris */
+@keyframes iris-glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 60px rgba(6, 182, 212, 0.6);
+  }
+}
+
+/* Phase 3: Text fades out */
+@keyframes text-fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.15;
+  }
+}
+
+/* Phase 3: Title glow swell before dissolve */
+@keyframes title-glow-swell {
+  0% {
+    transform: scale(1);
+    text-shadow: 0 0 0px transparent;
+  }
+  100% {
+    transform: scale(1.02);
+    text-shadow: 0 0 20px rgba(6, 182, 212, 0.5), 0 0 40px rgba(6, 182, 212, 0.2);
+  }
+}
+
+/* Phase 3: Title floats up to top-left final position */
+@keyframes title-float-up {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -80%) scale(0.7);
+  }
+}
+
+/* Intro modal slide-up entry */
+@keyframes modal-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Onboarding: spotlight pulse */
+@keyframes spotlight-pulse {
+  0%,
+  100% {
+    border-color: rgba(6, 182, 212, 0.5);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7),
+      0 0 20px rgba(6, 182, 212, 0.2);
+  }
+  50% {
+    border-color: rgba(6, 182, 212, 1);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7),
+      0 0 35px rgba(6, 182, 212, 0.4);
+  }
+}
+
+/* Onboarding: toast slide-in from bottom */
+@keyframes toast-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Onboarding: toast fade out */
+@keyframes toast-fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 24-hour launch pulse for returning visitors */
+@keyframes card-pulse-24h {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0);
+  }
+  50% {
+    box-shadow: 0 0 12px 2px rgba(34, 211, 238, 0.25);
+  }
+}
+
+/* Loading spinner for waiting state */
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Reduced motion: collapse all animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

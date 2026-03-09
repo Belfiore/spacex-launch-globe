@@ -131,7 +131,7 @@ function SiteLabelItem({ site }: { site: SiteLabel }) {
       <Html
         position={[0, 0.06, 0]}
         center
-        zIndexRange={[10, 0]}
+        zIndexRange={[0, 0]}
         style={{ pointerEvents: "none" }}
       >
         <div

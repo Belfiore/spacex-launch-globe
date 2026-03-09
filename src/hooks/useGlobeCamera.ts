@@ -48,22 +48,20 @@ export function useGlobeCamera(
     }
   }, [cameraTarget, camera]);
 
-  // ── Enable/disable auto-orbit during playback ─────
+  // ── Keep orbit target on launch site during playback (no auto-rotate) ─────
   useEffect(() => {
     if (!controlsRef.current) return;
+    // Always disable auto-rotate — camera stays still, focused on launch site
+    controlsRef.current.autoRotate = false;
+    controlsRef.current.autoRotateSpeed = 0;
     if (miniTimelinePlaying) {
-      // Set orbit target to the launch site for playback orbiting
+      // Keep orbit controls target on the launch site
       const state = useAppStore.getState();
       if (state.selectedLaunch) {
         const site = state.selectedLaunch.launchSite;
         const sitePos = latLngToVector3(site.lat, site.lng);
         controlsRef.current.target.copy(sitePos);
       }
-      controlsRef.current.autoRotate = true;
-      controlsRef.current.autoRotateSpeed = 0.3;
-    } else {
-      controlsRef.current.autoRotate = false;
-      controlsRef.current.autoRotateSpeed = 0;
     }
   }, [miniTimelinePlaying, controlsRef]);
 

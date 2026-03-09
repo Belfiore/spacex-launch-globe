@@ -51,6 +51,8 @@ export default function LaunchCard({
   const selectedLaunch = useAppStore((s) => s.selectedLaunch);
   const playbackState = useAppStore((s) => s.playbackState);
   const miniTimelinePlaying = useAppStore((s) => s.miniTimelinePlaying);
+  const infoPanelLaunchId = useAppStore((s) => s.infoPanelLaunchId);
+  const setInfoPanelLaunchId = useAppStore((s) => s.setInfoPanelLaunchId);
 
   // This launch is actively playing if it's selected AND playback/mini is active
   const isPlaying =
@@ -58,6 +60,16 @@ export default function LaunchCard({
     (playbackState === "playing" || miniTimelinePlaying);
   const hasJellyfish =
     launch.jellyfish && launch.jellyfish.potential !== "none";
+
+  // 24-hour launch pulse for returning visitors
+  const entryPhase = useAppStore((s) => s.entryPhase);
+  const isWithin24h = useMemo(() => {
+    if (!isNext || launch.status !== "upcoming") return false;
+    const launchTime = new Date(launch.dateUtc).getTime();
+    const diff = launchTime - Date.now();
+    return diff > 0 && diff < 24 * 60 * 60 * 1000;
+  }, [isNext, launch.status, launch.dateUtc]);
+  const showPulse = isWithin24h && entryPhase === "complete" && !isSelected;
 
   const borderStyle = useMemo(() => {
     if (isSelected) return `1px solid ${accentColor}80`;
@@ -87,6 +99,7 @@ export default function LaunchCard({
         cursor: "pointer",
         transition: "all 0.2s ease",
         marginBottom: "8px",
+        animation: showPulse ? "card-pulse-24h 3s ease-in-out infinite" : undefined,
       }}
       onMouseEnter={(e) => {
         if (!isSelected) {
@@ -221,6 +234,61 @@ export default function LaunchCard({
                 title={isPlaying ? "Pause" : "Watch launch cinematic"}
               >
                 {isPlaying ? "⏸" : "▶"}
+              </button>
+            )}
+
+            {/* Info button — shows for launches with flightHistory or details/webcast */}
+            {(launch.flightHistory || launch.webcastUrl || launch.details) && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setInfoPanelLaunchId(
+                    infoPanelLaunchId === launch.id ? null : launch.id
+                  );
+                }}
+                style={{
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background:
+                    infoPanelLaunchId === launch.id
+                      ? "rgba(34, 211, 238, 0.25)"
+                      : "rgba(255, 255, 255, 0.06)",
+                  border: `1px solid ${
+                    infoPanelLaunchId === launch.id
+                      ? "rgba(34, 211, 238, 0.5)"
+                      : "rgba(255, 255, 255, 0.1)"
+                  }`,
+                  color:
+                    infoPanelLaunchId === launch.id ? "#22d3ee" : "#94a3b8",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  flexShrink: 0,
+                  transition: "all 0.2s ease",
+                  padding: 0,
+                  fontFamily: "serif",
+                }}
+                onMouseEnter={(e) => {
+                  if (infoPanelLaunchId !== launch.id) {
+                    e.currentTarget.style.background =
+                      "rgba(34, 211, 238, 0.12)";
+                    e.currentTarget.style.color = "#22d3ee";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (infoPanelLaunchId !== launch.id) {
+                    e.currentTarget.style.background =
+                      "rgba(255, 255, 255, 0.06)";
+                    e.currentTarget.style.color = "#94a3b8";
+                  }
+                }}
+                title="View flight details"
+              >
+                {"i"}
               </button>
             )}
 

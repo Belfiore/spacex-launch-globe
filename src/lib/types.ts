@@ -22,6 +22,34 @@ export interface JellyfishData {
   description: string; // human-readable explanation
 }
 
+export interface BoosterRecoveryDetail {
+  boosterId?: string;
+  flightNumber?: number;
+  landingType: string;
+  landingLocation: string;
+  outcome: "success" | "failure" | "expended";
+  note?: string;
+}
+
+export interface FlightHistoryEvent {
+  time: string;
+  event: string;
+  detail?: string;
+}
+
+export interface FlightHistory {
+  flightNumber?: number;
+  missionOutcome: "success" | "failure" | "partial";
+  missionSummary: string;
+  payloadInfo: string;
+  payloadMassKg?: number;
+  customer?: string;
+  boosterRecovery?: BoosterRecoveryDetail[];
+  keyEvents?: FlightHistoryEvent[];
+  notes?: string[];
+  significance?: string;
+}
+
 export interface Launch {
   id: string;
   name: string;
@@ -36,6 +64,7 @@ export interface Launch {
   boosterReturn?: BoosterReturn;
   webcastUrl?: string;
   jellyfish?: JellyfishData;
+  flightHistory?: FlightHistory;
 }
 
 export type VehicleFamily = "falcon9" | "falconHeavy" | "starship";

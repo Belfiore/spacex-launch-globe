@@ -6,6 +6,7 @@ import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import { latLngToPosition, latLngToVector3 } from "@/lib/coordUtils";
 import { GLOBE, getSiteAccentColor, getSiteKey } from "@/lib/constants";
+import { useAppStore } from "@/store/useAppStore";
 import type { Launch } from "@/lib/types";
 
 interface LaunchMarkerProps {
@@ -22,6 +23,8 @@ export default function LaunchMarker({
   const pulseRingRef = useRef<THREE.Mesh>(null);
   const pulseOffset = useRef(Math.random() * 2.2);
   const [hovered, setHovered] = useState(false);
+  const miniTimelinePlaying = useAppStore((s) => s.miniTimelinePlaying);
+  const trajectoryProgress = useAppStore((s) => s.trajectoryProgress);
 
   const accentColor = getSiteAccentColor(launch.launchSite.id);
   const siteKey = getSiteKey(launch.launchSite.id);
@@ -66,7 +69,10 @@ export default function LaunchMarker({
     document.body.style.cursor = "auto";
   }, []);
 
-  const showTooltip = isSelected || hovered;
+  // Hide the tooltip during active playback / trajectory animation
+  // to avoid blocking the rocket and trajectory arc
+  const isFlying = miniTimelinePlaying || trajectoryProgress > 0.02;
+  const showTooltip = (isSelected || hovered) && !isFlying;
 
   return (
     <group position={position}>
@@ -119,7 +125,7 @@ export default function LaunchMarker({
         </mesh>
       )}
 
-      {/* Tooltip — FIXED screen-space size, no distanceFactor */}
+      {/* Tooltip — hidden during playback so it doesn't block the rocket */}
       {showTooltip && (
         <Html
           center

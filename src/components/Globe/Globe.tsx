@@ -12,6 +12,7 @@ import TrajectoryArc from "./TrajectoryArc";
 import CameraController from "./CameraController";
 import DroneShipMarker from "./DroneShipMarker";
 import ISSOrbit from "./ISSOrbit";
+import SiteLabels from "./SiteLabels";
 import { GLOBE, COLORS } from "@/lib/constants";
 import { getUSAOrbitTarget, latLngToVector3 } from "@/lib/coordUtils";
 import { useAppStore } from "@/store/useAppStore";
@@ -138,6 +139,9 @@ function GlobeScene() {
       {/* Earth */}
       <Earth />
       <Atmosphere />
+
+      {/* Permanent launch-site markers (CC, BC, V) */}
+      <SiteLabels />
 
       {/* ISS orbit ring + station (toggleable) */}
       {showISS && <ISSOrbit />}

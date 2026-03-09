@@ -71,8 +71,8 @@ function formatT(seconds: number): string {
   return `T${sign}${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-/** Mini timeline playback speed: 10x real time => 15-min mission plays in ~90 seconds */
-const MINI_PLAYBACK_SPEED = 10;
+/** Mini timeline playback speed: 20x real time => 15-min mission plays in ~45 seconds */
+const MINI_PLAYBACK_SPEED = 20;
 
 export default function MiniTimeline() {
   const selectedLaunch = useAppStore((s) => s.selectedLaunch);
@@ -200,14 +200,13 @@ export default function MiniTimeline() {
   // ── Play/pause handler — uses unified store action ──────────────
   const handlePlayPause = useCallback(() => {
     if (!miniTimelinePlaying && selectedLaunch) {
-      // Starting playback — initialize localT from current position if needed
-      const currentT = localTRef.current;
-      if (currentT === null) {
-        const phasesArr = getPhasesForRocket(selectedLaunch.rocketType);
-        const initT = phasesArr.length > 0 ? phasesArr[0].tSeconds : 0;
-        localTRef.current = initT;
-        setLocalT(initT);
-      }
+      // Starting playback — always reset to the beginning
+      const phasesArr = getPhasesForRocket(selectedLaunch.rocketType);
+      const initT = phasesArr.length > 0 ? phasesArr[0].tSeconds : 0;
+      localTRef.current = initT;
+      setLocalT(initT);
+      // Reset trajectory so it plays from the start
+      useAppStore.getState().setTrajectoryProgress(0);
     }
     toggleMissionPlayback();
   }, [miniTimelinePlaying, toggleMissionPlayback, selectedLaunch]);
@@ -247,6 +246,8 @@ export default function MiniTimeline() {
     return active;
   }, [displayT, phases]);
 
+  const focusMode = useAppStore((s) => s.focusMode);
+
   if (!selectedLaunch || displayT === null || phases.length === 0) return null;
 
   const maxPhaseT = phases[phases.length - 1].tSeconds;
@@ -267,6 +268,9 @@ export default function MiniTimeline() {
         flexDirection: "column",
         alignItems: "center",
         gap: "3px",
+        transition: "opacity 0.3s ease",
+        opacity: focusMode ? 0 : 1,
+        pointerEvents: focusMode ? "none" : "auto",
       }}
     >
       {/* Inject animations */}

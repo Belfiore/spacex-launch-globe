@@ -64,10 +64,32 @@ interface AppState {
   setShowISS: (show: boolean) => void;
   toggleISS: () => void;
 
+  // Entry / onboarding phase
+  entryPhase: "loading" | "intro" | "onboarding" | "complete";
+  setEntryPhase: (
+    phase: "loading" | "intro" | "onboarding" | "complete"
+  ) => void;
+
   // Filters
   filters: FilterState;
   setFilters: (filters: Partial<FilterState>) => void;
   resetFilters: () => void;
+
+  // Info panel (left side)
+  infoPanelLaunchId: string | null;
+  setInfoPanelLaunchId: (id: string | null) => void;
+  closeInfoPanel: () => void;
+
+  // Focus mode
+  focusMode: boolean;
+  setFocusMode: (mode: boolean) => void;
+  toggleFocusMode: () => void;
+
+  // Year navigation
+  selectedYear: number;
+  setSelectedYear: (year: number) => void;
+  availableYears: number[];
+  setAvailableYears: (years: number[]) => void;
 }
 
 const defaultFilters: FilterState = {
@@ -135,6 +157,8 @@ export const useAppStore = create<AppState>((set) => ({
       playbackState: "stopped",
       trajectoryProgress: 0,
       orbitCenter: "usa" as const,
+      infoPanelLaunchId: null,
+      focusMode: false,
     })),
 
   // Trajectory progress
@@ -161,9 +185,29 @@ export const useAppStore = create<AppState>((set) => ({
   setShowISS: (show) => set({ showISS: show }),
   toggleISS: () => set((s) => ({ showISS: !s.showISS })),
 
+  // Entry / onboarding phase
+  entryPhase: "loading",
+  setEntryPhase: (phase) => set({ entryPhase: phase }),
+
   // Filters
   filters: { ...defaultFilters },
   setFilters: (filters) =>
     set((s) => ({ filters: { ...s.filters, ...filters } })),
   resetFilters: () => set({ filters: { ...defaultFilters } }),
+
+  // Info panel
+  infoPanelLaunchId: null,
+  setInfoPanelLaunchId: (id) => set({ infoPanelLaunchId: id }),
+  closeInfoPanel: () => set({ infoPanelLaunchId: null }),
+
+  // Focus mode
+  focusMode: false,
+  setFocusMode: (mode) => set({ focusMode: mode }),
+  toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
+
+  // Year navigation
+  selectedYear: new Date().getFullYear(),
+  setSelectedYear: (year) => set({ selectedYear: year }),
+  availableYears: [new Date().getFullYear()],
+  setAvailableYears: (years) => set({ availableYears: years }),
 }));

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Globe background -->
+  <circle cx="60" cy="60" r="52" fill="#1e6fa0"/>
+  <!-- Globe lighter overlay for continents feel -->
+  <circle cx="60" cy="60" r="52" fill="url(#globeGrad)" opacity="0.6"/>
+  <!-- Simplified continent shapes -->
+  <ellipse cx="50" cy="42" rx="14" ry="18" fill="#a8d8ea" opacity="0.55" transform="rotate(-8 50 42)"/>
+  <ellipse cx="72" cy="55" rx="10" ry="20" fill="#a8d8ea" opacity="0.45" transform="rotate(12 72 55)"/>
+  <ellipse cx="45" cy="72" rx="8" ry="6" fill="#a8d8ea" opacity="0.4"/>
+  <!-- Orbit ring -->
+  <ellipse cx="60" cy="60" rx="56" ry="18" stroke="white" stroke-width="4.5" fill="none" transform="rotate(-30 60 60)" stroke-linecap="round" opacity="0.9"/>
+  <!-- Rocket body -->
+  <g transform="translate(68, 28) rotate(45)">
+    <!-- Rocket body -->
+    <path d="M0 4 L4 -14 L8 4 Z" fill="white" stroke="#1e5c8a" stroke-width="1"/>
+    <!-- Nose cone -->
+    <path d="M2 -14 Q4 -20 6 -14" fill="white" stroke="#1e5c8a" stroke-width="0.8"/>
+    <!-- Fins -->
+    <path d="M0 4 L-3 8 L2 6 Z" fill="white" stroke="#1e5c8a" stroke-width="0.6"/>
+    <path d="M8 4 L11 8 L6 6 Z" fill="white" stroke="#1e5c8a" stroke-width="0.6"/>
+    <!-- Window -->
+    <circle cx="4" cy="-4" r="1.5" fill="#1e6fa0" stroke="white" stroke-width="0.5"/>
+    <!-- Exhaust -->
+    <path d="M2 4 L0 10 L4 7 L8 10 L6 4" fill="#f59e0b" opacity="0.8"/>
+  </g>
+  <!-- Gradient definition -->
+  <defs>
+    <radialGradient id="globeGrad" cx="40%" cy="35%" r="55%">
+      <stop offset="0%" stop-color="#5bb8e8" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#1a4f78" stop-opacity="0.1"/>
+    </radialGradient>
+  </defs>
+</svg>
