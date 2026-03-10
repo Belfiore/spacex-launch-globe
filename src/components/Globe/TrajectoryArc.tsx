@@ -34,6 +34,34 @@ export default function TrajectoryArc({
   progress,
   visible,
 }: TrajectoryArcProps) {
+  // ── Pad failure mode: no trajectory, just pad explosion ──
+  const isPadFailure =
+    launch.launchStatus === "prelaunch_failure" ||
+    launch.explosionPhase === "pad_static_fire_prep" ||
+    launch.explosionPhase === "pad_anomaly" as string;
+
+  // ── In-flight failure: trajectory stops at explosion point ──
+  const isInFlightFailure =
+    !isPadFailure &&
+    launch.exploded === true &&
+    (launch.explosionPhase === "ascent" ||
+     launch.explosionPhase === "in_flight" ||
+     launch.explosionPhase === "stage_separation" ||
+     launch.explosionPhase === "boostback");
+
+  // For in-flight failures, the trajectory caps at a fraction of the full arc
+  // This simulates the rocket exploding partway through the flight
+  const failureProgress = useMemo(() => {
+    if (!isInFlightFailure) return 1.0;
+    switch (launch.explosionPhase) {
+      case "ascent": return 0.20;           // Early ascent failure (CRS-7 at T+139s, Starship Flight 1 at T+4m)
+      case "in_flight": return 0.30;        // Mid-flight failure
+      case "stage_separation": return STAGING_PROGRESS; // Fails right at staging
+      case "boostback": return 0.45;        // After staging, during boostback (Starship Flight 2)
+      default: return 0.50;
+    }
+  }, [isInFlightFailure, launch.explosionPhase]);
+
   const curve = useMemo(() => generateTrajectoryArcCurve(launch), [launch]);
   const allPoints = useMemo(() => curve.getPoints(NUM_POINTS), [curve]);
 
@@ -145,13 +173,132 @@ export default function TrajectoryArc({
 
   if (!visible) return null;
 
+  // ── Pad failure: render ONLY a pad explosion, no trajectory ──
+  if (isPadFailure) {
+    const padPos = latLngToVector3(launch.launchSite.lat, launch.launchSite.lng, GLOBE.RADIUS + 0.01);
+    const padExplosionProgress = Math.min(Math.max(progress, 0), 1);
+    const showPadExplosion = padExplosionProgress > 0.05;
+
+    return (
+      <group>
+        {/* Rocket on pad (visible before explosion) */}
+        {padExplosionProgress <= 0.15 && (
+          <RocketModel
+            position={padPos}
+            tangent={padPos.clone().normalize()}
+            rocketType={launch.rocketType}
+            progress={0}
+          />
+        )}
+
+        {/* Pad explosion */}
+        {showPadExplosion && (
+          <>
+            {/* Main fireball — large orange/red sphere */}
+            <mesh ref={explosionRef} position={toTuple(padPos)}>
+              <sphereGeometry args={[0.05, 12, 12]} />
+              <meshBasicMaterial
+                color="#ff3300"
+                transparent
+                opacity={Math.min(0.95, padExplosionProgress * 3)}
+                blending={THREE.AdditiveBlending}
+                depthWrite={false}
+              />
+            </mesh>
+            {/* Inner white-hot core */}
+            <mesh position={toTuple(padPos)}>
+              <sphereGeometry args={[0.03, 8, 8]} />
+              <meshBasicMaterial
+                color="#ffcc00"
+                transparent
+                opacity={Math.min(0.95, padExplosionProgress * 4)}
+                blending={THREE.AdditiveBlending}
+                depthWrite={false}
+              />
+            </mesh>
+            {/* Expanding shockwave ring */}
+            <mesh position={toTuple(padPos)} rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry
+                args={[
+                  0.02 + Math.min(0.12, padExplosionProgress * 0.3),
+                  0.005,
+                  6,
+                  32,
+                ]}
+              />
+              <meshBasicMaterial
+                color="#ff6600"
+                transparent
+                opacity={Math.max(0, 0.8 - padExplosionProgress * 2)}
+                blending={THREE.AdditiveBlending}
+                depthWrite={false}
+              />
+            </mesh>
+            {/* Debris cloud */}
+            <group ref={explosionDebrisRef} position={toTuple(padPos)}>
+              {[...Array(8)].map((_, i) => {
+                const angle = (i / 8) * Math.PI * 2;
+                const r = 0.02 + Math.random() * 0.015;
+                return (
+                  <mesh
+                    key={`pad-debris-${i}`}
+                    position={[
+                      Math.cos(angle) * r,
+                      0.015 + Math.random() * 0.03,
+                      Math.sin(angle) * r,
+                    ]}
+                  >
+                    <sphereGeometry args={[0.005, 4, 4]} />
+                    <meshBasicMaterial
+                      color={i % 3 === 0 ? "#ff4400" : i % 3 === 1 ? "#ffaa00" : "#ff8800"}
+                      transparent
+                      opacity={0.85}
+                      blending={THREE.AdditiveBlending}
+                      depthWrite={false}
+                    />
+                  </mesh>
+                );
+              })}
+            </group>
+            {/* Failure label */}
+            {padExplosionProgress > 0.3 && (
+              <Html
+                position={[padPos.x, padPos.y + 0.08, padPos.z]}
+                center
+                zIndexRange={[0, 0]}
+                style={{ pointerEvents: "none" }}
+              >
+                <div style={{
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  color: "#ef4444",
+                  fontFamily: "monospace",
+                  textShadow: "0 1px 4px rgba(0,0,0,0.9)",
+                  textAlign: "center",
+                  lineHeight: 1.3,
+                }}>
+                  ✗ PAD FAILURE
+                </div>
+              </Html>
+            )}
+          </>
+        )}
+      </group>
+    );
+  }
+
   // ── Static preview mode (progress === 0): show full planned path + rocket on pad ──
   const isStaticPreview = progress <= 0.01;
 
-  const clampedProgress = Math.min(Math.max(progress, 0), 0.99);
+  // For in-flight failures, cap effective progress at the failure point
+  const effectiveMaxProgress = isInFlightFailure ? failureProgress : 0.99;
+  const clampedProgress = Math.min(Math.max(progress, 0), effectiveMaxProgress);
   const rocketIdx = isStaticPreview ? 0 : Math.floor(clampedProgress * NUM_POINTS);
   const rocketPoint = allPoints[Math.min(rocketIdx, allPoints.length - 1)];
   const rocketTangent = curve.getTangentAt(Math.max(0.001, clampedProgress));
+
+  // Has the in-flight failure explosion been triggered?
+  const showInFlightExplosion = isInFlightFailure && progress >= failureProgress;
 
   const accentColor = "#00E5FF";
 
@@ -172,10 +319,15 @@ export default function TrajectoryArc({
     seg1 = allPoints.slice(0, s1End).map(toTuple);
     seg2 = allPoints.slice(Math.max(0, s1End - 1), s2End).map(toTuple);
     seg3 = allPoints.slice(Math.max(0, s2End - 1), trailLen).map(toTuple);
-    plannedPoints = allPoints.slice(Math.max(0, rocketIdx)).map(toTuple);
+    // For in-flight failures, don't show planned points beyond explosion
+    if (!isInFlightFailure) {
+      plannedPoints = allPoints.slice(Math.max(0, rocketIdx)).map(toTuple);
+    }
   }
 
-  const showBoosterReturn = !isStaticPreview && hasBoosterReturn && progress >= STAGING_PROGRESS;
+  // Don't show booster return if the vehicle was destroyed before/at staging
+  const failedBeforeStaging = isInFlightFailure && failureProgress <= STAGING_PROGRESS;
+  const showBoosterReturn = !isStaticPreview && hasBoosterReturn && progress >= STAGING_PROGRESS && !failedBeforeStaging;
   const boosterProgress = showBoosterReturn
     ? Math.min(1, (progress - STAGING_PROGRESS) / ((launch.rocketType === "Starship" ? 0.45 : 0.55) * (1 - STAGING_PROGRESS)))
     : 0;
@@ -220,8 +372,8 @@ export default function TrajectoryArc({
         <Line points={plannedPoints} color="#475569" lineWidth={1} transparent opacity={0.10} />
       )}
 
-      {/* Glowing tip — only during active flight */}
-      {!isStaticPreview && rocketPoint && (
+      {/* Glowing tip — only during active flight, hidden after in-flight explosion */}
+      {!isStaticPreview && rocketPoint && !showInFlightExplosion && (
         <mesh position={toTuple(rocketPoint)}>
           <sphereGeometry args={[0.012, 8, 8]} />
           <meshBasicMaterial
@@ -234,8 +386,8 @@ export default function TrajectoryArc({
         </mesh>
       )}
 
-      {/* Rocket model */}
-      {rocketPoint && rocketTangent && (
+      {/* Rocket model — hidden after in-flight explosion */}
+      {rocketPoint && rocketTangent && !showInFlightExplosion && (
         <RocketModel
           position={rocketPoint}
           tangent={rocketTangent}
@@ -244,8 +396,97 @@ export default function TrajectoryArc({
         />
       )}
 
+      {/* ── In-flight explosion (CRS-7, Starship Flight 1/2, etc.) ── */}
+      {showInFlightExplosion && rocketPoint && (
+        <>
+          {/* Main fireball at explosion point */}
+          <mesh ref={explosionRef} position={toTuple(rocketPoint)}>
+            <sphereGeometry args={[0.045, 12, 12]} />
+            <meshBasicMaterial
+              color="#ff3300"
+              transparent
+              opacity={Math.min(0.9, (progress - failureProgress) * 8)}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Inner white-hot core */}
+          <mesh position={toTuple(rocketPoint)}>
+            <sphereGeometry args={[0.025, 8, 8]} />
+            <meshBasicMaterial
+              color="#ffcc00"
+              transparent
+              opacity={Math.min(0.95, (progress - failureProgress) * 10)}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Expanding shockwave */}
+          <mesh position={toTuple(rocketPoint)} rotation={[Math.PI / 3, 0, 0]}>
+            <torusGeometry
+              args={[
+                0.02 + Math.min(0.08, (progress - failureProgress) * 0.5),
+                0.004,
+                6,
+                24,
+              ]}
+            />
+            <meshBasicMaterial
+              color="#ff6600"
+              transparent
+              opacity={Math.max(0, 0.7 - (progress - failureProgress) * 3)}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Debris particles */}
+          <group ref={explosionDebrisRef} position={toTuple(rocketPoint)}>
+            {[...Array(6)].map((_, i) => {
+              const angle = (i / 6) * Math.PI * 2;
+              const r = 0.015 + Math.random() * 0.01;
+              return (
+                <mesh
+                  key={`flight-debris-${i}`}
+                  position={[
+                    Math.cos(angle) * r,
+                    0.01 + Math.random() * 0.02,
+                    Math.sin(angle) * r,
+                  ]}
+                >
+                  <sphereGeometry args={[0.004, 4, 4]} />
+                  <meshBasicMaterial
+                    color={i % 2 === 0 ? "#ff4400" : "#ffaa00"}
+                    transparent
+                    opacity={0.8}
+                    blending={THREE.AdditiveBlending}
+                    depthWrite={false}
+                  />
+                </mesh>
+              );
+            })}
+          </group>
+          {/* Failure label */}
+          <Html
+            position={[rocketPoint.x, rocketPoint.y + 0.06, rocketPoint.z]}
+            center
+            zIndexRange={[0, 0]}
+            style={{ pointerEvents: "none" }}
+          >
+            <div style={{
+              fontSize: "8px",
+              fontWeight: 700,
+              color: "#ef4444",
+              fontFamily: "monospace",
+              textShadow: "0 1px 3px rgba(0,0,0,0.8)",
+            }}>
+              ✗ VEHICLE LOST
+            </div>
+          </Html>
+        </>
+      )}
+
       {/* Stage separation — just a glow sphere, NO Html label */}
-      {showStageSeparation && (
+      {showStageSeparation && !showInFlightExplosion && (
         <mesh position={stagingTuple}>
           <sphereGeometry args={[0.015, 10, 10]} />
           <meshBasicMaterial
@@ -258,8 +499,8 @@ export default function TrajectoryArc({
         </mesh>
       )}
 
-      {/* Orbit insertion ring — only during active flight */}
-      {!isStaticPreview && progress > 0.7 && (
+      {/* Orbit insertion ring — only during active flight, not for in-flight failures */}
+      {!isStaticPreview && !isInFlightFailure && progress > 0.7 && (
         <mesh rotation={[(inclDeg * Math.PI) / 180, 0, 0]}>
           <torusGeometry args={[orbitRadius, 0.004, 8, 120]} />
           <meshBasicMaterial
@@ -272,8 +513,8 @@ export default function TrajectoryArc({
         </mesh>
       )}
 
-      {/* Orbit insertion badge — only for past launches (success/failure), not upcoming */}
-      {progress >= 0.99 && rocketPoint && launch.status !== "upcoming" && (
+      {/* Orbit insertion badge — only for past launches (success/failure), not failures with in-flight explosion */}
+      {!isInFlightFailure && progress >= 0.99 && rocketPoint && launch.status !== "upcoming" && (
         <Html
           position={toTuple(rocketPoint)}
           center

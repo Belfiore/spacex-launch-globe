@@ -5,6 +5,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { LAUNCHPAD_SITE_MAP, LAUNCH_SITES, ROCKET_NAMES } from "@/lib/constants";
 import type { Launch, LaunchSite } from "@/lib/types";
 import { computeJellyfish } from "@/lib/jellyfish";
+import { fetchLL2Upcoming, fetchLL2Recent, fetchLL2Range } from "@/lib/launchLibrary2";
 import fallbackData from "@/data/fallbackLaunches.json";
 import { HISTORICAL_LAUNCHES } from "@/data/historicalLaunches";
 
@@ -202,27 +203,68 @@ async function fetchRecentLaunches(): Promise<Launch[]> {
 }
 
 /**
- * Merge API launches into the database, avoiding duplicates.
- * API data fills gaps but doesn't overwrite enriched database entries.
+ * Find matching launch index by ID or fuzzy name+date match.
+ */
+function findMergeMatch(merged: Launch[], candidate: Launch): number {
+  for (let i = 0; i < merged.length; i++) {
+    const l = merged[i];
+    if (l.id === candidate.id) return i;
+    const timeDiff = Math.abs(l.dateUnix - candidate.dateUnix);
+    if (timeDiff < 86400) {
+      const lName = l.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const aName = candidate.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (lName === aName || lName.includes(aName) || aName.includes(lName)) return i;
+      if (l.rocketType === candidate.rocketType && l.launchSite.id === candidate.launchSite.id) return i;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Merge API launches into the database.
+ * - New launches (no match) are added
+ * - Existing matches get enriched with API data that fills gaps
+ *   (API data supplements but doesn't overwrite existing enriched fields)
  */
 function mergeApiLaunches(base: Launch[], apiLaunches: Launch[]): Launch[] {
   const merged = [...base];
   for (const apiL of apiLaunches) {
-    // Check if this launch already exists in the database
-    const exists = merged.some((l) => {
-      if (l.id === apiL.id) return true;
-      // Same day, same rocket type, similar name
-      const timeDiff = Math.abs(l.dateUnix - apiL.dateUnix);
-      if (timeDiff < 86400) {
-        const lName = l.name.toLowerCase().replace(/[^a-z0-9]/g, "");
-        const aName = apiL.name.toLowerCase().replace(/[^a-z0-9]/g, "");
-        if (lName === aName || lName.includes(aName) || aName.includes(lName)) return true;
-        if (l.rocketType === apiL.rocketType && l.launchSite.id === apiL.launchSite.id) return true;
-      }
-      return false;
-    });
-    if (!exists) {
+    const idx = findMergeMatch(merged, apiL);
+    if (idx === -1) {
+      // No match — add as new entry
       merged.push(apiL);
+    } else {
+      // Match found — enrich existing entry with API data that fills gaps
+      const existing = merged[idx];
+      const updates: Partial<Launch> = {};
+
+      // Fill missing fields from API data
+      if (!existing.payloadOrbit && apiL.payloadOrbit) updates.payloadOrbit = apiL.payloadOrbit;
+      if (!existing.details && apiL.details) updates.details = apiL.details;
+      if (!existing.missionPatch && apiL.missionPatch) updates.missionPatch = apiL.missionPatch;
+      if (!existing.boosterReturn && apiL.boosterReturn) updates.boosterReturn = apiL.boosterReturn;
+      if (!existing.cores && apiL.cores) updates.cores = apiL.cores;
+      if (!existing.landingMode && apiL.landingMode) updates.landingMode = apiL.landingMode;
+      if (!existing.landingZone && apiL.landingZone) updates.landingZone = apiL.landingZone;
+      if (existing.landingAttempted == null && apiL.landingAttempted != null) updates.landingAttempted = apiL.landingAttempted;
+      if (existing.landingSuccess == null && apiL.landingSuccess != null) updates.landingSuccess = apiL.landingSuccess;
+      if (!existing.vehicleVariant && apiL.vehicleVariant) updates.vehicleVariant = apiL.vehicleVariant;
+      if (!existing.family && apiL.family) updates.family = apiL.family;
+      if (!existing.failureSummary && apiL.failureSummary) updates.failureSummary = apiL.failureSummary;
+      if (existing.isStarlink == null && apiL.isStarlink != null) updates.isStarlink = apiL.isStarlink;
+      if (existing.isCrewed == null && apiL.isCrewed != null) updates.isCrewed = apiL.isCrewed;
+
+      // Update status from LL2 if more accurate (LL2 has granular statuses)
+      if (apiL.launchStatus && apiL.launchStatus !== "unknown") {
+        if (!existing.launchStatus || existing.launchStatus === "unknown") {
+          updates.launchStatus = apiL.launchStatus;
+          updates.status = apiL.status;
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        merged[idx] = { ...existing, ...updates };
+      }
     }
   }
   return merged;
@@ -286,13 +328,24 @@ function mergeWithHistorical(baseLaunches: Launch[]): Launch[] {
       // No match found — add as new entry
       merged.push(hist);
     } else {
-      // Merge enrichment data from historical into existing record
+      // Merge enrichment data from historical into existing record.
+      // Historical data is hand-curated and ALWAYS takes precedence.
       const updates: Partial<Launch> = {};
       if (hist.flightHistory) updates.flightHistory = hist.flightHistory;
       if (hist.boosterReturn) updates.boosterReturn = hist.boosterReturn;
+      if (hist.boosterReturns) updates.boosterReturns = hist.boosterReturns;
       if (hist.webcastUrl && !merged[idx].webcastUrl) updates.webcastUrl = hist.webcastUrl;
       if (hist.details && !merged[idx].details) updates.details = hist.details;
       if (hist.payloadOrbit && !merged[idx].payloadOrbit) updates.payloadOrbit = hist.payloadOrbit;
+      // Historical overrides for status fields (hand-verified data)
+      if (hist.launchStatus) updates.launchStatus = hist.launchStatus;
+      if (hist.failureCategory) updates.failureCategory = hist.failureCategory;
+      if (hist.failureSummary) updates.failureSummary = hist.failureSummary;
+      if (hist.failureDetail) updates.failureDetail = hist.failureDetail;
+      if (hist.exploded != null) updates.exploded = hist.exploded;
+      if (hist.explosionPhase !== undefined) updates.explosionPhase = hist.explosionPhase;
+      if (hist.cores) updates.cores = hist.cores;
+      if (hist.landingZone) updates.landingZone = hist.landingZone;
       if (Object.keys(updates).length > 0) {
         merged[idx] = { ...merged[idx], ...updates };
       }
@@ -300,6 +353,48 @@ function mergeWithHistorical(baseLaunches: Launch[]): Launch[] {
   }
 
   return merged.sort((a, b) => a.dateUnix - b.dateUnix);
+}
+
+/**
+ * Detect months with suspiciously few launches in the database.
+ * SpaceX typically launches 5-10+ times per month, so <3 is a gap.
+ * Returns date ranges to fill from LL2.
+ */
+function detectDataGaps(launches: Launch[]): { start: string; end: string }[] {
+  const gaps: { start: string; end: string }[] = [];
+  const now = new Date();
+  // Only check the last 18 months — older gaps are less important
+  const cutoff = new Date(now.getFullYear() - 1, now.getMonth() - 6, 1);
+
+  // Count launches per month
+  const monthCounts = new Map<string, number>();
+  for (const l of launches) {
+    const d = new Date(l.dateUtc);
+    if (d < cutoff || d > now) continue;
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    monthCounts.set(key, (monthCounts.get(key) ?? 0) + 1);
+  }
+
+  // Find months with < 3 launches (strong indicator of a data gap)
+  const curMonth = now.getFullYear() * 12 + now.getMonth();
+  const cutoffMonth = cutoff.getFullYear() * 12 + cutoff.getMonth();
+
+  for (let m = cutoffMonth; m <= curMonth; m++) {
+    const year = Math.floor(m / 12);
+    const month = m % 12;
+    const key = `${year}-${String(month + 1).padStart(2, "0")}`;
+    const count = monthCounts.get(key) ?? 0;
+
+    if (count < 3) {
+      const start = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+      // End of month
+      const endDate = new Date(year, month + 1, 0);
+      const end = `${year}-${String(month + 1).padStart(2, "0")}-${String(endDate.getDate()).padStart(2, "0")}`;
+      gaps.push({ start, end });
+    }
+  }
+
+  return gaps;
 }
 
 /** Compute unique years from launches and set in store */
@@ -351,7 +446,45 @@ export function useSpaceXData() {
         // Correct stale statuses (future marked success, past marked upcoming)
         base = correctStatuses(base);
 
-        // Supplement with live API data to fill gaps and get real upcoming launches
+        // ── Supplement with live API data ───────────────────────
+        // Priority 1: Launch Library 2 (actively maintained, rich data)
+        // Priority 2: SpaceX API v5 (stale since Oct 2022, basic data)
+        try {
+          const [ll2Upcoming, ll2Recent] = await Promise.all([
+            fetchLL2Upcoming(),
+            fetchLL2Recent(),
+          ]);
+          if (ll2Upcoming.length > 0 || ll2Recent.length > 0) {
+            base = mergeApiLaunches(base, [...ll2Recent, ...ll2Upcoming]);
+            console.log(
+              `[SpaceX Data] LL2: +${ll2Upcoming.length} upcoming, +${ll2Recent.length} recent`
+            );
+          }
+        } catch {
+          console.warn("[SpaceX Data] LL2 unavailable, trying SpaceX API fallback");
+        }
+
+        // ── Fill data gaps from LL2 ────────────────────────────
+        // Detect months with suspiciously few launches and fetch from LL2
+        try {
+          const gaps = detectDataGaps(base);
+          if (gaps.length > 0) {
+            console.log(`[SpaceX Data] Detected ${gaps.length} data gap(s): ${gaps.map(g => g.start).join(", ")}`);
+            // Fetch at most 2 gap ranges to respect rate limits
+            const gapFetches = gaps.slice(0, 2).map((g) => fetchLL2Range(g.start, g.end));
+            const gapResults = await Promise.all(gapFetches);
+            for (const gapLaunches of gapResults) {
+              if (gapLaunches.length > 0) {
+                base = mergeApiLaunches(base, gapLaunches);
+                console.log(`[SpaceX Data] Gap fill: +${gapLaunches.length} launches`);
+              }
+            }
+          }
+        } catch {
+          // Gap fill is optional — don't fail the whole load
+        }
+
+        // Fallback: SpaceX API v5 (stale but may still have some useful data)
         try {
           const [upcoming, recent] = await Promise.all([
             fetchUpcomingLaunches(),
@@ -360,11 +493,11 @@ export function useSpaceXData() {
           if (upcoming.length > 0 || recent.length > 0) {
             base = mergeApiLaunches(base, [...recent, ...upcoming]);
             console.log(
-              `[SpaceX Data] Supplemented with ${upcoming.length} upcoming + ${recent.length} recent from API`
+              `[SpaceX Data] SpaceX API: +${upcoming.length} upcoming, +${recent.length} recent`
             );
           }
         } catch {
-          // API supplement is optional — database still works without it
+          // SpaceX API supplement is optional
         }
 
         if (!cancelled) {
@@ -388,8 +521,30 @@ export function useSpaceXData() {
     }
 
     load();
+
+    // ── Periodic refresh for upcoming launches ────────────────
+    // Re-fetch upcoming data every 30 minutes to keep it fresh.
+    // Uses the LL2 cache (6h TTL) so most refreshes are instant.
+    const REFRESH_INTERVAL = 30 * 60 * 1000; // 30 minutes
+    const refreshTimer = setInterval(async () => {
+      if (cancelled) return;
+      try {
+        const ll2Upcoming = await fetchLL2Upcoming();
+        if (ll2Upcoming.length > 0 && !cancelled) {
+          const currentLaunches = useAppStore.getState().launches;
+          const updated = mergeApiLaunches(currentLaunches, ll2Upcoming);
+          const corrected = correctStatuses(updated);
+          setLaunches(corrected.sort((a, b) => a.dateUnix - b.dateUnix));
+          console.log(`[SpaceX Data] Refreshed upcoming: ${ll2Upcoming.length} launches`);
+        }
+      } catch {
+        // Silent refresh failure — existing data is fine
+      }
+    }, REFRESH_INTERVAL);
+
     return () => {
       cancelled = true;
+      clearInterval(refreshTimer);
     };
   }, [setLaunches, setLoading, setAvailableYears]);
 
