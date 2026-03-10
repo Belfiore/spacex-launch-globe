@@ -79,6 +79,7 @@ export default function FilterBar() {
     >
       {/* Year dropdown — above search */}
       <select
+        className="year-select"
         value={selectedYear}
         onChange={(e) => {
           const val = e.target.value;
@@ -196,6 +197,8 @@ export default function FilterBar() {
         {ROCKET_TYPES.map((type) => (
           <button
             key={type}
+            className="chip-btn"
+            data-active={filters.rocketType === type || undefined}
             onClick={() =>
               setFilters({
                 rocketType: filters.rocketType === type ? null : type,
@@ -217,7 +220,6 @@ export default function FilterBar() {
               color:
                 filters.rocketType === type ? "#22d3ee" : "#64748b",
               cursor: "pointer",
-              transition: "all 0.15s ease",
               fontWeight: filters.rocketType === type ? 600 : 400,
             }}
           >
@@ -231,6 +233,8 @@ export default function FilterBar() {
         {STATUSES.map((status) => (
           <button
             key={status}
+            className="chip-btn"
+            data-active={filters.status === status || undefined}
             onClick={() =>
               setFilters({
                 status: filters.status === status ? null : status,
@@ -252,7 +256,6 @@ export default function FilterBar() {
               color:
                 filters.status === status ? "#22d3ee" : "#64748b",
               cursor: "pointer",
-              transition: "all 0.15s ease",
               textTransform: "capitalize",
               fontWeight: filters.status === status ? 600 : 400,
             }}
@@ -269,6 +272,8 @@ export default function FilterBar() {
           return (
             <button
               key={group.key}
+              className="chip-btn"
+              data-active={isActive || undefined}
               onClick={() => toggleSite(group.key)}
               title={TOOLTIPS[group.key]}
               style={{
@@ -282,7 +287,6 @@ export default function FilterBar() {
                   : "rgba(255, 255, 255, 0.02)",
                 color: isActive ? group.color : "#64748b",
                 cursor: "pointer",
-                transition: "all 0.15s ease",
                 fontWeight: isActive ? 600 : 400,
                 display: "flex",
                 alignItems: "center",
@@ -309,6 +313,8 @@ export default function FilterBar() {
 
         {/* Jellyfish filter */}
         <button
+          className="chip-btn"
+          data-active={filters.jellyfish || undefined}
           onClick={() => setFilters({ jellyfish: !filters.jellyfish })}
           title={TOOLTIPS["jellyfish"]}
           style={{
@@ -324,7 +330,6 @@ export default function FilterBar() {
               : "rgba(255, 255, 255, 0.02)",
             color: filters.jellyfish ? "#c084fc" : "#64748b",
             cursor: "pointer",
-            transition: "all 0.15s ease",
             fontWeight: filters.jellyfish ? 600 : 400,
             display: "flex",
             alignItems: "center",
@@ -347,6 +352,7 @@ export default function FilterBar() {
         {/* Clear */}
         {hasActiveFilters && (
           <button
+            className="chip-clear"
             onClick={resetFilters}
             title={TOOLTIPS["clear"]}
             style={{
@@ -357,7 +363,6 @@ export default function FilterBar() {
               color: "#ef4444",
               cursor: "pointer",
               fontSize: "10px",
-              transition: "all 0.15s ease",
             }}
           >
             Clear

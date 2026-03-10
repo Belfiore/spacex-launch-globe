@@ -414,6 +414,7 @@ export default function LaunchPanel() {
             }}
           />
           <button
+            className="toolbar-btn"
             onClick={togglePanel}
             title={panelOpen ? "Hide panel" : "Show launches"}
             style={{
@@ -429,16 +430,7 @@ export default function LaunchPanel() {
               cursor: "pointer",
               fontSize: "16px",
               padding: 0,
-              transition: "all 0.15s ease",
               flexShrink: 0,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-              e.currentTarget.style.color = "#e2e8f0";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.color = "#94a3b8";
             }}
           >
             {toggleIcon}

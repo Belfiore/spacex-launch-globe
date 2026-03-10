@@ -91,6 +91,8 @@ export default function LaunchCard({
 
   return (
     <div
+      className="launch-card"
+      data-selected={isSelected || undefined}
       onClick={onClick}
       style={{
         background: isSelected
@@ -101,21 +103,8 @@ export default function LaunchCard({
         borderRadius: "10px",
         padding: "14px 14px",
         cursor: "pointer",
-        transition: "all 0.2s ease",
         marginBottom: "8px",
         animation: showPulse ? "card-pulse-24h 3s ease-in-out infinite" : undefined,
-      }}
-      onMouseEnter={(e) => {
-        if (!isSelected) {
-          e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)";
-          e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isSelected) {
-          e.currentTarget.style.background = "rgba(255, 255, 255, 0.02)";
-          e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.04)";
-        }
       }}
     >
       {/* Header row — patch + name + play + badges */}
@@ -152,6 +141,7 @@ export default function LaunchCard({
             {/* Play/Pause toggle button */}
             {(onPlay || isPlaying) && (
               <button
+                className="btn-action"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (isPlaying && onPause) {
@@ -175,26 +165,11 @@ export default function LaunchCard({
                   cursor: "pointer",
                   fontSize: isPlaying ? "11px" : "12px",
                   flexShrink: 0,
-                  transition: "all 0.2s ease",
                   padding: 0,
                   paddingLeft: isPlaying ? "0px" : "2px",
                   boxShadow: isPlaying
                     ? "0 0 12px rgba(34, 211, 238, 0.4)"
                     : "none",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background =
-                    "rgba(34, 211, 238, 0.3)";
-                  e.currentTarget.style.boxShadow =
-                    "0 0 12px rgba(34, 211, 238, 0.4)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = isPlaying
-                    ? "rgba(34, 211, 238, 0.25)"
-                    : "rgba(34, 211, 238, 0.12)";
-                  e.currentTarget.style.boxShadow = isPlaying
-                    ? "0 0 12px rgba(34, 211, 238, 0.4)"
-                    : "none";
                 }}
                 title={isPlaying ? "Pause" : "Watch launch cinematic"}
               >
@@ -205,6 +180,7 @@ export default function LaunchCard({
             {/* Info button — always shown */}
             {(
               <button
+                className="btn-action"
                 onClick={(e) => {
                   e.stopPropagation();
                   setInfoPanelLaunchId(
@@ -233,23 +209,8 @@ export default function LaunchCard({
                   fontSize: "13px",
                   fontWeight: 700,
                   flexShrink: 0,
-                  transition: "all 0.2s ease",
                   padding: 0,
                   fontFamily: "serif",
-                }}
-                onMouseEnter={(e) => {
-                  if (infoPanelLaunchId !== launch.id) {
-                    e.currentTarget.style.background =
-                      "rgba(34, 211, 238, 0.12)";
-                    e.currentTarget.style.color = "#22d3ee";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (infoPanelLaunchId !== launch.id) {
-                    e.currentTarget.style.background =
-                      "rgba(255, 255, 255, 0.06)";
-                    e.currentTarget.style.color = "#94a3b8";
-                  }
                 }}
                 title="View flight details"
               >

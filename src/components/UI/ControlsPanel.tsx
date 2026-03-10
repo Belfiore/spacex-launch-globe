@@ -23,6 +23,8 @@ function ToolbarButton({
 }) {
   return (
     <button
+      className="toolbar-btn"
+      data-active={active || undefined}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
@@ -43,20 +45,7 @@ function ToolbarButton({
         opacity: disabled ? 0.4 : 1,
         fontSize: "14px",
         padding: 0,
-        transition: "all 0.15s ease",
         flexShrink: 0,
-      }}
-      onMouseEnter={(e) => {
-        if (disabled) return;
-        if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-        e.currentTarget.style.color = "#e2e8f0";
-      }}
-      onMouseLeave={(e) => {
-        if (disabled) return;
-        e.currentTarget.style.background = active
-          ? "rgba(34, 211, 238, 0.15)"
-          : "transparent";
-        e.currentTarget.style.color = active ? "#22d3ee" : "#94a3b8";
       }}
     >
       {icon}
@@ -70,6 +59,8 @@ function ISSToggle() {
 
   return (
     <button
+      className="toolbar-btn"
+      data-active={showISS || undefined}
       onClick={(e) => {
         e.stopPropagation();
         toggleISS();
@@ -88,18 +79,7 @@ function ISSToggle() {
         cursor: "pointer",
         fontSize: "14px",
         padding: 0,
-        transition: "all 0.15s ease",
         flexShrink: 0,
-      }}
-      onMouseEnter={(e) => {
-        if (!showISS) e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-        e.currentTarget.style.color = "#e2e8f0";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = showISS
-          ? "rgba(34, 211, 238, 0.15)"
-          : "transparent";
-        e.currentTarget.style.color = showISS ? "#22d3ee" : "#94a3b8";
       }}
     >
       {"🛰"}
@@ -114,6 +94,8 @@ function StarlinkToggle() {
 
   return (
     <button
+      className="toolbar-btn"
+      data-active={showStarlink || undefined}
       onClick={(e) => {
         e.stopPropagation();
         toggleStarlink();
@@ -136,21 +118,9 @@ function StarlinkToggle() {
         cursor: "pointer",
         fontSize: "10px",
         padding: "0 6px",
-        transition: "all 0.15s ease",
         flexShrink: 0,
         fontFamily: "'SF Mono', 'Fira Code', monospace",
         whiteSpace: "nowrap",
-      }}
-      onMouseEnter={(e) => {
-        if (!showStarlink)
-          e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-        e.currentTarget.style.color = "#e2e8f0";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = showStarlink
-          ? "rgba(165, 200, 255, 0.15)"
-          : "transparent";
-        e.currentTarget.style.color = showStarlink ? "#a5c8ff" : "#94a3b8";
       }}
     >
       <span style={{ fontSize: "14px" }}>✦</span>

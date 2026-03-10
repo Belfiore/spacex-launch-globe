@@ -115,6 +115,60 @@ body {
   }
 }
 
+/* ── Instant hover effects ───────────────────────────────── */
+
+/* Disable tap highlight on all buttons */
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Filter chip buttons — inactive state hover */
+.chip-btn:not([data-active="true"]):hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: #cbd5e1 !important;
+}
+
+/* Filter chip buttons — active state hover (glow brighten) */
+.chip-btn[data-active="true"]:hover {
+  filter: brightness(1.25);
+}
+
+/* Toolbar icon buttons — inactive hover */
+.toolbar-btn:not([data-active="true"]):hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #f1f5f9 !important;
+}
+
+/* Toolbar icon buttons — active hover (brighten) */
+.toolbar-btn[data-active="true"]:hover {
+  filter: brightness(1.25);
+}
+
+/* Launch cards — non-selected hover */
+.launch-card:not([data-selected="true"]):hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Circular action buttons (play, info) */
+.btn-action:hover {
+  filter: brightness(1.35);
+  transform: scale(1.08);
+}
+
+/* Year dropdown */
+.year-select:hover {
+  border-color: rgba(34, 211, 238, 0.5) !important;
+  background: rgba(34, 211, 238, 0.12) !important;
+}
+
+/* Clear filter button */
+.chip-clear:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
 /* ── Mobile-specific fixes ───────────────────────────────── */
 @media (max-width: 767px) {
   /* Hide scrollbars on mobile */
