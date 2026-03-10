@@ -14,6 +14,7 @@ import { COLORS, GLOBE, STAGING_PROGRESS } from "@/lib/constants";
 import { latLngToVector3 } from "@/lib/coordUtils";
 import type { Launch } from "@/lib/types";
 import RocketModel from "./RocketModel";
+import BoosterModel from "./BoosterModel";
 
 interface TrajectoryArcProps {
   launch: Launch;
@@ -301,9 +302,9 @@ export default function TrajectoryArc({
         <Line points={boosterAllPoints.map(toTuple)} color="#f59e0b" lineWidth={1} transparent opacity={0.15} />
       )}
 
-      {/* Booster rocket model */}
+      {/* Booster cylinder model (returning stage — plain cylinder, not full rocket) */}
       {showBoosterReturn && boosterPoint && boosterTangent && boosterProgress < 0.9 && (
-        <RocketModel position={boosterPoint} tangent={boosterTangent} rocketType={launch.rocketType} progress={0.4} />
+        <BoosterModel position={boosterPoint} tangent={boosterTangent} progress={boosterProgress} />
       )}
 
       {/* Atmospheric reentry glow — visible during booster entry phase */}
@@ -461,7 +462,7 @@ export default function TrajectoryArc({
               <Line points={trailPts} color={i === 0 ? "#f59e0b" : "#22d3ee"} lineWidth={2} transparent opacity={0.65} />
             )}
             {bPoint && bTangent && bProg < 0.9 && (
-              <RocketModel position={bPoint} tangent={bTangent} rocketType={launch.rocketType} progress={0.4} />
+              <BoosterModel position={bPoint} tangent={bTangent} progress={bProg} />
             )}
             {landPos && (
               <mesh position={toTuple(landPos)}>

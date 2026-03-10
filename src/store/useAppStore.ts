@@ -144,7 +144,7 @@ export const useAppStore = create<AppState>((set) => ({
     ),
 
   // Panel
-  panelOpen: true,
+  panelOpen: false,
   setPanelOpen: (open) => set({ panelOpen: open }),
   togglePanel: () => set((s) => ({ panelOpen: !s.panelOpen })),
 

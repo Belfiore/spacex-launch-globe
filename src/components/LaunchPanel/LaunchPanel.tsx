@@ -106,6 +106,18 @@ export default function LaunchPanel() {
     });
   }, [launches, filters, selectedYear]);
 
+  // Find the most recent completed launch (the one right before the next upcoming)
+  const mostRecentLaunch = useMemo(() => {
+    const now = Date.now();
+    let lastPast: (typeof filteredLaunches)[0] | null = null;
+    for (const l of filteredLaunches) {
+      if (new Date(l.dateUtc).getTime() <= now && l.status !== "upcoming") {
+        lastPast = l;
+      }
+    }
+    return lastPast;
+  }, [filteredLaunches]);
+
   const nextUpcoming = useMemo(() => {
     const now = Date.now();
     return filteredLaunches.find(
@@ -113,19 +125,33 @@ export default function LaunchPanel() {
     );
   }, [filteredLaunches]);
 
-  // Auto-scroll to next upcoming launch on mount
+  // Auto-open panel on desktop after isMobile is resolved
   useEffect(() => {
-    if (!scrollRef.current || selectedLaunch || !nextUpcoming) return;
+    // Wait a tick so useIsMobile has measured the viewport
+    const timer = setTimeout(() => {
+      if (window.innerWidth >= 768) {
+        setPanelOpen(true);
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-scroll to most recent launch on mount (so upcoming is just below)
+  useEffect(() => {
+    if (!scrollRef.current || selectedLaunch) return;
+    const targetLaunch = mostRecentLaunch ?? nextUpcoming;
+    if (!targetLaunch) return;
     const timer = setTimeout(() => {
       const el = scrollRef.current?.querySelector(
-        `[data-launch-id="${nextUpcoming.id}"]`
+        `[data-launch-id="${targetLaunch.id}"]`
       );
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
-    }, 100);
+    }, 300);
     return () => clearTimeout(timer);
-  }, [nextUpcoming?.id, selectedLaunch]);
+  }, [mostRecentLaunch?.id, nextUpcoming?.id, selectedLaunch]);
 
   // Scroll to selected launch when it changes
   useEffect(() => {
@@ -245,68 +271,129 @@ export default function LaunchPanel() {
 
   const toggleIcon = panelOpen ? "\u203A" : "\u2039";
 
+  const showISS = useAppStore((s) => s.showISS);
+  const toggleISS = useAppStore((s) => s.toggleISS);
+  const showStarlink = useAppStore((s) => s.showStarlink);
+  const toggleStarlink = useAppStore((s) => s.toggleStarlink);
+  const starlinkCount = useAppStore((s) => s.starlinkCount);
+
   return (
     <>
-      {/* ── Mobile: Hamburger button (top-right) ── */}
+      {/* ── Mobile: Top-right toolbar (ISS + Starlink + Hamburger) ── */}
       {isMobile && !focusMode && (
-        <button
-          onClick={togglePanel}
+        <div
           style={{
             position: "fixed",
             top: "16px",
             right: "16px",
             zIndex: 55,
-            width: "44px",
-            height: "44px",
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
-            gap: "5px",
-            borderRadius: "10px",
-            background: hamburgerBg,
-            backdropFilter: "blur(12px)",
-            border: hamburgerBorder,
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-            padding: 0,
+            gap: "8px",
           }}
         >
-          <span
+          {/* ISS toggle */}
+          <button
+            onClick={(e) => { e.stopPropagation(); toggleISS(); }}
+            title={showISS ? "Hide ISS" : "Show ISS"}
             style={{
-              width: "20px",
-              height: "2px",
-              background: barColor,
-              borderRadius: "1px",
-              transition: "all 0.2s ease",
-              transform: panelOpen
-                ? "rotate(45deg) translate(2.5px, 2.5px)"
-                : "none",
+              width: "36px",
+              height: "36px",
+              borderRadius: "10px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: showISS ? "rgba(34, 211, 238, 0.15)" : "rgba(18, 24, 41, 0.85)",
+              backdropFilter: "blur(12px)",
+              border: showISS ? "1px solid rgba(34, 211, 238, 0.3)" : "1px solid rgba(255, 255, 255, 0.08)",
+              color: showISS ? "#22d3ee" : "#94a3b8",
+              cursor: "pointer",
+              fontSize: "14px",
+              padding: 0,
             }}
-          />
-          <span
+          >
+            {"🛰"}
+          </button>
+          {/* Starlink toggle */}
+          <button
+            onClick={(e) => { e.stopPropagation(); toggleStarlink(); }}
+            title={showStarlink ? `Hide Starlink (${starlinkCount.toLocaleString()})` : "Show Starlink"}
             style={{
-              width: "20px",
-              height: "2px",
-              background: barColor,
-              borderRadius: "1px",
-              transition: "all 0.2s ease",
-              opacity: panelOpen ? 0 : 1,
+              height: "36px",
+              borderRadius: "10px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "2px",
+              background: showStarlink ? "rgba(165, 200, 255, 0.15)" : "rgba(18, 24, 41, 0.85)",
+              backdropFilter: "blur(12px)",
+              border: showStarlink ? "1px solid rgba(165, 200, 255, 0.3)" : "1px solid rgba(255, 255, 255, 0.08)",
+              color: showStarlink ? "#a5c8ff" : "#94a3b8",
+              cursor: "pointer",
+              fontSize: "10px",
+              padding: "0 8px",
+              fontFamily: "'SF Mono', 'Fira Code', monospace",
             }}
-          />
-          <span
+          >
+            <span style={{ fontSize: "13px" }}>✦</span>
+            <span>{showStarlink && starlinkCount > 0 ? `${(starlinkCount / 1000).toFixed(1)}k` : "SL"}</span>
+          </button>
+          {/* Hamburger */}
+          <button
+            onClick={togglePanel}
             style={{
-              width: "20px",
-              height: "2px",
-              background: barColor,
-              borderRadius: "1px",
+              width: "44px",
+              height: "44px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "5px",
+              borderRadius: "10px",
+              background: hamburgerBg,
+              backdropFilter: "blur(12px)",
+              border: hamburgerBorder,
+              cursor: "pointer",
               transition: "all 0.2s ease",
-              transform: panelOpen
-                ? "rotate(-45deg) translate(2.5px, -2.5px)"
-                : "none",
+              padding: 0,
             }}
-          />
-        </button>
+          >
+            <span
+              style={{
+                width: "20px",
+                height: "2px",
+                background: barColor,
+                borderRadius: "1px",
+                transition: "all 0.2s ease",
+                transform: panelOpen
+                  ? "rotate(45deg) translate(2.5px, 2.5px)"
+                  : "none",
+              }}
+            />
+            <span
+              style={{
+                width: "20px",
+                height: "2px",
+                background: barColor,
+                borderRadius: "1px",
+                transition: "all 0.2s ease",
+                opacity: panelOpen ? 0 : 1,
+              }}
+            />
+            <span
+              style={{
+                width: "20px",
+                height: "2px",
+                background: barColor,
+                borderRadius: "1px",
+                transition: "all 0.2s ease",
+                transform: panelOpen
+                  ? "rotate(-45deg) translate(2.5px, -2.5px)"
+                  : "none",
+              }}
+            />
+          </button>
+        </div>
       )}
 
       {/* ── Mobile: backdrop overlay ── */}
@@ -388,7 +475,7 @@ export default function LaunchPanel() {
             >
               Launch Manifest
             </h2>
-            {/* Close X on mobile header */}
+            {/* Close arrow on mobile header */}
             {isMobile && (
               <button
                 onClick={() => setPanelOpen(false)}
@@ -403,11 +490,11 @@ export default function LaunchPanel() {
                   border: "1px solid rgba(255, 255, 255, 0.08)",
                   color: "#94a3b8",
                   cursor: "pointer",
-                  fontSize: "16px",
+                  fontSize: "18px",
                   padding: 0,
                 }}
               >
-                {"\u00D7"}
+                {"\u203A"}
               </button>
             )}
           </div>

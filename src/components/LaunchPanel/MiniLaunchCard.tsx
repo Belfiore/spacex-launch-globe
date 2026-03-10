@@ -6,8 +6,9 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { getSiteAccentColor, SITE_GROUPS } from "@/lib/constants";
 
 /**
- * MiniLaunchCard — a compact, swipeable launch card at the bottom of the mobile screen.
- * Swipe left/right to navigate between launches. Tap to select + center on globe.
+ * MiniLaunchCard — a horizontal swipeable carousel at the bottom of the mobile screen.
+ * Shows current launch card with next/prev peeking from the sides.
+ * Play button on the left, rocket info on the right.
  * Only renders on mobile.
  */
 export default function MiniLaunchCard() {
@@ -71,21 +72,26 @@ export default function MiniLaunchCard() {
     });
   }, [launches, filters, selectedYear]);
 
-  // Current index based on selected launch
+  // Current index — default to most recent past launch
   const currentIdx = useMemo(() => {
-    if (!selectedLaunch) {
-      // Default to the next upcoming launch
-      const now = Date.now();
-      const idx = filteredLaunches.findIndex(
-        (l) => l.status === "upcoming" && new Date(l.dateUtc).getTime() > now
-      );
+    if (selectedLaunch) {
+      const idx = filteredLaunches.findIndex((l) => l.id === selectedLaunch.id);
       return idx >= 0 ? idx : 0;
     }
-    const idx = filteredLaunches.findIndex((l) => l.id === selectedLaunch.id);
-    return idx >= 0 ? idx : 0;
+    // Find the most recent past launch
+    const now = Date.now();
+    let lastPastIdx = 0;
+    for (let i = 0; i < filteredLaunches.length; i++) {
+      if (new Date(filteredLaunches[i].dateUtc).getTime() <= now) {
+        lastPastIdx = i;
+      }
+    }
+    return lastPastIdx;
   }, [selectedLaunch, filteredLaunches]);
 
   const currentLaunch = filteredLaunches[currentIdx];
+  const prevLaunch = currentIdx > 0 ? filteredLaunches[currentIdx - 1] : null;
+  const nextLaunch = currentIdx < filteredLaunches.length - 1 ? filteredLaunches[currentIdx + 1] : null;
 
   const selectLaunch = useCallback(
     (idx: number) => {
@@ -145,16 +151,14 @@ export default function MiniLaunchCard() {
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
-    setSwipeOffset(touchDeltaX.current * 0.3); // Damped visual feedback
+    setSwipeOffset(touchDeltaX.current);
   }, []);
 
   const handleTouchEnd = useCallback(() => {
-    const threshold = 50;
+    const threshold = 60;
     if (touchDeltaX.current < -threshold && currentIdx < filteredLaunches.length - 1) {
-      // Swipe left → next launch
       selectLaunch(currentIdx + 1);
     } else if (touchDeltaX.current > threshold && currentIdx > 0) {
-      // Swipe right → previous launch
       selectLaunch(currentIdx - 1);
     }
     setSwipeOffset(0);
@@ -164,21 +168,10 @@ export default function MiniLaunchCard() {
   if (!isMobile || focusMode || !currentLaunch || filteredLaunches.length === 0)
     return null;
 
-  const status = currentLaunch.status;
-  const accentColor = getSiteAccentColor(currentLaunch.launchSite.id);
-  const statusColor =
-    status === "success"
-      ? "#22c55e"
-      : status === "failure"
-        ? "#ef4444"
-        : "#22d3ee";
-
-  const date = new Date(currentLaunch.dateUtc);
-  const dateStr = date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const CARD_WIDTH = 280; // px
+  const CARD_GAP = 10;
+  const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 375;
+  const cardLeft = (viewportWidth - CARD_WIDTH) / 2;
 
   return (
     <div
@@ -188,153 +181,157 @@ export default function MiniLaunchCard() {
       onTouchEnd={handleTouchEnd}
       style={{
         position: "fixed",
-        bottom: "12px",
-        left: "12px",
-        right: "12px",
+        bottom: "10px",
+        left: 0,
+        right: 0,
         zIndex: 45,
-        transform: `translateX(${swipeOffset}px)`,
-        transition: swipeOffset === 0 ? "transform 0.2s ease" : "none",
+        overflow: "hidden",
+        height: "56px",
       }}
     >
       <div
         style={{
-          background: "rgba(18, 24, 41, 0.92)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          border: `1px solid ${accentColor}40`,
-          borderRadius: "14px",
-          padding: "12px 14px",
           display: "flex",
           alignItems: "center",
-          gap: "12px",
-          boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 12px ${accentColor}15`,
+          transform: `translateX(${cardLeft + swipeOffset}px)`,
+          transition: swipeOffset === 0 ? "transform 0.3s ease" : "none",
+          gap: `${CARD_GAP}px`,
         }}
       >
-        {/* Left: status dot + nav info */}
-        <div
-          style={{
-            width: "8px",
-            height: "8px",
-            borderRadius: "50%",
-            background: statusColor,
-            flexShrink: 0,
-            boxShadow: `0 0 6px ${statusColor}80`,
-          }}
-        />
+        {/* Previous card (peek from left) */}
+        {prevLaunch && (
+          <div style={{ width: `${CARD_WIDTH}px`, flexShrink: 0, marginLeft: `-${CARD_WIDTH + CARD_GAP}px` }}>
+            <CardChip launch={prevLaunch} onPlay={() => selectLaunch(currentIdx - 1)} dimmed />
+          </div>
+        )}
 
-        {/* Center: mission info */}
-        <div
-          style={{ flex: 1, minWidth: 0, cursor: "pointer" }}
-          onClick={() => selectLaunch(currentIdx)}
-        >
-          <div
-            style={{
-              fontSize: "13px",
-              fontWeight: 600,
-              color: "#e2e8f0",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              lineHeight: 1.3,
-            }}
-          >
-            {currentLaunch.name}
-          </div>
-          <div
-            style={{
-              fontSize: "10px",
-              color: "#64748b",
-              display: "flex",
-              gap: "8px",
-              marginTop: "2px",
-            }}
-          >
-            <span>{dateStr}</span>
-            <span style={{ color: "#475569" }}>|</span>
-            <span>{currentLaunch.rocketType}</span>
-            <span style={{ color: "#475569" }}>|</span>
-            <span style={{ color: accentColor, fontWeight: 500 }}>
-              {currentLaunch.launchSite.name.split(" ")[0]}
-            </span>
-          </div>
+        {/* Current card */}
+        <div style={{ width: `${CARD_WIDTH}px`, flexShrink: 0 }}>
+          <CardChip launch={currentLaunch} onPlay={handlePlay} />
         </div>
 
-        {/* Right: play button + counter */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            flexShrink: 0,
-          }}
-        >
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePlay();
-            }}
-            style={{
-              width: "32px",
-              height: "32px",
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "rgba(34, 211, 238, 0.15)",
-              border: "1px solid rgba(34, 211, 238, 0.4)",
-              color: "#22d3ee",
-              cursor: "pointer",
-              fontSize: "12px",
-              padding: 0,
-              paddingLeft: "2px",
-            }}
-          >
-            {"▶"}
-          </button>
-          <div
-            style={{
-              fontSize: "9px",
-              color: "#475569",
-              textAlign: "center",
-              lineHeight: 1.2,
-              fontFamily: "monospace",
-            }}
-          >
-            {currentIdx + 1}
-            <br />
-            <span style={{ color: "#334155" }}>/{filteredLaunches.length}</span>
+        {/* Next card (peek from right) */}
+        {nextLaunch && (
+          <div style={{ width: `${CARD_WIDTH}px`, flexShrink: 0 }}>
+            <CardChip launch={nextLaunch} onPlay={() => selectLaunch(currentIdx + 1)} dimmed />
           </div>
-        </div>
+        )}
       </div>
+    </div>
+  );
+}
 
-      {/* Swipe hint dots */}
+/** Compact card chip: [▶] [name · rocket · site] */
+function CardChip({
+  launch,
+  onPlay,
+  dimmed,
+}: {
+  launch: { name: string; dateUtc: string; rocketType: string; launchSite: { id: string; name: string }; status: string };
+  onPlay: () => void;
+  dimmed?: boolean;
+}) {
+  const accentColor = getSiteAccentColor(launch.launchSite.id);
+  const statusColor =
+    launch.status === "success"
+      ? "#22c55e"
+      : launch.status === "failure"
+        ? "#ef4444"
+        : "#22d3ee";
+
+  const date = new Date(launch.dateUtc);
+  const dateStr = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  return (
+    <div
+      style={{
+        background: "rgba(18, 24, 41, 0.92)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        border: `1px solid ${dimmed ? "rgba(255,255,255,0.06)" : accentColor + "40"}`,
+        borderRadius: "12px",
+        padding: "8px 10px",
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        boxShadow: dimmed ? "none" : `0 4px 16px rgba(0,0,0,0.4)`,
+        opacity: dimmed ? 0.5 : 1,
+        transition: "opacity 0.2s ease",
+      }}
+    >
+      {/* Play button */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onPlay();
+        }}
+        style={{
+          width: "32px",
+          height: "32px",
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "rgba(34, 211, 238, 0.15)",
+          border: "1px solid rgba(34, 211, 238, 0.4)",
+          color: "#22d3ee",
+          cursor: "pointer",
+          fontSize: "11px",
+          padding: 0,
+          paddingLeft: "2px",
+          flexShrink: 0,
+        }}
+      >
+        {"▶"}
+      </button>
+
+      {/* Status dot + info */}
       <div
         style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "3px",
-          marginTop: "6px",
+          width: "6px",
+          height: "6px",
+          borderRadius: "50%",
+          background: statusColor,
+          flexShrink: 0,
+          boxShadow: `0 0 4px ${statusColor}80`,
         }}
-      >
-        {Array.from({ length: Math.min(5, filteredLaunches.length) }, (_, i) => {
-          const dotIdx = Math.max(0, currentIdx - 2) + i;
-          if (dotIdx >= filteredLaunches.length) return null;
-          return (
-            <div
-              key={dotIdx}
-              style={{
-                width: dotIdx === currentIdx ? "12px" : "4px",
-                height: "4px",
-                borderRadius: "2px",
-                background:
-                  dotIdx === currentIdx
-                    ? accentColor
-                    : "rgba(255, 255, 255, 0.15)",
-                transition: "all 0.2s ease",
-              }}
-            />
-          );
-        })}
+      />
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: "12px",
+            fontWeight: 600,
+            color: "#e2e8f0",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            lineHeight: 1.3,
+          }}
+        >
+          {launch.name}
+        </div>
+        <div
+          style={{
+            fontSize: "9px",
+            color: "#64748b",
+            display: "flex",
+            gap: "6px",
+            marginTop: "1px",
+          }}
+        >
+          <span>{dateStr}</span>
+          <span style={{ color: "#475569" }}>·</span>
+          <span>{launch.rocketType}</span>
+          <span style={{ color: "#475569" }}>·</span>
+          <span style={{ color: accentColor, fontWeight: 500 }}>
+            {launch.launchSite.name.split(" ")[0]}
+          </span>
+        </div>
       </div>
     </div>
   );

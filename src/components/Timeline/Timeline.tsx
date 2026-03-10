@@ -199,6 +199,9 @@ export default function Timeline() {
     });
   }
 
+  // Hide on mobile — the MiniLaunchCard replaces it
+  if (isMobile) return null;
+
   return (
     <div
       style={{
@@ -214,7 +217,7 @@ export default function Timeline() {
         borderTop: "1px solid rgba(255, 255, 255, 0.06)",
         display: "flex",
         flexDirection: "column",
-        padding: isMobile ? "4px 12px 6px" : "8px 24px 12px",
+        padding: "8px 24px 12px",
         userSelect: "none",
         transition: "transform 0.3s ease, opacity 0.3s ease",
         transform: focusMode ? "translateY(100%)" : "translateY(0)",
