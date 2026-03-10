@@ -107,6 +107,62 @@ function ISSToggle() {
   );
 }
 
+function StarlinkToggle() {
+  const showStarlink = useAppStore((s) => s.showStarlink);
+  const toggleStarlink = useAppStore((s) => s.toggleStarlink);
+  const starlinkCount = useAppStore((s) => s.starlinkCount);
+
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleStarlink();
+      }}
+      title={
+        showStarlink
+          ? `Hide Starlink constellation (${starlinkCount.toLocaleString()} sats)`
+          : "Show Starlink constellation"
+      }
+      style={{
+        height: "28px",
+        borderRadius: "6px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "3px",
+        background: showStarlink ? "rgba(165, 200, 255, 0.15)" : "transparent",
+        border: "none",
+        color: showStarlink ? "#a5c8ff" : "#94a3b8",
+        cursor: "pointer",
+        fontSize: "10px",
+        padding: "0 6px",
+        transition: "all 0.15s ease",
+        flexShrink: 0,
+        fontFamily: "'SF Mono', 'Fira Code', monospace",
+        whiteSpace: "nowrap",
+      }}
+      onMouseEnter={(e) => {
+        if (!showStarlink)
+          e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+        e.currentTarget.style.color = "#e2e8f0";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = showStarlink
+          ? "rgba(165, 200, 255, 0.15)"
+          : "transparent";
+        e.currentTarget.style.color = showStarlink ? "#a5c8ff" : "#94a3b8";
+      }}
+    >
+      <span style={{ fontSize: "14px" }}>✦</span>
+      <span>
+        {showStarlink && starlinkCount > 0
+          ? `${(starlinkCount / 1000).toFixed(1)}k`
+          : "SL"}
+      </span>
+    </button>
+  );
+}
+
 export default function ControlsPanel() {
   const isMobile = useIsMobile();
   const orbitCenter = useAppStore((s) => s.orbitCenter);
@@ -161,6 +217,7 @@ export default function ControlsPanel() {
         }}
       />
       <ISSToggle />
+      <StarlinkToggle />
       <ToolbarButton
         icon="👁"
         tooltip="Focus mode — hide all UI"
