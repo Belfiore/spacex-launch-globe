@@ -111,7 +111,13 @@ export default function TrajectoryArc({
   }, [isStarlink, progress, curve]);
 
   // ── Landing failure detection ────────────────────────────────
-  const landingFailed = launch.landingSuccess === false;
+  // Check per-booster landingSuccess first (for Falcon Heavy), fall back to top-level
+  const primaryEntry = boosterReturnEntries[0];
+  const landingFailed = primaryEntry?.landingSuccess === false
+    ? true
+    : primaryEntry?.landingSuccess === true
+      ? false
+      : launch.landingSuccess === false;
 
   // ── Reentry glow ref for booster ─────────────────────────────
   const reentryGlowRef = useRef<THREE.Mesh>(null);
@@ -454,20 +460,37 @@ export default function TrajectoryArc({
         const landPos = bProg >= 0.9
           ? latLngToVector3(brEntry.landingCoords.lat, brEntry.landingCoords.lng, GLOBE.RADIUS + 0.01)
           : null;
+        // Per-booster landing success: check entry-level field, fall back to top-level
+        const entryFailed = brEntry.landingSuccess === false;
+        const accentColor = i === 0 ? "#f59e0b" : "#22d3ee";
 
         return (
           <group key={`booster-${i + 1}`}>
             {trailPts.length >= 2 && (
-              <Line points={trailPts} color={i === 0 ? "#f59e0b" : "#22d3ee"} lineWidth={2} transparent opacity={0.65} />
+              <Line points={trailPts} color={accentColor} lineWidth={2} transparent opacity={0.65} />
             )}
             {bPoint && bTangent && bProg < 0.9 && (
               <RocketModel position={bPoint} tangent={bTangent} rocketType={launch.rocketType} progress={0.4} />
             )}
-            {landPos && (
+            {/* Landing success flash */}
+            {landPos && !entryFailed && (
               <mesh position={toTuple(landPos)}>
                 <sphereGeometry args={[0.025, 8, 8]} />
-                <meshBasicMaterial color={i === 0 ? "#f59e0b" : "#22d3ee"} transparent opacity={0.7} blending={THREE.AdditiveBlending} depthWrite={false} />
+                <meshBasicMaterial color={accentColor} transparent opacity={0.7} blending={THREE.AdditiveBlending} depthWrite={false} />
               </mesh>
+            )}
+            {/* Landing failure explosion */}
+            {landPos && entryFailed && bProg >= 0.85 && (
+              <>
+                <mesh position={toTuple(landPos)}>
+                  <sphereGeometry args={[0.035, 10, 10]} />
+                  <meshBasicMaterial color="#ff3300" transparent opacity={Math.min(0.85, (bProg - 0.85) * 6)} blending={THREE.AdditiveBlending} depthWrite={false} />
+                </mesh>
+                <mesh position={toTuple(landPos)}>
+                  <sphereGeometry args={[0.018, 8, 8]} />
+                  <meshBasicMaterial color="#ffcc00" transparent opacity={Math.min(0.9, (bProg - 0.85) * 8)} blending={THREE.AdditiveBlending} depthWrite={false} />
+                </mesh>
+              </>
             )}
           </group>
         );

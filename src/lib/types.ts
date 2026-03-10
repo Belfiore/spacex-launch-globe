@@ -21,6 +21,7 @@ export interface BoosterReturn {
   landingType: LandingType;
   landingCoords: { lat: number; lng: number };
   landingTime?: string;
+  landingSuccess?: boolean;
 }
 
 // ── Jellyfish plume data ─────────────────────────────────────
