@@ -33,24 +33,24 @@ export function useGlobeCamera(
   const controlsTargetRecovery = useRef(false);
 
   // ── Intro animation state ──────────────────────────────────
-  const introPhase = useRef<"waiting" | "spinning" | "zooming" | "done">("waiting");
+  const introPhase = useRef<"waiting" | "zooming" | "done">("waiting");
   const introTime = useRef(0);
   const introStarted = useRef(false);
 
-  // Start far away from the globe looking at Earth center
+  // Start far away from the globe
   useEffect(() => {
     if (!introStarted.current) {
-      // Start the camera far away looking at the globe from a dramatic angle
-      camera.position.set(0, 8, 12);
+      // Camera starts far out, looking at Earth from a high angle
+      camera.position.set(-2, 10, 18);
       camera.lookAt(0, 0, 0);
       introStarted.current = true;
     }
   }, [camera]);
 
-  // When entry phase completes, begin the intro fly-in animation
+  // When entry phase completes, begin the zoom-in animation
   useEffect(() => {
     if (entryPhase === "complete" && introPhase.current === "waiting") {
-      introPhase.current = "spinning";
+      introPhase.current = "zooming";
       introTime.current = 0;
       // Disable orbit controls during intro
       if (controlsRef.current) {
@@ -97,58 +97,28 @@ export function useGlobeCamera(
   useFrame((_, delta) => {
     const state = useAppStore.getState();
 
-    // ── Intro animation ──────────────────────────────────────
-    if (introPhase.current === "spinning") {
-      introTime.current += delta;
-
-      // Phase 1 (0-3s): Spin around the globe while zooming in
-      const spinDuration = 3.0;
-      const t = Math.min(introTime.current / spinDuration, 1);
-      const eased = easeInOutCubic(t);
-
-      // Spin around Y axis — 180 degrees
-      const angle = Math.PI * eased;
-      // Zoom from far (distance 14) to medium (distance 5.5)
-      const startDist = 14;
-      const endDist = 5.5;
-      const dist = startDist + (endDist - startDist) * eased;
-
-      // Camera orbits around globe center
-      const y = 3 + (2.5 - 3) * eased; // slight tilt change
-      camera.position.set(
-        -Math.sin(angle) * dist * 0.7,
-        y,
-        Math.cos(angle) * dist * 0.7
-      );
-      camera.lookAt(0, 0, 0);
-
-      if (t >= 1) {
-        introPhase.current = "zooming";
-        introTime.current = 0;
-      }
-      return;
-    }
-
+    // ── Intro animation: smooth zoom from far out to USA view ──
     if (introPhase.current === "zooming") {
       introTime.current += delta;
 
-      // Phase 2 (0-1.5s): Zoom to final USA position
-      const zoomDuration = 1.5;
+      const zoomDuration = 2.5;
       const t = Math.min(introTime.current / zoomDuration, 1);
-      const eased = easeInOutCubic(t);
+      // Ease-out cubic — fast start, gentle landing
+      const eased = 1 - Math.pow(1 - t, 3);
 
+      // Interpolate from far-out start to final USA viewing position
+      const startPos = new THREE.Vector3(-2, 10, 18);
       const finalPos = new THREE.Vector3(...GLOBE.CAMERA_INITIAL);
-      const currentPos = camera.position.clone();
-      camera.position.lerpVectors(currentPos, finalPos, eased * 0.08 + (1 - (1 - eased) * (1 - eased)) * 0.02);
+      camera.position.lerpVectors(startPos, finalPos, eased);
 
-      // Gradually shift look-at from center to USA orbit target
+      // Gradually shift look-at from globe center to USA orbit target
       const usaTarget = getUSAOrbitTarget();
       const lookTarget = new THREE.Vector3(0, 0, 0).lerp(usaTarget, eased);
       camera.lookAt(lookTarget);
       lastLookAt.current.copy(lookTarget);
 
       if (t >= 1) {
-        // Snap to final position
+        // Snap to exact final position
         camera.position.copy(finalPos);
         camera.lookAt(usaTarget);
         lastLookAt.current.copy(usaTarget);

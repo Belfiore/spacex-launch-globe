@@ -38,47 +38,34 @@ function GlobeScene() {
 
   // Compute active launches and their progress based on timeline
   const activeLaunches = useMemo(() => {
+    // When a launch is selected, ONLY show that launch's trajectory
+    // This prevents the overlap bug where previous/nearby arcs remain visible
+    if (selectedLaunch) {
+      return [{
+        launch: selectedLaunch,
+        progress: trajectoryProgress,
+        active: true,
+      }];
+    }
+
+    // No launch selected — show timeline-window-based trajectories
     const timelineMs = timelineDate.getTime();
     const totalWindow = ACTIVE_WINDOW_BEFORE_MS + ACTIVE_WINDOW_AFTER_MS;
 
-    const timelineActive = launches
+    return launches
       .map((launch) => {
         const launchMs = new Date(launch.dateUtc).getTime();
         const diff = timelineMs - launchMs;
         if (diff >= -ACTIVE_WINDOW_BEFORE_MS && diff <= ACTIVE_WINDOW_AFTER_MS) {
-          let progress = Math.max(
+          const progress = Math.max(
             0.05,
             Math.min(1, (diff + ACTIVE_WINDOW_BEFORE_MS) / totalWindow)
           );
-
-          // Override with cinematic-driven trajectory progress for the selected launch
-          if (
-            selectedLaunch &&
-            launch.id === selectedLaunch.id &&
-            trajectoryProgress > 0
-          ) {
-            progress = trajectoryProgress;
-          }
-
           return { launch, progress, active: true };
         }
         return { launch, progress: 0, active: false };
       })
       .filter((item) => item.active);
-
-    // Always show arc for selected launch if not already active
-    if (
-      selectedLaunch &&
-      !timelineActive.find((a) => a.launch.id === selectedLaunch.id)
-    ) {
-      timelineActive.push({
-        launch: selectedLaunch,
-        progress: trajectoryProgress,
-        active: true,
-      });
-    }
-
-    return timelineActive;
   }, [launches, timelineDate, selectedLaunch, trajectoryProgress]);
 
   const handleInteractionStart = useCallback(() => {

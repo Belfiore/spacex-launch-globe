@@ -113,6 +113,121 @@ async function fetchSpaceXData(): Promise<Launch[]> {
     .sort((a, b) => a.dateUnix - b.dateUnix);
 }
 
+/**
+ * Correct launch statuses based on actual dates.
+ * The static database can have stale statuses:
+ * - Past launches marked "upcoming" → correct to "success" (safe default)
+ * - Future launches marked "success"/"failure" → correct to "upcoming"
+ */
+function correctStatuses(launches: Launch[]): Launch[] {
+  const now = Date.now();
+  return launches.map((l) => {
+    const launchTime = new Date(l.dateUtc).getTime();
+    if (launchTime > now && l.status !== "upcoming") {
+      // Future launch incorrectly marked as success/failure
+      return { ...l, status: "upcoming" as const, launchStatus: "upcoming" as const };
+    }
+    if (launchTime <= now && l.status === "upcoming") {
+      // Past launch still marked as upcoming — assume success
+      return { ...l, status: "success" as const, launchStatus: "success" as const };
+    }
+    return l;
+  });
+}
+
+/**
+ * Fetch upcoming launches from SpaceX API to supplement the static database.
+ * This ensures we always have real upcoming launches even when the database is stale.
+ */
+async function fetchUpcomingLaunches(): Promise<Launch[]> {
+  try {
+    const [launchesRes, launchpadsRes] = await Promise.all([
+      fetch("https://api.spacexdata.com/v5/launches/upcoming"),
+      fetch("https://api.spacexdata.com/v4/launchpads"),
+    ]);
+    if (!launchesRes.ok || !launchpadsRes.ok) return [];
+    const rawLaunches: SpaceXLaunch[] = await launchesRes.json();
+    const launchpads: SpaceXLaunchpad[] = await launchpadsRes.json();
+    return rawLaunches.map((l) => ({
+      id: l.id,
+      name: l.name,
+      dateUtc: l.date_utc,
+      dateUnix: l.date_unix,
+      launchSite: getLaunchSite(l.launchpad, launchpads),
+      status: "upcoming" as const,
+      rocketType: ROCKET_NAMES[l.rocket] ?? "Falcon 9",
+      missionPatch: l.links?.patch?.small ?? undefined,
+      details: l.details ?? undefined,
+      webcastUrl: l.links?.webcast ?? undefined,
+    }));
+  } catch {
+    console.warn("[SpaceX Data] Could not fetch upcoming launches from API");
+    return [];
+  }
+}
+
+/**
+ * Fetch recent past launches from SpaceX API to fill data gaps.
+ * Gets launches from the last 6 months to supplement any gaps in the static database.
+ */
+async function fetchRecentLaunches(): Promise<Launch[]> {
+  try {
+    const [launchesRes, launchpadsRes] = await Promise.all([
+      fetch("https://api.spacexdata.com/v5/launches/past"),
+      fetch("https://api.spacexdata.com/v4/launchpads"),
+    ]);
+    if (!launchesRes.ok || !launchpadsRes.ok) return [];
+    const rawLaunches: SpaceXLaunch[] = await launchesRes.json();
+    const launchpads: SpaceXLaunchpad[] = await launchpadsRes.json();
+    // Only keep last 6 months of past launches
+    const sixMonthsAgo = Date.now() - 6 * 30 * 24 * 60 * 60 * 1000;
+    return rawLaunches
+      .filter((l) => l.date_unix * 1000 >= sixMonthsAgo)
+      .map((l) => ({
+        id: l.id,
+        name: l.name,
+        dateUtc: l.date_utc,
+        dateUnix: l.date_unix,
+        launchSite: getLaunchSite(l.launchpad, launchpads),
+        status: getStatus(l),
+        rocketType: ROCKET_NAMES[l.rocket] ?? "Falcon 9",
+        missionPatch: l.links?.patch?.small ?? undefined,
+        details: l.details ?? undefined,
+        webcastUrl: l.links?.webcast ?? undefined,
+      }));
+  } catch {
+    console.warn("[SpaceX Data] Could not fetch recent launches from API");
+    return [];
+  }
+}
+
+/**
+ * Merge API launches into the database, avoiding duplicates.
+ * API data fills gaps but doesn't overwrite enriched database entries.
+ */
+function mergeApiLaunches(base: Launch[], apiLaunches: Launch[]): Launch[] {
+  const merged = [...base];
+  for (const apiL of apiLaunches) {
+    // Check if this launch already exists in the database
+    const exists = merged.some((l) => {
+      if (l.id === apiL.id) return true;
+      // Same day, same rocket type, similar name
+      const timeDiff = Math.abs(l.dateUnix - apiL.dateUnix);
+      if (timeDiff < 86400) {
+        const lName = l.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const aName = apiL.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (lName === aName || lName.includes(aName) || aName.includes(lName)) return true;
+        if (l.rocketType === apiL.rocketType && l.launchSite.id === apiL.launchSite.id) return true;
+      }
+      return false;
+    });
+    if (!exists) {
+      merged.push(apiL);
+    }
+  }
+  return merged;
+}
+
 /** Enrich launches with jellyfish potential data */
 function enrichWithJellyfish(launches: Launch[]): Launch[] {
   return launches.map((l) => {
@@ -231,6 +346,25 @@ export function useSpaceXData() {
             );
             base = loadFallbackData();
           }
+        }
+
+        // Correct stale statuses (future marked success, past marked upcoming)
+        base = correctStatuses(base);
+
+        // Supplement with live API data to fill gaps and get real upcoming launches
+        try {
+          const [upcoming, recent] = await Promise.all([
+            fetchUpcomingLaunches(),
+            fetchRecentLaunches(),
+          ]);
+          if (upcoming.length > 0 || recent.length > 0) {
+            base = mergeApiLaunches(base, [...recent, ...upcoming]);
+            console.log(
+              `[SpaceX Data] Supplemented with ${upcoming.length} upcoming + ${recent.length} recent from API`
+            );
+          }
+        } catch {
+          // API supplement is optional — database still works without it
         }
 
         if (!cancelled) {

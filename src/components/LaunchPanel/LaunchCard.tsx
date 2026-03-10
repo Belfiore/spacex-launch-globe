@@ -202,8 +202,8 @@ export default function LaunchCard({
               </button>
             )}
 
-            {/* Info button — shows for launches with flightHistory or details/webcast */}
-            {(launch.flightHistory || launch.webcastUrl || launch.details) && (
+            {/* Info button — always shown */}
+            {(
               <button
                 onClick={(e) => {
                   e.stopPropagation();
