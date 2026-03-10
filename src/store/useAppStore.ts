@@ -72,10 +72,14 @@ interface AppState {
   setStarlinkCount: (count: number) => void;
 
   // Entry / onboarding phase
-  entryPhase: "loading" | "intro" | "onboarding" | "complete";
+  entryPhase: "loading" | "intro" | "zooming" | "onboarding" | "complete";
   setEntryPhase: (
-    phase: "loading" | "intro" | "onboarding" | "complete"
+    phase: "loading" | "intro" | "zooming" | "onboarding" | "complete"
   ) => void;
+
+  // Zoom-in animation trigger (set after intro, consumed by useGlobeCamera)
+  zoomInRequested: boolean;
+  setZoomInRequested: (val: boolean) => void;
 
   // Filters
   filters: FilterState;
@@ -144,7 +148,7 @@ export const useAppStore = create<AppState>((set) => ({
     ),
 
   // Panel
-  panelOpen: true,
+  panelOpen: false,
   setPanelOpen: (open) => set({ panelOpen: open }),
   togglePanel: () => set((s) => ({ panelOpen: !s.panelOpen })),
 
@@ -202,6 +206,10 @@ export const useAppStore = create<AppState>((set) => ({
   // Entry / onboarding phase
   entryPhase: "loading",
   setEntryPhase: (phase) => set({ entryPhase: phase }),
+
+  // Zoom-in animation
+  zoomInRequested: false,
+  setZoomInRequested: (val) => set({ zoomInRequested: val }),
 
   // Filters
   filters: { ...defaultFilters },

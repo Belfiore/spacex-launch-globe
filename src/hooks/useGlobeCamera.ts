@@ -18,17 +18,49 @@ export function useGlobeCamera(
 
   const cameraTarget = useAppStore((s) => s.cameraTarget);
   const miniTimelinePlaying = useAppStore((s) => s.miniTimelinePlaying);
+  const zoomInRequested = useAppStore((s) => s.zoomInRequested);
 
   // ── Non-cinematic animation refs ────────────────────────────
   const targetPosition = useRef<THREE.Vector3 | null>(null);
   const isAnimating = useRef(false);
   const animProgress = useRef(0);
+  const animSpeed = useRef(1.5);
   const startPosition = useRef(new THREE.Vector3());
   const startLookAt = useRef(new THREE.Vector3(0, 0, 0));
   const lastLookAt = useRef(new THREE.Vector3(0, 0, 0));
 
+  // Callback to fire when zoom-in animation completes
+  const onAnimComplete = useRef<(() => void) | null>(null);
+
   // OrbitControls target recovery
   const controlsTargetRecovery = useRef(false);
+
+  // ── Intro zoom-in: fly from far space down to normal view ─────
+  useEffect(() => {
+    if (!zoomInRequested) return;
+
+    // Move camera far out first, then animate to normal position
+    const farPos = new THREE.Vector3(-6.0, 5.5, 9.0); // far in space
+    const normalPos = new THREE.Vector3(-2.0, 2.5, 3.8); // GLOBE.CAMERA_INITIAL
+
+    camera.position.copy(farPos);
+    const usaTarget = getUSAOrbitTarget();
+    camera.lookAt(usaTarget);
+
+    targetPosition.current = normalPos;
+    startPosition.current.copy(farPos);
+    startLookAt.current.copy(usaTarget);
+    lastLookAt.current.copy(usaTarget);
+    isAnimating.current = true;
+    animProgress.current = 0;
+    animSpeed.current = 0.5; // slower for cinematic effect
+
+    onAnimComplete.current = () => {
+      // Transition from "zooming" to "onboarding"
+      useAppStore.getState().setZoomInRequested(false);
+      useAppStore.getState().setEntryPhase("onboarding");
+    };
+  }, [zoomInRequested, camera]);
 
   // ── Gently pan camera to launch site on selection ─────
   useEffect(() => {
@@ -45,6 +77,8 @@ export function useGlobeCamera(
       startLookAt.current.copy(lastLookAt.current);
       isAnimating.current = true;
       animProgress.current = 0;
+      animSpeed.current = 1.5;
+      onAnimComplete.current = null;
     }
   }, [cameraTarget, camera]);
 
@@ -92,7 +126,7 @@ export function useGlobeCamera(
     // ── Non-cinematic animation ──────────────────────────────
     if (!isAnimating.current || !targetPosition.current) return;
 
-    animProgress.current = Math.min(1, animProgress.current + delta * 1.5);
+    animProgress.current = Math.min(1, animProgress.current + delta * animSpeed.current);
     const eased = easeInOutCubic(animProgress.current);
 
     const start = startPosition.current.clone().normalize();
@@ -131,6 +165,13 @@ export function useGlobeCamera(
       // After animation completes, update orbit controls target
       if (controlsRef.current) {
         controlsRef.current.target.copy(orbitLookAt);
+      }
+
+      // Fire completion callback (e.g., transition from zooming → onboarding)
+      if (onAnimComplete.current) {
+        const cb = onAnimComplete.current;
+        onAnimComplete.current = null;
+        cb();
       }
     }
   });

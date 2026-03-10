@@ -148,6 +148,7 @@ function handlePropagate(data: WorkerCommand) {
 
     try {
       const positionAndVelocity = propagate(satrec, now);
+      if (!positionAndVelocity) continue;
       const posEci = positionAndVelocity.position;
 
       if (!posEci || typeof posEci === "boolean") continue;

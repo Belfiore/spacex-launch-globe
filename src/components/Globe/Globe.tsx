@@ -35,7 +35,11 @@ function GlobeScene() {
   const orbitCenter = useAppStore((s) => s.orbitCenter);
 
   // Compute active launches and their progress based on timeline
+  // Only show trajectories once a launch has been selected (prevents rockets on initial load)
   const activeLaunches = useMemo(() => {
+    // No trajectories until the user selects a launch
+    if (!selectedLaunch) return [];
+
     const timelineMs = timelineDate.getTime();
     const totalWindow = ACTIVE_WINDOW_BEFORE_MS + ACTIVE_WINDOW_AFTER_MS;
 
@@ -51,7 +55,6 @@ function GlobeScene() {
 
           // Override with cinematic-driven trajectory progress for the selected launch
           if (
-            selectedLaunch &&
             launch.id === selectedLaunch.id &&
             trajectoryProgress > 0
           ) {
@@ -66,7 +69,6 @@ function GlobeScene() {
 
     // Always show arc for selected launch if not already active
     if (
-      selectedLaunch &&
       !timelineActive.find((a) => a.launch.id === selectedLaunch.id)
     ) {
       timelineActive.push({

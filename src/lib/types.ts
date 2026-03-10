@@ -30,6 +30,10 @@ export interface JellyfishData {
   twilightPhase: "civil" | "nautical" | "astronomical" | "day" | "night";
   minutesFromTwilight: number; // how many minutes into ideal window
   description: string; // human-readable explanation
+  /** Label from the Jellyfish API (e.g. "Unlikely", "Likely", "Very likely") */
+  apiLabel?: string;
+  /** Numeric score 0-1 from heatmap peak */
+  apiScore?: number;
 }
 
 // ── Rich historical data ─────────────────────────────────────

@@ -40,10 +40,13 @@ export default function CinematicEntry() {
     }
   }, [isReturning, setEntryPhase]);
 
-  // Intro CTA → start onboarding
+  const setZoomInRequested = useAppStore((s) => s.setZoomInRequested);
+
+  // Intro CTA → start zoom-in animation, then onboarding
   const handleStartOnboarding = useCallback(() => {
-    setEntryPhase("onboarding");
-  }, [setEntryPhase]);
+    setEntryPhase("zooming");
+    setZoomInRequested(true);
+  }, [setEntryPhase, setZoomInRequested]);
 
   // Intro dismissed ("Don't show again" or Escape)
   const handleDismiss = useCallback(() => {
@@ -73,6 +76,9 @@ export default function CinematicEntry() {
 
   // Once complete, unmount entirely
   if (entryPhase === "complete") return null;
+
+  // During zooming — the globe is visible, camera is animating. No overlay needed.
+  if (entryPhase === "zooming") return null;
 
   return (
     <>

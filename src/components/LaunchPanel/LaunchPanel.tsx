@@ -89,11 +89,17 @@ export default function LaunchPanel() {
         }
       }
       if (filters.site && l.launchSite.id !== filters.site) return false;
-      if (
-        filters.jellyfish &&
-        (!l.jellyfish || l.jellyfish.potential === "none")
-      )
-        return false;
+      if (filters.jellyfish) {
+        // When jellyfish filter is active, only show "Likely" or "Very likely" from API,
+        // or fallback to "high" potential from computed data
+        if (!l.jellyfish) return false;
+        if (l.jellyfish.apiLabel) {
+          const label = l.jellyfish.apiLabel.toLowerCase();
+          if (label !== "likely" && label !== "very likely") return false;
+        } else if (l.jellyfish.potential !== "high") {
+          return false;
+        }
+      }
       if (filters.sites.length > 0) {
         const matchesSiteGroup = SITE_GROUPS.some(
           (g) =>

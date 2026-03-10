@@ -9,8 +9,9 @@ interface Props {
 }
 
 /**
- * Shows a "View Next Launch" tooltip that the user can click
- * to focus on the next upcoming launch and start playback.
+ * Shows a "View Next Launch" tooltip anchored to the left of the
+ * next upcoming launch card in the side panel. Clicking it focuses
+ * on that launch and starts playback.
  * Dismisses when clicked, when user clicks a card, or after 12s.
  */
 export default function GuidedOnboarding({ onComplete }: Props) {
@@ -24,15 +25,30 @@ export default function GuidedOnboarding({ onComplete }: Props) {
   const startMissionPlayback = useAppStore((s) => s.startMissionPlayback);
 
   const [show, setShow] = useState(false);
+  const [cardRect, setCardRect] = useState<DOMRect | null>(null);
   const dismissedRef = useRef(false);
+  const isMobile = useIsMobile();
 
-  // Find next upcoming launch
+  // Find most recent past launch (mobile) and next upcoming (desktop)
+  const mostRecentLaunch = useMemo(() => {
+    const now = Date.now();
+    let recent: typeof launches[0] | null = null;
+    for (const l of launches) {
+      if (new Date(l.dateUtc).getTime() <= now) recent = l;
+    }
+    return recent;
+  }, [launches]);
+
   const nextUpcoming = useMemo(() => {
     const now = Date.now();
     return launches.find(
       (l) => l.status === "upcoming" && new Date(l.dateUtc).getTime() > now
     );
   }, [launches]);
+
+  const targetLaunch = isMobile
+    ? mostRecentLaunch ?? nextUpcoming
+    : nextUpcoming;
 
   const dismiss = useCallback(() => {
     if (dismissedRef.current) return;
@@ -41,22 +57,23 @@ export default function GuidedOnboarding({ onComplete }: Props) {
     onComplete();
   }, [onComplete]);
 
-  // Focus on next launch and start playback
-  const handleViewNext = useCallback(() => {
-    if (!nextUpcoming) return;
-    setPanelOpen(true);
-    setSelectedLaunch(nextUpcoming);
+  // Focus on target launch and start playback
+  const handleViewTarget = useCallback(() => {
+    if (!targetLaunch) return;
+    if (!isMobile) setPanelOpen(true);
+    setSelectedLaunch(targetLaunch);
     setCameraTarget({
-      lat: nextUpcoming.launchSite.lat,
-      lng: nextUpcoming.launchSite.lng,
+      lat: targetLaunch.launchSite.lat,
+      lng: targetLaunch.launchSite.lng,
     });
-    setTimelineDate(new Date(nextUpcoming.dateUtc));
+    setTimelineDate(new Date(targetLaunch.dateUtc));
     setTrajectoryProgress(0);
     setOrbitCenter("launch");
     setTimeout(() => startMissionPlayback(), 100);
     dismiss();
   }, [
-    nextUpcoming,
+    targetLaunch,
+    isMobile,
     setPanelOpen,
     setSelectedLaunch,
     setCameraTarget,
@@ -67,21 +84,37 @@ export default function GuidedOnboarding({ onComplete }: Props) {
     dismiss,
   ]);
 
-  // Open panel and show tooltip after a brief delay
+  // Open panel and show tooltip after a brief delay.
+  // Position tooltip relative to the upcoming launch card in the panel.
   useEffect(() => {
-    if (!nextUpcoming || dismissedRef.current) return;
+    if (!targetLaunch || dismissedRef.current) return;
 
-    setPanelOpen(true);
+    // Open the panel first (desktop only — use window.innerWidth directly
+    // to avoid the useIsMobile hook's initial false state on SSR)
+    const isDesktop = typeof window !== "undefined" && window.innerWidth >= 768;
+    if (isDesktop) {
+      setPanelOpen(true);
+    }
 
     const timer = setTimeout(() => {
-      if (!dismissedRef.current) {
-        setShow(true);
+      if (dismissedRef.current) return;
+
+      // Try to find the card element in the DOM
+      if (isDesktop && targetLaunch) {
+        const cardEl = document.querySelector(
+          `[data-launch-id="${targetLaunch.id}"]`
+        );
+        if (cardEl) {
+          setCardRect(cardEl.getBoundingClientRect());
+        }
       }
+
+      setShow(true);
     }, 800);
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nextUpcoming?.id]);
+  }, [targetLaunch?.id]);
 
   // When user clicks any launch card, onboarding completes
   useEffect(() => {
@@ -108,18 +141,38 @@ export default function GuidedOnboarding({ onComplete }: Props) {
     return () => clearTimeout(timer);
   }, [dismiss]);
 
-  const isMobile = useIsMobile();
+  if (!show || !targetLaunch) return null;
 
-  if (!show || !nextUpcoming) return null;
+  // Position the tooltip to the LEFT of the card (desktop) or bottom (mobile)
+  const tooltipStyle: React.CSSProperties = isMobile
+    ? {
+        position: "fixed",
+        bottom: 80,
+        left: 16,
+        right: 16,
+        top: "auto",
+      }
+    : cardRect
+      ? {
+          position: "fixed",
+          // Anchor to the left edge of the card, vertically centered
+          top: cardRect.top + cardRect.height / 2 - 28,
+          right: window.innerWidth - cardRect.left + 14,
+        }
+      : {
+          // Fallback: right side at panel-level
+          position: "fixed",
+          top: 170,
+          right: 40,
+        };
+
+  const tooltipTitle = isMobile ? "View Most Recent Launch" : "View Next Launch";
 
   return (
     <div
       role="tooltip"
       style={{
-        position: "fixed",
-        ...(isMobile
-          ? { bottom: 70, left: 16, right: 16, top: "auto" }
-          : { top: 170, right: 40 }),
+        ...tooltipStyle,
         background: "rgba(6, 182, 212, 0.10)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
@@ -137,17 +190,33 @@ export default function GuidedOnboarding({ onComplete }: Props) {
         animation: "toast-slide-in 0.4s ease-out",
         cursor: "pointer",
       }}
-      onClick={handleViewNext}
+      onClick={handleViewTarget}
     >
+      {/* Arrow pointing right toward the card (desktop only) */}
+      {!isMobile && cardRect && (
+        <div
+          style={{
+            position: "absolute",
+            right: -8,
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: 0,
+            height: 0,
+            borderTop: "8px solid transparent",
+            borderBottom: "8px solid transparent",
+            borderLeft: "8px solid rgba(6, 182, 212, 0.35)",
+          }}
+        />
+      )}
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <span style={{ fontSize: 18 }}>{"🚀"}</span>
         <div>
           <div style={{ fontWeight: 600, marginBottom: 2 }}>
-            View Next Launch
+            {tooltipTitle}
           </div>
           <div style={{ fontSize: 11, color: "#94a3b8" }}>
-            {nextUpcoming.name} &middot;{" "}
-            {new Date(nextUpcoming.dateUtc).toLocaleDateString("en-US", {
+            {targetLaunch.name} &middot;{" "}
+            {new Date(targetLaunch.dateUtc).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
             })}

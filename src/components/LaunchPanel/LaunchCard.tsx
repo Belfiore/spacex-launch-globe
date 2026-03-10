@@ -397,8 +397,10 @@ export default function LaunchCard({
                   letterSpacing: "0.05em",
                 }}
               >
-                Jellyfish Potential:{" "}
-                {launch.jellyfish!.potential === "high" ? "HIGH" : "MODERATE"}
+                Jellyfish Predictor:{" "}
+                {launch.jellyfish!.apiLabel
+                  ? launch.jellyfish!.apiLabel.toUpperCase()
+                  : launch.jellyfish!.potential === "high" ? "LIKELY" : "POSSIBLE"}
               </div>
               <div
                 style={{
