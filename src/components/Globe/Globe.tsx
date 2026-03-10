@@ -17,69 +17,23 @@ import { GLOBE, COLORS } from "@/lib/constants";
 import { getUSAOrbitTarget, latLngToVector3 } from "@/lib/coordUtils";
 import { useAppStore } from "@/store/useAppStore";
 
-// A launch is "active" if the timeline is within a window around its launch time
-const ACTIVE_WINDOW_AFTER_MS = 72 * 60 * 60 * 1000; // 72 hours after launch (slower arc traversal)
-const ACTIVE_WINDOW_BEFORE_MS = 6 * 60 * 60 * 1000; // 6 hours before launch
-
 function GlobeScene() {
   const controlsRef = useRef<OrbitControlsType>(null);
 
-  const launches = useAppStore((s) => s.launches);
   const selectedLaunch = useAppStore((s) => s.selectedLaunch);
   const setSelectedLaunch = useAppStore((s) => s.setSelectedLaunch);
   const setCameraMode = useAppStore((s) => s.setCameraMode);
   const cameraResetCounter = useAppStore((s) => s.cameraResetCounter);
-  const timelineDate = useAppStore((s) => s.timelineDate);
   const showISS = useAppStore((s) => s.showISS);
   const trajectoryProgress = useAppStore((s) => s.trajectoryProgress);
   const orbitCenter = useAppStore((s) => s.orbitCenter);
 
-  // Compute active launches and their progress based on timeline
-  // Only show trajectories once a launch has been selected (prevents rockets on initial load)
+  // Only show the trajectory for the single selected launch.
+  // Progress is driven by trajectoryProgress (0 = static preview, >0 = cinematic playback).
   const activeLaunches = useMemo(() => {
-    // No trajectories until the user selects a launch
     if (!selectedLaunch) return [];
-
-    const timelineMs = timelineDate.getTime();
-    const totalWindow = ACTIVE_WINDOW_BEFORE_MS + ACTIVE_WINDOW_AFTER_MS;
-
-    const timelineActive = launches
-      .map((launch) => {
-        const launchMs = new Date(launch.dateUtc).getTime();
-        const diff = timelineMs - launchMs;
-        if (diff >= -ACTIVE_WINDOW_BEFORE_MS && diff <= ACTIVE_WINDOW_AFTER_MS) {
-          let progress = Math.max(
-            0.05,
-            Math.min(1, (diff + ACTIVE_WINDOW_BEFORE_MS) / totalWindow)
-          );
-
-          // Override with cinematic-driven trajectory progress for the selected launch
-          if (
-            launch.id === selectedLaunch.id &&
-            trajectoryProgress > 0
-          ) {
-            progress = trajectoryProgress;
-          }
-
-          return { launch, progress, active: true };
-        }
-        return { launch, progress: 0, active: false };
-      })
-      .filter((item) => item.active);
-
-    // Always show arc for selected launch if not already active
-    if (
-      !timelineActive.find((a) => a.launch.id === selectedLaunch.id)
-    ) {
-      timelineActive.push({
-        launch: selectedLaunch,
-        progress: trajectoryProgress,
-        active: true,
-      });
-    }
-
-    return timelineActive;
-  }, [launches, timelineDate, selectedLaunch, trajectoryProgress]);
+    return [{ launch: selectedLaunch, progress: trajectoryProgress, active: true }];
+  }, [selectedLaunch, trajectoryProgress]);
 
   const handleInteractionStart = useCallback(() => {
     setCameraMode("free");

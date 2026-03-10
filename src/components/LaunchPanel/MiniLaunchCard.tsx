@@ -103,7 +103,7 @@ export default function MiniLaunchCard() {
         lng: launch.launchSite.lng,
       });
       setTimelineDate(new Date(launch.dateUtc));
-      setTrajectoryProgress(1);
+      setTrajectoryProgress(0);
       setOrbitCenter("launch");
     },
     [

@@ -164,7 +164,7 @@ export default function LaunchPanel() {
         lng: launch.launchSite.lng,
       });
       setTimelineDate(new Date(launch.dateUtc));
-      setTrajectoryProgress(1);
+      setTrajectoryProgress(0);
       setOrbitCenter("launch");
       // Auto-close mobile panel when a card is tapped
       if (isMobile) setPanelOpen(false);
