@@ -7,6 +7,7 @@ import FilterBar from "./FilterBar";
 import ControlsPanel from "@/components/UI/ControlsPanel";
 import { TIMELINE, SITE_GROUPS } from "@/lib/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import Tooltip from "@/components/UI/Tooltip";
 
 export default function LaunchPanel() {
   const launches = useAppStore((s) => s.launches);
@@ -267,9 +268,9 @@ export default function LaunchPanel() {
               flexShrink: 0,
             }}
           />
+          <Tooltip text={panelOpen ? "Hide panel" : "Show launches"}>
           <button
             onClick={togglePanel}
-            title={panelOpen ? "Hide panel" : "Show launches"}
             style={{
               width: "28px",
               height: "28px",
@@ -297,6 +298,7 @@ export default function LaunchPanel() {
           >
             {toggleIcon}
           </button>
+          </Tooltip>
         </div>
       )}
 

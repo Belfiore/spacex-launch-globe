@@ -2,6 +2,7 @@
 
 import { useAppStore } from "@/store/useAppStore";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import Tooltip from "./Tooltip";
 
 /**
  * Compact icon-only toolbar for camera & display controls.
@@ -22,45 +23,46 @@ function ToolbarButton({
   onClick: () => void;
 }) {
   return (
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
-      disabled={disabled}
-      title={tooltip}
-      style={{
-        width: "28px",
-        height: "28px",
-        borderRadius: "6px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: active ? "rgba(34, 211, 238, 0.15)" : "transparent",
-        border: "none",
-        color: disabled ? "#334155" : active ? "#22d3ee" : "#94a3b8",
-        cursor: disabled ? "default" : "pointer",
-        opacity: disabled ? 0.4 : 1,
-        fontSize: "14px",
-        padding: 0,
-        transition: "all 0.15s ease",
-        flexShrink: 0,
-      }}
-      onMouseEnter={(e) => {
-        if (disabled) return;
-        if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-        e.currentTarget.style.color = "#e2e8f0";
-      }}
-      onMouseLeave={(e) => {
-        if (disabled) return;
-        e.currentTarget.style.background = active
-          ? "rgba(34, 211, 238, 0.15)"
-          : "transparent";
-        e.currentTarget.style.color = active ? "#22d3ee" : "#94a3b8";
-      }}
-    >
-      {icon}
-    </button>
+    <Tooltip text={tooltip}>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick();
+        }}
+        disabled={disabled}
+        style={{
+          width: "28px",
+          height: "28px",
+          borderRadius: "6px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: active ? "rgba(34, 211, 238, 0.15)" : "transparent",
+          border: "none",
+          color: disabled ? "#334155" : active ? "#22d3ee" : "#94a3b8",
+          cursor: disabled ? "default" : "pointer",
+          opacity: disabled ? 0.4 : 1,
+          fontSize: "14px",
+          padding: 0,
+          transition: "all 0.15s ease",
+          flexShrink: 0,
+        }}
+        onMouseEnter={(e) => {
+          if (disabled) return;
+          if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+          e.currentTarget.style.color = "#e2e8f0";
+        }}
+        onMouseLeave={(e) => {
+          if (disabled) return;
+          e.currentTarget.style.background = active
+            ? "rgba(34, 211, 238, 0.15)"
+            : "transparent";
+          e.currentTarget.style.color = active ? "#22d3ee" : "#94a3b8";
+        }}
+      >
+        {icon}
+      </button>
+    </Tooltip>
   );
 }
 
@@ -69,41 +71,86 @@ function ISSToggle() {
   const toggleISS = useAppStore((s) => s.toggleISS);
 
   return (
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        toggleISS();
-      }}
-      title={showISS ? "Hide ISS orbit" : "Show ISS orbit"}
-      style={{
-        width: "28px",
-        height: "28px",
-        borderRadius: "6px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: showISS ? "rgba(34, 211, 238, 0.15)" : "transparent",
-        border: "none",
-        color: showISS ? "#22d3ee" : "#94a3b8",
-        cursor: "pointer",
-        fontSize: "14px",
-        padding: 0,
-        transition: "all 0.15s ease",
-        flexShrink: 0,
-      }}
-      onMouseEnter={(e) => {
-        if (!showISS) e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-        e.currentTarget.style.color = "#e2e8f0";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = showISS
-          ? "rgba(34, 211, 238, 0.15)"
-          : "transparent";
-        e.currentTarget.style.color = showISS ? "#22d3ee" : "#94a3b8";
-      }}
-    >
-      {"🛰"}
-    </button>
+    <Tooltip text={showISS ? "Hide ISS orbit" : "Show ISS orbit"}>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleISS();
+        }}
+        style={{
+          width: "28px",
+          height: "28px",
+          borderRadius: "6px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: showISS ? "rgba(34, 211, 238, 0.15)" : "transparent",
+          border: "none",
+          color: showISS ? "#22d3ee" : "#94a3b8",
+          cursor: "pointer",
+          fontSize: "14px",
+          padding: 0,
+          transition: "all 0.15s ease",
+          flexShrink: 0,
+        }}
+        onMouseEnter={(e) => {
+          if (!showISS) e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+          e.currentTarget.style.color = "#e2e8f0";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = showISS
+            ? "rgba(34, 211, 238, 0.15)"
+            : "transparent";
+          e.currentTarget.style.color = showISS ? "#22d3ee" : "#94a3b8";
+        }}
+      >
+        {"🛰"}
+      </button>
+    </Tooltip>
+  );
+}
+
+function StarlinkToggle() {
+  const showStarlink = useAppStore((s) => s.showStarlink);
+  const toggleStarlink = useAppStore((s) => s.toggleStarlink);
+
+  return (
+    <Tooltip text={showStarlink ? "Hide Starlink satellites" : "Show Starlink satellites"}>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleStarlink();
+        }}
+        style={{
+          width: "28px",
+          height: "28px",
+          borderRadius: "6px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: showStarlink ? "rgba(34, 211, 238, 0.15)" : "transparent",
+          border: "none",
+          color: showStarlink ? "#22d3ee" : "#94a3b8",
+          cursor: "pointer",
+          fontSize: "14px",
+          padding: 0,
+          transition: "all 0.15s ease",
+          flexShrink: 0,
+        }}
+        onMouseEnter={(e) => {
+          if (!showStarlink) e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+          e.currentTarget.style.color = "#e2e8f0";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = showStarlink
+            ? "rgba(34, 211, 238, 0.15)"
+            : "transparent";
+          e.currentTarget.style.color = showStarlink ? "#22d3ee" : "#94a3b8";
+        }}
+      >
+        {"✦"}
+      </button>
+    </Tooltip>
   );
 }
 
@@ -161,6 +208,7 @@ export default function ControlsPanel() {
         }}
       />
       <ISSToggle />
+      <StarlinkToggle />
       <ToolbarButton
         icon="👁"
         tooltip="Focus mode — hide all UI"

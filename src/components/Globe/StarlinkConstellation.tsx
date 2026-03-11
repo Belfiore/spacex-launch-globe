@@ -13,7 +13,7 @@ import type { OMMRecord } from "@/lib/starlink/types";
  * Samples every Nth satellite to keep ~400 dots for mobile performance.
  */
 
-const MAX_SATS = 400;
+const MAX_SATS = 800;
 const EARTH_RADIUS_KM = 6371;
 const DEG2RAD = Math.PI / 180;
 
