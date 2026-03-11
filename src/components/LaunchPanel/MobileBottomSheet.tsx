@@ -297,7 +297,7 @@ export default function MobileBottomSheet() {
         {/* Expandable area — launch list */}
         <div
           style={{
-            maxHeight: mobileSheetExpanded ? "55vh" : "0px",
+            maxHeight: mobileSheetExpanded ? "calc(100dvh - 56px)" : "0px",
             overflow: "hidden",
             transition: "max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
             background: "rgba(18, 24, 41, 0.96)",

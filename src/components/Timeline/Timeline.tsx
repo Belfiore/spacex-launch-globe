@@ -100,6 +100,12 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
   const availableYears = useAppStore((s) => s.availableYears);
   const focusMode = useAppStore((s) => s.focusMode);
   const timelineVisible = useAppStore((s) => s.timelineVisible);
+  const setTrajectoryProgress = useAppStore((s) => s.setTrajectoryProgress);
+  const setOrbitCenter = useAppStore((s) => s.setOrbitCenter);
+  const pauseMissionPlayback = useAppStore((s) => s.pauseMissionPlayback);
+
+  // Track the last auto-selected launch during scrubbing
+  const lastScrubLaunchId = useRef<string | null>(null);
 
   // Only compute time range after mount to avoid SSR/client hydration mismatch
   const { start, end, now, isCurrentYear } = useMemo(() => {
@@ -136,14 +142,43 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
       if (!trackRef.current) return;
       const rect = trackRef.current.getBoundingClientRect();
       const percent = ((clientX - rect.left) / rect.width) * 100;
-      const newDate = percentToDate(
-        Math.max(0, Math.min(100, percent)),
-        start,
-        end
-      );
+      const clampedPercent = Math.max(0, Math.min(100, percent));
+      const newDate = percentToDate(clampedPercent, start, end);
       setTimelineDate(newDate);
+
+      // Auto-select nearest launch when scrubbing near a launch dot
+      const newDateMs = newDate.getTime();
+      let closestLaunch: Launch | null = null;
+      let closestPixelDist = Infinity;
+
+      for (const launch of visibleLaunches) {
+        const launchPct = dateToPercent(new Date(launch.dateUtc), start, end);
+        const pixelDist = Math.abs(launchPct - clampedPercent) * rect.width / 100;
+        if (pixelDist < closestPixelDist) {
+          closestPixelDist = pixelDist;
+          closestLaunch = launch;
+        }
+      }
+
+      // If within 20px of a launch dot, select it and show trajectory
+      if (closestLaunch && closestPixelDist < 20) {
+        setTrajectoryProgress(1);
+
+        if (lastScrubLaunchId.current !== closestLaunch.id) {
+          pauseMissionPlayback();
+          setSelectedLaunch(closestLaunch);
+          setCameraTarget({
+            lat: closestLaunch.launchSite.lat,
+            lng: closestLaunch.launchSite.lng,
+          });
+          setOrbitCenter("launch");
+          lastScrubLaunchId.current = closestLaunch.id;
+        }
+      } else if (lastScrubLaunchId.current !== null) {
+        lastScrubLaunchId.current = null;
+      }
     },
-    [start, end, setTimelineDate]
+    [start, end, setTimelineDate, visibleLaunches, setSelectedLaunch, setCameraTarget, setTrajectoryProgress, setOrbitCenter, pauseMissionPlayback]
   );
 
   const handleMouseDown = useCallback(

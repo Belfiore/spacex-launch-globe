@@ -88,9 +88,13 @@ export function useGlobeCamera(
   // ── Gently pan camera to launch site on selection ─────
   useEffect(() => {
     if (cameraTarget) {
-      // Simple overhead position at current zoom distance
+      // On mobile, offset camera position south so the launch site appears
+      // in the upper portion of the viewport (above the bottom dock UI)
+      const isMobileView = typeof window !== "undefined" && window.innerWidth < 768;
+      const latOffset = isMobileView ? -5 : 0;
+
       const sitePos = latLngToVector3(
-        cameraTarget.lat,
+        cameraTarget.lat + latOffset,
         cameraTarget.lng,
         camera.position.length()
       );

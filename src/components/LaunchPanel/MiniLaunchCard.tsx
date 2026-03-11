@@ -31,6 +31,8 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
   const focusMode = useAppStore((s) => s.focusMode);
   const selectedYear = useAppStore((s) => s.selectedYear);
   const filters = useAppStore((s) => s.filters);
+  const miniTimelinePlaying = useAppStore((s) => s.miniTimelinePlaying);
+  const setInfoPanelLaunchId = useAppStore((s) => s.setInfoPanelLaunchId);
 
   const isInline = renderMode === "inline";
   const containerRef = useRef<HTMLDivElement>(null);
@@ -159,6 +161,18 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
     startMissionPlayback,
   ]);
 
+  const handlePause = useCallback(() => {
+    pauseMissionPlayback();
+  }, [pauseMissionPlayback]);
+
+  const handleInfoOpen = useCallback(() => {
+    if (!displayLaunch) return;
+    setInfoPanelLaunchId(displayLaunch.id);
+  }, [displayLaunch, setInfoPanelLaunchId]);
+
+  // Is this launch currently playing?
+  const isPlaying = displayLaunch && selectedLaunch?.id === displayLaunch.id && miniTimelinePlaying;
+
   // ── Touch handling with carousel animation ──
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -236,14 +250,7 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
   if (focusMode || !displayLaunch || filteredLaunches.length === 0)
     return null;
 
-  const status = displayLaunch.status;
   const accentColor = getSiteAccentColor(displayLaunch.launchSite.id);
-  const statusColor =
-    status === "success"
-      ? "#22c55e"
-      : status === "failure"
-        ? "#ef4444"
-        : "#22d3ee";
 
   const date = new Date(displayLaunch.dateUtc);
   const dateStr = date.toLocaleDateString("en-US", {
@@ -289,17 +296,42 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
             boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 12px ${accentColor}15`,
           }}
         >
-          {/* Left: status dot */}
-          <div
-            style={{
-              width: "8px",
-              height: "8px",
-              borderRadius: "50%",
-              background: statusColor,
-              flexShrink: 0,
-              boxShadow: `0 0 6px ${statusColor}80`,
+          {/* Left: play/pause button */}
+          <button
+            data-play-button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (isPlaying) {
+                handlePause();
+              } else {
+                handlePlay();
+              }
             }}
-          />
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: isPlaying
+                ? "rgba(34, 211, 238, 0.25)"
+                : "rgba(34, 211, 238, 0.15)",
+              border: "1px solid rgba(34, 211, 238, 0.4)",
+              color: "#22d3ee",
+              cursor: "pointer",
+              fontSize: isPlaying ? "11px" : "12px",
+              padding: 0,
+              paddingLeft: isPlaying ? "0px" : "2px",
+              flexShrink: 0,
+              boxShadow: isPlaying
+                ? "0 0 12px rgba(34, 211, 238, 0.4)"
+                : "none",
+              transition: "all 0.2s ease",
+            }}
+          >
+            {isPlaying ? "⏸" : "▶"}
+          </button>
 
           {/* Center: mission info */}
           <div
@@ -338,7 +370,7 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
             </div>
           </div>
 
-          {/* Right: play button + counter */}
+          {/* Right: info button + counter */}
           <div
             style={{
               display: "flex",
@@ -348,10 +380,9 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
             }}
           >
             <button
-              data-play-button
               onClick={(e) => {
                 e.stopPropagation();
-                handlePlay();
+                handleInfoOpen();
               }}
               style={{
                 width: "32px",
@@ -360,16 +391,18 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "rgba(34, 211, 238, 0.15)",
-                border: "1px solid rgba(34, 211, 238, 0.4)",
-                color: "#22d3ee",
+                background: "rgba(255, 255, 255, 0.06)",
+                border: "1px solid rgba(255, 255, 255, 0.12)",
+                color: "#94a3b8",
                 cursor: "pointer",
-                fontSize: "12px",
+                fontSize: "14px",
+                fontWeight: 700,
+                fontFamily: "serif",
                 padding: 0,
-                paddingLeft: "2px",
               }}
+              title="View flight details"
             >
-              {"▶"}
+              {"i"}
             </button>
             <div
               style={{

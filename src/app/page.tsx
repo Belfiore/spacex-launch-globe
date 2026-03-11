@@ -15,6 +15,7 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import MiniTimeline from "@/components/UI/MiniTimeline";
 import InfoPanel from "@/components/InfoPanel/InfoPanel";
 import MobileBottomSheet from "@/components/LaunchPanel/MobileBottomSheet";
+import MobileFilterMenu from "@/components/UI/MobileFilterMenu";
 
 const Globe = dynamic(() => import("@/components/Globe/Globe"), {
   ssr: false,
@@ -143,6 +144,9 @@ export default function Home() {
       <Timeline />
       <MobileBottomSheet />
       <CinematicEntry />
+
+      {/* Filter/settings menu — top-right */}
+      <MobileFilterMenu />
 
       {/* Timeline toggle button (desktop only — mobile has its own in MobileBottomSheet) */}
       <TimelineToggleButton />

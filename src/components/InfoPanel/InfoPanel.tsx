@@ -764,9 +764,9 @@ export default function InfoPanel() {
         WebkitBackdropFilter: "blur(20px)",
         display: "flex",
         flexDirection: "column",
-        opacity: isOpen && !focusMode ? 1 : 0,
+        transform: isOpen && !focusMode ? "translateY(0)" : "translateY(100%)",
         pointerEvents: isOpen && !focusMode ? "auto" : "none",
-        transition: "opacity 0.25s ease",
+        transition: "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
       }
     : {
         position: "fixed",
