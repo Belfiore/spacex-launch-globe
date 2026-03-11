@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useMemo, useEffect, useState } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { GLOBE, EARTH_TEXTURES } from "@/lib/constants";
 
@@ -99,6 +99,7 @@ const FRAGMENT_SHADER = `
  */
 function EarthMesh() {
   const textureRef = useRef<THREE.Texture | null>(null);
+  const { gl } = useThree();
 
   // Create the shader material once
   const material = useMemo(() => {
@@ -110,6 +111,19 @@ function EarthMesh() {
       },
     });
   }, []);
+
+  // Max anisotropy for crisp textures at oblique angles
+  const maxAnisotropy = useMemo(() => gl.capabilities.getMaxAnisotropy(), [gl]);
+
+  /** Apply quality filtering to a loaded texture */
+  function configureTexture(tex: THREE.Texture) {
+    tex.colorSpace = THREE.LinearSRGBColorSpace;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.anisotropy = maxAnisotropy;
+    tex.generateMipmaps = true;
+    tex.needsUpdate = true;
+  }
 
   // Progressive texture loading: low-res fast, then high-res in background
   useEffect(() => {
@@ -123,9 +137,7 @@ function EarthMesh() {
         lowRes.dispose();
         return;
       }
-      // Use LinearSRGBColorSpace so the shader receives raw pixel values
-      // (our custom shader handles all color processing)
-      lowRes.colorSpace = THREE.LinearSRGBColorSpace;
+      configureTexture(lowRes);
       lowResTexture = lowRes;
       textureRef.current = lowRes;
 
@@ -135,7 +147,7 @@ function EarthMesh() {
           highRes.dispose();
           return;
         }
-        highRes.colorSpace = THREE.LinearSRGBColorSpace;
+        configureTexture(highRes);
         textureRef.current = highRes;
         // Free the low-res GPU memory
         if (lowResTexture) {
@@ -148,7 +160,8 @@ function EarthMesh() {
     return () => {
       disposed = true;
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [maxAnisotropy]);
 
   // Push texture into the uniform every frame — avoids React state/effect issues
   useFrame(() => {

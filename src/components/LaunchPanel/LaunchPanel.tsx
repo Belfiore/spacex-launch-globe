@@ -32,18 +32,19 @@ export default function LaunchPanel() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Play mission — ensure the launch is selected + centered first
+  // Camera offset gives an angled view so the trajectory arc is visible
   const handlePlay = useCallback(
     (launch: (typeof launches)[0]) => {
       if (selectedLaunch?.id !== launch.id) {
         pauseMissionPlayback();
         setSelectedLaunch(launch);
-        setCameraTarget({
-          lat: launch.launchSite.lat,
-          lng: launch.launchSite.lng,
-        });
         setTimelineDate(new Date(launch.dateUtc));
         setOrbitCenter("launch");
       }
+      setCameraTarget({
+        lat: launch.launchSite.lat - 15,
+        lng: launch.launchSite.lng + 10,
+      });
       setTrajectoryProgress(0);
       setTimeout(() => startMissionPlayback(), 50);
       // Auto-close mobile panel on play

@@ -6,6 +6,9 @@ import { STATUS_COLORS, TIMELINE } from "@/lib/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import type { Launch } from "@/lib/types";
 
+const CINEMATIC_SPEEDS = [1, 3, 6] as const;
+type CinematicSpeed = (typeof CINEMATIC_SPEEDS)[number];
+
 function getTimeRange(selectedYear: number | "all") {
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -86,6 +89,8 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [cinematicSpeed, setCinematicSpeed] = useState<CinematicSpeed>(3);
+  const cinematicSpeedRef = useRef<CinematicSpeed>(3);
   const isMobile = useIsMobile();
   const isInline = renderMode === "inline";
   const timelineHeight = isMobile ? TIMELINE.MOBILE_HEIGHT : TIMELINE.HEIGHT;
@@ -107,6 +112,9 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
   const setTimelineCinematicPlaying = useAppStore((s) => s.setTimelineCinematicPlaying);
   const setFocusMode = useAppStore((s) => s.setFocusMode);
   const startMissionPlayback = useAppStore((s) => s.startMissionPlayback);
+
+  // Keep speed ref in sync
+  useEffect(() => { cinematicSpeedRef.current = cinematicSpeed; }, [cinematicSpeed]);
 
   // Track the last auto-selected launch during scrubbing
   const lastScrubLaunchId = useRef<string | null>(null);
@@ -263,15 +271,22 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
     }
   }, [timelineCinematicPlaying, setTimelineCinematicPlaying, setFocusMode, pauseMissionPlayback, setTimelineDate, start, setSelectedLaunch, setTrajectoryProgress]);
 
+  const cycleSpeed = useCallback(() => {
+    setCinematicSpeed((prev) => {
+      const idx = CINEMATIC_SPEEDS.indexOf(prev);
+      return CINEMATIC_SPEEDS[(idx + 1) % CINEMATIC_SPEEDS.length];
+    });
+  }, []);
+
   // RAF loop — advance playhead continuously during cinematic mode
   useEffect(() => {
     if (!timelineCinematicPlaying || !mounted) return;
 
     const totalMs = end.getTime() - start.getTime();
-    // Scale duration: ~45s for 30 days, up to ~120s for a full year
+    // Base duration: ~45s for 30 days, up to ~120s for a full year (at 1x)
     const rangeDays = totalMs / 86_400_000;
     const durationSec = Math.min(120, Math.max(45, rangeDays * 0.33));
-    const advancePerMs = totalMs / (durationSec * 1000);
+    const baseAdvancePerMs = totalMs / (durationSec * 1000);
 
     let animId: number;
     let prev = performance.now();
@@ -282,7 +297,7 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
 
       const state = useAppStore.getState();
       const curMs = state.timelineDate.getTime();
-      const nextMs = curMs + dt * advancePerMs;
+      const nextMs = curMs + dt * baseAdvancePerMs * cinematicSpeedRef.current;
 
       if (nextMs >= end.getTime()) {
         // Reached the end — stop cinematic
@@ -306,8 +321,8 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
           pauseMissionPlayback();
           setSelectedLaunch(launch);
           setCameraTarget({
-            lat: launch.launchSite.lat,
-            lng: launch.launchSite.lng,
+            lat: launch.launchSite.lat - 15,
+            lng: launch.launchSite.lng + 10,
           });
           setOrbitCenter("launch");
           setTrajectoryProgress(0);
@@ -455,6 +470,32 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
                   </svg>
                 )}
               </button>
+              {/* Speed selector — visible when cinematic is playing */}
+              {timelineCinematicPlaying && (
+                <button
+                  onClick={cycleSpeed}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: isMobile ? "18px" : "20px",
+                    padding: "0 6px",
+                    borderRadius: "10px",
+                    border: "1px solid rgba(34, 211, 238, 0.3)",
+                    background: "rgba(34, 211, 238, 0.1)",
+                    color: "#22d3ee",
+                    cursor: "pointer",
+                    fontSize: "9px",
+                    fontWeight: 700,
+                    fontFamily: "monospace",
+                    letterSpacing: "0.02em",
+                    flexShrink: 0,
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  {cinematicSpeed}x
+                </button>
+              )}
             </div>
             <span style={{ fontSize: "10px", color: "#475569" }}>
               {start.toLocaleDateString("en-US", {

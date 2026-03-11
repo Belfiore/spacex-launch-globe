@@ -138,8 +138,8 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
     pauseMissionPlayback();
     setSelectedLaunch(launch);
     setCameraTarget({
-      lat: launch.launchSite.lat,
-      lng: launch.launchSite.lng,
+      lat: launch.launchSite.lat - 15,
+      lng: launch.launchSite.lng + 10,
     });
     setTimelineDate(new Date(launch.dateUtc));
     setOrbitCenter("launch");

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { SITE_GROUPS } from "@/lib/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import Tooltip from "@/components/UI/Tooltip";
 
 const ROCKET_TYPES = ["Falcon 9", "Falcon Heavy", "Starship", "Falcon 1"];
 const STATUSES = ["upcoming", "success", "failure"];
@@ -194,14 +195,13 @@ export default function FilterBar() {
       >
         {/* Rocket types */}
         {ROCKET_TYPES.map((type) => (
+          <Tooltip key={type} text={TOOLTIPS[type]}>
           <button
-            key={type}
             onClick={() =>
               setFilters({
                 rocketType: filters.rocketType === type ? null : type,
               })
             }
-            title={TOOLTIPS[type]}
             style={{
               padding: chipPadding,
               borderRadius: "4px",
@@ -223,20 +223,20 @@ export default function FilterBar() {
           >
             {type}
           </button>
+          </Tooltip>
         ))}
 
         <span style={{ color: "#334155", margin: "0 2px" }}>|</span>
 
         {/* Status */}
         {STATUSES.map((status) => (
+          <Tooltip key={status} text={TOOLTIPS[status]}>
           <button
-            key={status}
             onClick={() =>
               setFilters({
                 status: filters.status === status ? null : status,
               })
             }
-            title={TOOLTIPS[status]}
             style={{
               padding: chipPadding,
               borderRadius: "4px",
@@ -259,6 +259,7 @@ export default function FilterBar() {
           >
             {status}
           </button>
+          </Tooltip>
         ))}
 
         <span style={{ color: "#334155", margin: "0 2px" }}>|</span>
@@ -267,10 +268,9 @@ export default function FilterBar() {
         {SITE_GROUPS.map((group) => {
           const isActive = filters.sites.includes(group.key);
           return (
+            <Tooltip key={group.key} text={TOOLTIPS[group.key]}>
             <button
-              key={group.key}
               onClick={() => toggleSite(group.key)}
-              title={TOOLTIPS[group.key]}
               style={{
                 padding: chipPadding,
                 borderRadius: "4px",
@@ -302,15 +302,16 @@ export default function FilterBar() {
               />
               {group.key}
             </button>
+            </Tooltip>
           );
         })}
 
         <span style={{ color: "#334155", margin: "0 2px" }}>|</span>
 
         {/* Jellyfish filter */}
+        <Tooltip text={TOOLTIPS["jellyfish"]}>
         <button
           onClick={() => setFilters({ jellyfish: !filters.jellyfish })}
-          title={TOOLTIPS["jellyfish"]}
           style={{
             padding: chipPadding,
             borderRadius: "4px",
@@ -343,12 +344,13 @@ export default function FilterBar() {
           />
           JF
         </button>
+        </Tooltip>
 
         {/* Clear */}
         {hasActiveFilters && (
+          <Tooltip text={TOOLTIPS["clear"]}>
           <button
             onClick={resetFilters}
-            title={TOOLTIPS["clear"]}
             style={{
               padding: chipPadding,
               borderRadius: "4px",
@@ -362,6 +364,7 @@ export default function FilterBar() {
           >
             Clear
           </button>
+          </Tooltip>
         )}
       </div>
       )}

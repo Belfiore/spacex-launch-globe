@@ -5,6 +5,7 @@ import type { Launch } from "@/lib/types";
 import { getSiteAccentColor } from "@/lib/constants";
 import { useAppStore } from "@/store/useAppStore";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import Tooltip from "@/components/UI/Tooltip";
 
 interface LaunchCardProps {
   launch: Launch;
@@ -179,6 +180,7 @@ export default function LaunchCard({
 
               {/* Play/Pause toggle button */}
               {(onPlay || isPlaying) && (
+                <Tooltip text={isPlaying ? "Pause" : "Watch launch"} position="top">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -224,14 +226,15 @@ export default function LaunchCard({
                       ? "0 0 12px rgba(34, 211, 238, 0.4)"
                       : "none";
                   }}
-                  title={isPlaying ? "Pause" : "Watch launch cinematic"}
                 >
                   {isPlaying ? "\u23F8" : "\u25B6"}
                 </button>
+                </Tooltip>
               )}
 
               {/* Info button — shows for launches with flightHistory or details/webcast */}
               {(launch.flightHistory || launch.webcastUrl || launch.details) && (
+                <Tooltip text="Flight details" position="top">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -279,10 +282,10 @@ export default function LaunchCard({
                       e.currentTarget.style.color = "#94a3b8";
                     }
                   }}
-                  title="View flight details"
                 >
                   {"i"}
                 </button>
+                </Tooltip>
               )}
 
               {/* Jellyfish badge */}
