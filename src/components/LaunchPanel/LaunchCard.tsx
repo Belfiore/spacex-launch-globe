@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo } from "react";
 import type { Launch } from "@/lib/types";
 import { getSiteAccentColor } from "@/lib/constants";
 import { useAppStore } from "@/store/useAppStore";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { InfoPanelContent } from "@/components/InfoPanel/InfoPanel";
 
 interface LaunchCardProps {
   launch: Launch;
@@ -62,15 +61,6 @@ export default function LaunchCard({
   const infoPanelLaunchId = useAppStore((s) => s.infoPanelLaunchId);
   const setInfoPanelLaunchId = useAppStore((s) => s.setInfoPanelLaunchId);
   const isMobile = useIsMobile();
-  const [expanded, setExpanded] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  // Collapse when another launch is selected
-  useEffect(() => {
-    if (!isSelected && expanded) {
-      setExpanded(false);
-    }
-  }, [isSelected, expanded]);
 
   // This launch is actively playing if it's selected AND playback/mini is active
   const isPlaying =
@@ -91,441 +81,392 @@ export default function LaunchCard({
 
   const borderStyle = useMemo(() => {
     if (isSelected) return `1px solid ${accentColor}80`;
-    if (isNext) return "1px solid rgba(34, 211, 238, 0.2)";
+    if (isNext) return "1px solid rgba(34, 211, 238, 0.3)";
     return "1px solid rgba(255, 255, 255, 0.04)";
   }, [isSelected, isNext, accentColor]);
 
   const shadowStyle = useMemo(() => {
     if (isSelected) return `0 0 20px ${accentColor}25`;
-    if (isNext) return "0 0 10px rgba(34, 211, 238, 0.08)";
+    if (isNext) return "0 0 10px rgba(34, 211, 238, 0.1)";
     return "none";
   }, [isSelected, isNext, accentColor]);
 
-  const handleCardClick = () => {
-    if (isMobile && isSelected) {
-      // Toggle expansion on mobile when already selected
-      setExpanded((prev) => {
-        const next = !prev;
-        if (next) {
-          // Scroll card to top of scrollable parent
-          setTimeout(() => {
-            cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-          }, 50);
-        }
-        return next;
-      });
-    } else if (isMobile) {
-      // First tap on mobile: select + expand
-      onClick();
-      setExpanded(true);
-      setTimeout(() => {
-        cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 50);
-    } else {
-      // Desktop: normal behavior
-      onClick();
-    }
-  };
-
   return (
-    <div
-      ref={cardRef}
-      onClick={handleCardClick}
-      style={{
-        background: isSelected
-          ? `${accentColor}0d`
-          : "rgba(255, 255, 255, 0.02)",
-        border: borderStyle,
-        boxShadow: shadowStyle,
-        borderRadius: "10px",
-        padding: "14px 14px",
-        cursor: "pointer",
-        transition: "all 0.2s ease",
-        marginBottom: "8px",
-        animation: showPulse ? "card-pulse-24h 3s ease-in-out infinite" : undefined,
-      }}
-      onMouseEnter={(e) => {
-        if (!isSelected) {
-          e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)";
-          e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isSelected) {
-          e.currentTarget.style.background = "rgba(255, 255, 255, 0.02)";
-          e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.04)";
-        }
-      }}
-    >
-      {/* Header row — patch + name + play + badges */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          gap: "10px",
-          marginBottom: "7px",
-        }}
-      >
-        {/* Name + badges + play button */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
+    <>
+      {/* "NEXT LAUNCH" marker above the next upcoming card */}
+      {isNext && (
+        <div style={{ marginBottom: 4 }}>
+          <span
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
+              display: "inline-block",
+              fontSize: "9px",
+              fontFamily: "monospace",
+              fontWeight: 700,
+              color: "#22d3ee",
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              background: "rgba(34, 211, 238, 0.08)",
+              border: "1px solid rgba(34, 211, 238, 0.25)",
+              borderRadius: "4px",
+              padding: "3px 10px",
             }}
           >
-            <div
-              style={{
-                fontWeight: 600,
-                fontSize: "13px",
-                color: "#e2e8f0",
-                lineHeight: 1.3,
-                flex: 1,
-                minWidth: 0,
-              }}
-            >
-              {launch.name}
-            </div>
-
-            {/* Play/Pause toggle button */}
-            {(onPlay || isPlaying) && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (isPlaying && onPause) {
-                    onPause();
-                  } else if (onPlay) {
-                    onPlay();
-                  }
-                }}
-                style={{
-                  width: "28px",
-                  height: "28px",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: isPlaying
-                    ? "rgba(34, 211, 238, 0.25)"
-                    : "rgba(34, 211, 238, 0.12)",
-                  border: "1px solid rgba(34, 211, 238, 0.5)",
-                  color: "#22d3ee",
-                  cursor: "pointer",
-                  fontSize: isPlaying ? "11px" : "12px",
-                  flexShrink: 0,
-                  transition: "all 0.2s ease",
-                  padding: 0,
-                  paddingLeft: isPlaying ? "0px" : "2px",
-                  boxShadow: isPlaying
-                    ? "0 0 12px rgba(34, 211, 238, 0.4)"
-                    : "none",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background =
-                    "rgba(34, 211, 238, 0.3)";
-                  e.currentTarget.style.boxShadow =
-                    "0 0 12px rgba(34, 211, 238, 0.4)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = isPlaying
-                    ? "rgba(34, 211, 238, 0.25)"
-                    : "rgba(34, 211, 238, 0.12)";
-                  e.currentTarget.style.boxShadow = isPlaying
-                    ? "0 0 12px rgba(34, 211, 238, 0.4)"
-                    : "none";
-                }}
-                title={isPlaying ? "Pause" : "Watch launch cinematic"}
-              >
-                {isPlaying ? "⏸" : "▶"}
-              </button>
-            )}
-
-            {/* Info button — shows for launches with flightHistory or details/webcast */}
-            {(launch.flightHistory || launch.webcastUrl || launch.details) && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setInfoPanelLaunchId(
-                    infoPanelLaunchId === launch.id ? null : launch.id
-                  );
-                }}
-                style={{
-                  width: "28px",
-                  height: "28px",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background:
-                    infoPanelLaunchId === launch.id
-                      ? "rgba(34, 211, 238, 0.25)"
-                      : "rgba(255, 255, 255, 0.06)",
-                  border: `1px solid ${
-                    infoPanelLaunchId === launch.id
-                      ? "rgba(34, 211, 238, 0.5)"
-                      : "rgba(255, 255, 255, 0.1)"
-                  }`,
-                  color:
-                    infoPanelLaunchId === launch.id ? "#22d3ee" : "#94a3b8",
-                  cursor: "pointer",
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  flexShrink: 0,
-                  transition: "all 0.2s ease",
-                  padding: 0,
-                  fontFamily: "serif",
-                }}
-                onMouseEnter={(e) => {
-                  if (infoPanelLaunchId !== launch.id) {
-                    e.currentTarget.style.background =
-                      "rgba(34, 211, 238, 0.12)";
-                    e.currentTarget.style.color = "#22d3ee";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (infoPanelLaunchId !== launch.id) {
-                    e.currentTarget.style.background =
-                      "rgba(255, 255, 255, 0.06)";
-                    e.currentTarget.style.color = "#94a3b8";
-                  }
-                }}
-                title="View flight details"
-              >
-                {"i"}
-              </button>
-            )}
-
-            {/* Jellyfish badge */}
-            {hasJellyfish && (
-              <span
-                style={{
-                  padding: "2px 6px",
-                  borderRadius: "4px",
-                  fontSize: "9px",
-                  fontWeight: 600,
-                  background:
-                    launch.jellyfish!.potential === "high"
-                      ? "rgba(168, 85, 247, 0.15)"
-                      : "rgba(168, 85, 247, 0.08)",
-                  border: `1px solid ${
-                    launch.jellyfish!.potential === "high"
-                      ? "rgba(168, 85, 247, 0.4)"
-                      : "rgba(168, 85, 247, 0.2)"
-                  }`,
-                  color:
-                    launch.jellyfish!.potential === "high"
-                      ? "#c084fc"
-                      : "#a78bfa",
-                  flexShrink: 0,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                JF
-              </span>
-            )}
-
-            <span className={`badge ${status.className}`}>{status.label}</span>
-          </div>
+            Next Launch
+          </span>
         </div>
-      </div>
+      )}
 
-      {/* Details grid */}
       <div
+        onClick={onClick}
         style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "2px 12px",
-          fontSize: "11px",
-          color: "#94a3b8",
+          background: isSelected
+            ? `${accentColor}0d`
+            : "rgba(255, 255, 255, 0.02)",
+          border: borderStyle,
+          boxShadow: shadowStyle,
+          borderRadius: "10px",
+          padding: "14px 14px",
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+          marginBottom: "8px",
+          animation: showPulse ? "card-pulse-24h 3s ease-in-out infinite" : undefined,
+        }}
+        onMouseEnter={(e) => {
+          if (!isSelected) {
+            e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)";
+            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isSelected) {
+            e.currentTarget.style.background = "rgba(255, 255, 255, 0.02)";
+            e.currentTarget.style.borderColor = isNext
+              ? "rgba(34, 211, 238, 0.3)"
+              : "rgba(255, 255, 255, 0.04)";
+          }
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <span style={{ opacity: 0.5 }}>📅</span>
-          {formatDate(launch.dateUtc)}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <span style={{ opacity: 0.5 }}>🕐</span>
-          {formatTime(launch.dateUtc)}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <span style={{ opacity: 0.5 }}>📍</span>
-          {launch.launchSite.name}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <span style={{ opacity: 0.5 }}>🚀</span>
-          {launch.rocketType}
-        </div>
-      </div>
-
-      {/* Expanded details */}
-      {isSelected && (
+        {/* Header row — patch + name + play + badges */}
         <div
           style={{
-            marginTop: "10px",
-            paddingTop: "10px",
-            borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "10px",
+            marginBottom: "7px",
+          }}
+        >
+          {/* Name + badges + play button */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 600,
+                  fontSize: "13px",
+                  color: "#e2e8f0",
+                  lineHeight: 1.3,
+                  flex: 1,
+                  minWidth: 0,
+                }}
+              >
+                {launch.name}
+              </div>
+
+              {/* Play/Pause toggle button */}
+              {(onPlay || isPlaying) && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isPlaying && onPause) {
+                      onPause();
+                    } else if (onPlay) {
+                      onPlay();
+                    }
+                  }}
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: isPlaying
+                      ? "rgba(34, 211, 238, 0.25)"
+                      : "rgba(34, 211, 238, 0.12)",
+                    border: "1px solid rgba(34, 211, 238, 0.5)",
+                    color: "#22d3ee",
+                    cursor: "pointer",
+                    fontSize: isPlaying ? "11px" : "12px",
+                    flexShrink: 0,
+                    transition: "all 0.2s ease",
+                    padding: 0,
+                    paddingLeft: isPlaying ? "0px" : "2px",
+                    boxShadow: isPlaying
+                      ? "0 0 12px rgba(34, 211, 238, 0.4)"
+                      : "none",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background =
+                      "rgba(34, 211, 238, 0.3)";
+                    e.currentTarget.style.boxShadow =
+                      "0 0 12px rgba(34, 211, 238, 0.4)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = isPlaying
+                      ? "rgba(34, 211, 238, 0.25)"
+                      : "rgba(34, 211, 238, 0.12)";
+                    e.currentTarget.style.boxShadow = isPlaying
+                      ? "0 0 12px rgba(34, 211, 238, 0.4)"
+                      : "none";
+                  }}
+                  title={isPlaying ? "Pause" : "Watch launch cinematic"}
+                >
+                  {isPlaying ? "\u23F8" : "\u25B6"}
+                </button>
+              )}
+
+              {/* Info button — shows for launches with flightHistory or details/webcast */}
+              {(launch.flightHistory || launch.webcastUrl || launch.details) && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setInfoPanelLaunchId(
+                      infoPanelLaunchId === launch.id ? null : launch.id
+                    );
+                  }}
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background:
+                      infoPanelLaunchId === launch.id
+                        ? "rgba(34, 211, 238, 0.25)"
+                        : "rgba(255, 255, 255, 0.06)",
+                    border: `1px solid ${
+                      infoPanelLaunchId === launch.id
+                        ? "rgba(34, 211, 238, 0.5)"
+                        : "rgba(255, 255, 255, 0.1)"
+                    }`,
+                    color:
+                      infoPanelLaunchId === launch.id ? "#22d3ee" : "#94a3b8",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    flexShrink: 0,
+                    transition: "all 0.2s ease",
+                    padding: 0,
+                    fontFamily: "serif",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (infoPanelLaunchId !== launch.id) {
+                      e.currentTarget.style.background =
+                        "rgba(34, 211, 238, 0.12)";
+                      e.currentTarget.style.color = "#22d3ee";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (infoPanelLaunchId !== launch.id) {
+                      e.currentTarget.style.background =
+                        "rgba(255, 255, 255, 0.06)";
+                      e.currentTarget.style.color = "#94a3b8";
+                    }
+                  }}
+                  title="View flight details"
+                >
+                  {"i"}
+                </button>
+              )}
+
+              {/* Jellyfish badge */}
+              {hasJellyfish && (
+                <span
+                  style={{
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                    fontSize: "9px",
+                    fontWeight: 600,
+                    background:
+                      launch.jellyfish!.potential === "high"
+                        ? "rgba(168, 85, 247, 0.15)"
+                        : "rgba(168, 85, 247, 0.08)",
+                    border: `1px solid ${
+                      launch.jellyfish!.potential === "high"
+                        ? "rgba(168, 85, 247, 0.4)"
+                        : "rgba(168, 85, 247, 0.2)"
+                    }`,
+                    color:
+                      launch.jellyfish!.potential === "high"
+                        ? "#c084fc"
+                        : "#a78bfa",
+                    flexShrink: 0,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  JF
+                </span>
+              )}
+
+              <span className={`badge ${status.className}`}>{status.label}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Details grid */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "2px 12px",
             fontSize: "11px",
             color: "#94a3b8",
-            lineHeight: 1.5,
           }}
         >
-          {launch.payloadOrbit && (
-            <div style={{ marginBottom: "4px" }}>
-              <span style={{ color: "#64748b" }}>Orbit: </span>
-              <span style={{ color: accentColor }}>{launch.payloadOrbit}</span>
-            </div>
-          )}
-          {launch.boosterReturn && (
-            <div style={{ marginBottom: "4px" }}>
-              <span style={{ color: "#64748b" }}>Recovery: </span>
-              <span style={{ color: "#f59e0b" }}>
-                {launch.boosterReturn.landingType}
-              </span>
-              {launch.landingZone && (
-                <span style={{ color: "#64748b" }}> ({launch.landingZone})</span>
-              )}
-            </div>
-          )}
-          {/* Core info — show booster serial and reuse count */}
-          {launch.cores && launch.cores.length > 0 && launch.cores[0].core_serial && (
-            <div style={{ marginBottom: "4px" }}>
-              <span style={{ color: "#64748b" }}>Booster: </span>
-              <span style={{ color: "#22d3ee", fontFamily: "monospace", fontWeight: 600, fontSize: "10px" }}>
-                {launch.cores[0].core_serial}
-              </span>
-              {launch.cores[0].core_flight_number && (
-                <span style={{ color: "#64748b" }}> (Flight #{launch.cores[0].core_flight_number})</span>
-              )}
-            </div>
-          )}
-          {/* Failure summary */}
-          {launch.failureSummary && (
-            <div style={{ color: "#fca5a5", marginBottom: "4px", fontSize: "10px" }}>
-              {launch.failureSummary}
-            </div>
-          )}
-          {launch.details && (
-            <div style={{ color: "#64748b" }}>{launch.details}</div>
-          )}
-          {!launch.details && !launch.payloadOrbit && !launch.failureSummary && (
-            <div style={{ color: "#475569", fontStyle: "italic" }}>
-              No additional details available
-            </div>
-          )}
-
-          {/* Jellyfish details panel */}
-          {hasJellyfish && (
-            <div
-              style={{
-                marginTop: "10px",
-                paddingTop: "10px",
-                paddingBottom: "2px",
-                paddingLeft: "10px",
-                borderLeft: "3px solid #a855f7",
-                borderTop: "1px solid rgba(168, 85, 247, 0.15)",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 700,
-                  color: "#c084fc",
-                  marginBottom: "6px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Jellyfish Predictor:{" "}
-                {launch.jellyfish!.apiLabel
-                  ? launch.jellyfish!.apiLabel.toUpperCase()
-                  : launch.jellyfish!.potential === "high" ? "LIKELY" : "POSSIBLE"}
-              </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "3px 8px",
-                  fontSize: "10px",
-                  color: "#94a3b8",
-                }}
-              >
-                <div>
-                  <span style={{ color: "#64748b" }}>Sun: </span>
-                  <span style={{ color: "#c084fc" }}>
-                    {launch.jellyfish!.sunAltitude}°
-                  </span>
-                </div>
-                <div>
-                  <span style={{ color: "#64748b" }}>Phase: </span>
-                  <span style={{ color: "#c084fc", textTransform: "capitalize" }}>
-                    {launch.jellyfish!.twilightPhase}
-                  </span>
-                </div>
-              </div>
-              <div
-                style={{
-                  marginTop: "5px",
-                  fontSize: "10px",
-                  color: "#64748b",
-                  lineHeight: 1.4,
-                }}
-              >
-                {launch.jellyfish!.description}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Mobile inline expansion — full InfoPanelContent */}
-      {isMobile && expanded && isSelected && (
-        <div
-          style={{
-            marginTop: "10px",
-            paddingTop: "10px",
-            borderTop: "1px solid rgba(255, 255, 255, 0.06)",
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <InfoPanelContent launch={launch} />
-          {/* Collapse button */}
-          <div
-            style={{
-              textAlign: "center",
-              marginTop: "8px",
-              paddingTop: "8px",
-              borderTop: "1px solid rgba(255, 255, 255, 0.06)",
-            }}
-          >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setExpanded(false);
-              }}
-              style={{
-                background: "rgba(255, 255, 255, 0.04)",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
-                borderRadius: "6px",
-                padding: "6px 16px",
-                color: "#94a3b8",
-                cursor: "pointer",
-                fontSize: "11px",
-                fontWeight: 500,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
-              {/* Chevron up */}
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="18 15 12 9 6 15" />
-              </svg>
-              Collapse
-            </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <span style={{ opacity: 0.5 }}>📅</span>
+            {formatDate(launch.dateUtc)}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <span style={{ opacity: 0.5 }}>🕐</span>
+            {formatTime(launch.dateUtc)}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <span style={{ opacity: 0.5 }}>📍</span>
+            {launch.launchSite.name}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <span style={{ opacity: 0.5 }}>🚀</span>
+            {launch.rocketType}
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Expanded details — shown when card is selected */}
+        {isSelected && (
+          <div
+            style={{
+              marginTop: "10px",
+              paddingTop: "10px",
+              borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+              fontSize: "11px",
+              color: "#94a3b8",
+              lineHeight: 1.5,
+            }}
+          >
+            {launch.payloadOrbit && (
+              <div style={{ marginBottom: "4px" }}>
+                <span style={{ color: "#64748b" }}>Orbit: </span>
+                <span style={{ color: accentColor }}>{launch.payloadOrbit}</span>
+              </div>
+            )}
+            {launch.boosterReturn && (
+              <div style={{ marginBottom: "4px" }}>
+                <span style={{ color: "#64748b" }}>Recovery: </span>
+                <span style={{ color: "#f59e0b" }}>
+                  {launch.boosterReturn.landingType}
+                </span>
+                {launch.landingZone && (
+                  <span style={{ color: "#64748b" }}> ({launch.landingZone})</span>
+                )}
+              </div>
+            )}
+            {/* Core info — show booster serial and reuse count */}
+            {launch.cores && launch.cores.length > 0 && launch.cores[0].core_serial && (
+              <div style={{ marginBottom: "4px" }}>
+                <span style={{ color: "#64748b" }}>Booster: </span>
+                <span style={{ color: "#22d3ee", fontFamily: "monospace", fontWeight: 600, fontSize: "10px" }}>
+                  {launch.cores[0].core_serial}
+                </span>
+                {launch.cores[0].core_flight_number && (
+                  <span style={{ color: "#64748b" }}> (Flight #{launch.cores[0].core_flight_number})</span>
+                )}
+              </div>
+            )}
+            {/* Failure summary */}
+            {launch.failureSummary && (
+              <div style={{ color: "#fca5a5", marginBottom: "4px", fontSize: "10px" }}>
+                {launch.failureSummary}
+              </div>
+            )}
+            {launch.details && (
+              <div style={{ color: "#64748b" }}>{launch.details}</div>
+            )}
+            {!launch.details && !launch.payloadOrbit && !launch.failureSummary && (
+              <div style={{ color: "#475569", fontStyle: "italic" }}>
+                No additional details available
+              </div>
+            )}
+
+            {/* Jellyfish details panel */}
+            {hasJellyfish && (
+              <div
+                style={{
+                  marginTop: "10px",
+                  paddingTop: "10px",
+                  paddingBottom: "2px",
+                  paddingLeft: "10px",
+                  borderLeft: "3px solid #a855f7",
+                  borderTop: "1px solid rgba(168, 85, 247, 0.15)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    color: "#c084fc",
+                    marginBottom: "6px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  Jellyfish Predictor:{" "}
+                  {launch.jellyfish!.apiLabel
+                    ? launch.jellyfish!.apiLabel.toUpperCase()
+                    : launch.jellyfish!.potential === "high" ? "LIKELY" : "POSSIBLE"}
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "3px 8px",
+                    fontSize: "10px",
+                    color: "#94a3b8",
+                  }}
+                >
+                  <div>
+                    <span style={{ color: "#64748b" }}>Sun: </span>
+                    <span style={{ color: "#c084fc" }}>
+                      {launch.jellyfish!.sunAltitude}°
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ color: "#64748b" }}>Phase: </span>
+                    <span style={{ color: "#c084fc", textTransform: "capitalize" }}>
+                      {launch.jellyfish!.twilightPhase}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    marginTop: "5px",
+                    fontSize: "10px",
+                    color: "#64748b",
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {launch.jellyfish!.description}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </>
   );
 }

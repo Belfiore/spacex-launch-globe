@@ -8,12 +8,12 @@ interface Props {
   onDismiss: () => void;
 }
 
-/* ── Combined rocket + globe icon ─────────────────────────── */
+/* ── Combined rocket + globe icon (48px, centered above title) ── */
 function RocketGlobeIcon() {
   return (
     <svg
-      width="32"
-      height="32"
+      width="48"
+      height="48"
       viewBox="0 0 32 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -46,11 +46,11 @@ function SmallRocketIcon() {
 
 /* ── Feature list items ───────────────────────────────────── */
 const FEATURES = [
-  { icon: "🌍", text: "Visualize the trajectory of past, present & future launches" },
-  { icon: "📅", text: "Watch the full SpaceX flight schedule on a live timeline" },
-  { icon: "🚢", text: "See where autonomous drone ship barges are positioned and where boosters land" },
-  { icon: "📊", text: "Browse launch history — successes, failures, and mission context" },
-  { icon: "🔍", text: "Detailed information on every individual launch" },
+  "Visualize the trajectory of past, present & future launches",
+  "Watch the full SpaceX flight schedule on a live timeline",
+  "See where autonomous drone ship barges are positioned and where boosters land",
+  "Browse launch history — successes, failures, and mission context",
+  "Detailed information on every individual launch",
 ];
 
 export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
@@ -59,6 +59,7 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
   const ctaRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const [ctaHovered, setCtaHovered] = useState(false);
+  const [jellyfishHovered, setJellyfishHovered] = useState(false);
 
   // Delay entry by 500ms
   useEffect(() => {
@@ -129,7 +130,7 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
         }}
       >
         {/* Icon */}
-        <div style={{ textAlign: "center", marginBottom: 12 }}>
+        <div style={{ textAlign: "center", marginBottom: 16 }}>
           <RocketGlobeIcon />
         </div>
 
@@ -151,7 +152,7 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
         {/* Subtitle */}
         <p
           style={{
-            fontSize: 13,
+            fontSize: 14,
             color: "#64748b",
             textAlign: "center",
             marginBottom: 20,
@@ -165,58 +166,77 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 10,
-            marginBottom: 16,
+            gap: 12,
+            marginBottom: 18,
             padding: "0 4px",
           }}
         >
-          {FEATURES.map((f, i) => (
+          {FEATURES.map((text, i) => (
             <div
               key={i}
               style={{
                 display: "flex",
                 alignItems: "flex-start",
                 gap: 10,
-                fontSize: 13,
+                fontSize: 14,
                 lineHeight: 1.5,
                 color: "#94a3b8",
               }}
             >
-              <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>
-                {f.icon}
-              </span>
-              <span>{f.text}</span>
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "#22d3ee",
+                  flexShrink: 0,
+                  marginTop: 7,
+                }}
+              />
+              <span>{text}</span>
             </div>
           ))}
         </div>
 
         {/* Jellyfish bonus item */}
         <div
+          onMouseEnter={() => setJellyfishHovered(true)}
+          onMouseLeave={() => setJellyfishHovered(false)}
           style={{
             display: "flex",
             alignItems: "flex-start",
             gap: 10,
-            fontSize: 12,
+            fontSize: 13,
             lineHeight: 1.5,
-            color: "#f59e0b",
+            color: "#94a3b8",
             padding: "10px 12px",
-            background: "rgba(245, 158, 11, 0.06)",
+            background: "rgba(168, 85, 247, 0.06)",
             borderRadius: 8,
-            border: "1px solid rgba(245, 158, 11, 0.12)",
+            border: "1px solid rgba(168, 85, 247, 0.12)",
             marginBottom: 24,
+            cursor: jellyfishHovered
+              ? `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text y='28' font-size='28'>%F0%9F%AA%BC</text></svg>") 16 16, auto`
+              : "default",
           }}
         >
-          <span style={{ fontSize: 15, flexShrink: 0, marginTop: 0 }}>
-            {"🪼"}
-          </span>
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: "#c084fc",
+              flexShrink: 0,
+              marginTop: 7,
+            }}
+          />
           <span>
             Check if a launch has a jellyfish visibility prediction — powered by{" "}
             <a
-              href="https://www.jellyfishapp.com"
+              href="https://jellyfish.johnkrausphotos.com/"
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                color: "#f59e0b",
+                color: "#c084fc",
                 textDecoration: "underline",
                 textUnderlineOffset: 2,
               }}

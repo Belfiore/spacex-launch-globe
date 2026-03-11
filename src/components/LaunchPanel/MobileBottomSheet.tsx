@@ -108,7 +108,7 @@ export default function MobileBottomSheet() {
         setTimelineDate(new Date(launch.dateUtc));
         setTrajectoryProgress(1);
         setOrbitCenter("launch");
-        // Don't auto-close — card expands inline to show details
+        setMobileSheetExpanded(false); // Collapse sheet so user sees globe
       } else {
         setCameraTarget(null);
         setTrajectoryProgress(0);
