@@ -75,7 +75,7 @@ export function useGlobeCamera(
       // On mobile, offset camera position south so the launch site appears
       // in the upper portion of the viewport (above the bottom dock UI)
       const isMobileView = typeof window !== "undefined" && window.innerWidth < 768;
-      const latOffset = isMobileView ? -5 : 0;
+      const latOffset = isMobileView ? -10 : 0;
 
       const sitePos = latLngToVector3(
         cameraTarget.lat + latOffset,

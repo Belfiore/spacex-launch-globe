@@ -261,8 +261,8 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
         padding: isMobile ? "4px 12px 6px" : "8px 24px 12px",
         userSelect: "none",
         transition: "transform 0.3s ease, opacity 0.3s ease",
-        transform: focusMode || (!isInline && !timelineVisible) ? "translateY(100%)" : "translateY(0)",
-        opacity: focusMode || (!isInline && !timelineVisible) ? 0 : 1,
+        transform: focusMode || (!isInline && isMobile && !timelineVisible) ? "translateY(100%)" : "translateY(0)",
+        opacity: focusMode || (!isInline && isMobile && !timelineVisible) ? 0 : 1,
       }}
     >
       {/* Date display + year selector */}

@@ -8,7 +8,7 @@ import { getSiteAccentColor, SITE_GROUPS } from "@/lib/constants";
 /** Gap between cards in the carousel strip */
 const CARD_GAP = 8;
 /** How much of prev/next card peeks from the edges */
-const PEEK = 40;
+const PEEK = 24;
 
 interface MiniLaunchCardProps {
   renderMode?: "fixed" | "inline";
