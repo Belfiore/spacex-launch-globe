@@ -13,6 +13,7 @@ import Wordmark from "@/components/Entry/Wordmark";
 
 import MiniTimeline from "@/components/UI/MiniTimeline";
 import InfoPanel from "@/components/InfoPanel/InfoPanel";
+import MobileBottomSheet from "@/components/LaunchPanel/MobileBottomSheet";
 
 const Globe = dynamic(() => import("@/components/Globe/Globe"), {
   ssr: false,
@@ -93,6 +94,7 @@ export default function Home() {
       <LaunchPanel />
       <MiniLaunchCard />
       <Timeline />
+      <MobileBottomSheet />
       <CinematicEntry />
 
       {/* Focus mode exit button */}

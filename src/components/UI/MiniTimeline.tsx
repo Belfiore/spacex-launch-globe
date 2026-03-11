@@ -75,7 +75,11 @@ function formatT(seconds: number): string {
 /** Mini timeline playback speed: 20x real time => 15-min mission plays in ~45 seconds */
 const MINI_PLAYBACK_SPEED = 20;
 
-export default function MiniTimeline() {
+interface MiniTimelineProps {
+  renderMode?: "fixed" | "inline";
+}
+
+export default function MiniTimeline({ renderMode = "fixed" }: MiniTimelineProps) {
   const selectedLaunch = useAppStore((s) => s.selectedLaunch);
   const timelineDate = useAppStore((s) => s.timelineDate);
   const setTimelineDate = useAppStore((s) => s.setTimelineDate);
@@ -250,6 +254,10 @@ export default function MiniTimeline() {
   const focusMode = useAppStore((s) => s.focusMode);
   const isMobile = useIsMobile();
 
+  const isInline = renderMode === "inline";
+
+  // Mobile uses MobileBottomSheet (inline mode) — hide standalone fixed instance
+  if (renderMode === "fixed" && isMobile) return null;
   if (!selectedLaunch || displayT === null || phases.length === 0) return null;
 
   const maxPhaseT = phases[phases.length - 1].tSeconds;
@@ -261,16 +269,17 @@ export default function MiniTimeline() {
   return (
     <div
       style={{
-        position: "fixed",
-        bottom: isMobile ? "68px" : "92px",
-        left: "50%",
-        transform: "translateX(-50%)",
-        width: isMobile ? "90vw" : "auto",
-        zIndex: 45,
+        position: isInline ? "relative" : "fixed",
+        bottom: isInline ? undefined : (isMobile ? "68px" : "92px"),
+        left: isInline ? undefined : "50%",
+        transform: isInline ? undefined : "translateX(-50%)",
+        width: isInline ? "100%" : (isMobile ? "90vw" : "auto"),
+        zIndex: isInline ? undefined : 45,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: "3px",
+        gap: "6px",
+        padding: isInline ? "6px 12px" : undefined,
         transition: "opacity 0.3s ease",
         opacity: focusMode ? 0 : 1,
         pointerEvents: focusMode ? "none" : "auto",
@@ -322,33 +331,36 @@ export default function MiniTimeline() {
           color: "#94a3b8",
         }}
       >
-        <button
-          onClick={handlePlayPause}
-          style={{
-            background: miniTimelinePlaying
-              ? "rgba(34, 211, 238, 0.25)"
-              : "rgba(34, 211, 238, 0.15)",
-            border: "1px solid rgba(34, 211, 238, 0.5)",
-            borderRadius: "50%",
-            width: isMobile ? "30px" : "36px",
-            height: isMobile ? "30px" : "36px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            color: "#22d3ee",
-            fontSize: "16px",
-            padding: 0,
-            pointerEvents: "auto",
-            boxShadow: "0 0 12px rgba(34, 211, 238, 0.4)",
-            animation: miniTimelinePlaying
-              ? "miniPlayPulse 2s ease-in-out infinite"
-              : "none",
-            transition: "all 0.2s ease",
-          }}
-        >
-          {miniTimelinePlaying ? "\u23F8" : "\u25B6"}
-        </button>
+        {/* Play button — hidden in inline/mobile mode (MiniLaunchCard has the play button) */}
+        {!isInline && (
+          <button
+            onClick={handlePlayPause}
+            style={{
+              background: miniTimelinePlaying
+                ? "rgba(34, 211, 238, 0.25)"
+                : "rgba(34, 211, 238, 0.15)",
+              border: "1px solid rgba(34, 211, 238, 0.5)",
+              borderRadius: "50%",
+              width: isMobile ? "30px" : "36px",
+              height: isMobile ? "30px" : "36px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#22d3ee",
+              fontSize: "16px",
+              padding: 0,
+              pointerEvents: "auto",
+              boxShadow: "0 0 12px rgba(34, 211, 238, 0.4)",
+              animation: miniTimelinePlaying
+                ? "miniPlayPulse 2s ease-in-out infinite"
+                : "none",
+              transition: "all 0.2s ease",
+            }}
+          >
+            {miniTimelinePlaying ? "\u23F8" : "\u25B6"}
+          </button>
+        )}
         <span style={{ color: "#e2e8f0", fontWeight: 600 }}>
           {selectedLaunch.name}
         </span>

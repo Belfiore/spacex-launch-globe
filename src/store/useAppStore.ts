@@ -41,6 +41,11 @@ interface AppState {
   setPanelOpen: (open: boolean) => void;
   togglePanel: () => void;
 
+  // Mobile bottom sheet
+  mobileSheetExpanded: boolean;
+  setMobileSheetExpanded: (expanded: boolean) => void;
+  toggleMobileSheet: () => void;
+
   // Camera
   cameraMode: CameraMode;
   setCameraMode: (mode: CameraMode) => void;
@@ -151,6 +156,11 @@ export const useAppStore = create<AppState>((set) => ({
   panelOpen: false,
   setPanelOpen: (open) => set({ panelOpen: open }),
   togglePanel: () => set((s) => ({ panelOpen: !s.panelOpen })),
+
+  // Mobile bottom sheet
+  mobileSheetExpanded: false,
+  setMobileSheetExpanded: (expanded) => set({ mobileSheetExpanded: expanded }),
+  toggleMobileSheet: () => set((s) => ({ mobileSheetExpanded: !s.mobileSheetExpanded })),
 
   // Camera
   cameraMode: "free",

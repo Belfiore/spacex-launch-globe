@@ -77,12 +77,17 @@ interface TooltipData {
   x: number;
 }
 
-export default function Timeline() {
+interface TimelineProps {
+  renderMode?: "fixed" | "inline";
+}
+
+export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
+  const isInline = renderMode === "inline";
   const timelineHeight = isMobile ? TIMELINE.MOBILE_HEIGHT : TIMELINE.HEIGHT;
 
   const launches = useAppStore((s) => s.launches);
@@ -199,15 +204,18 @@ export default function Timeline() {
     });
   }
 
+  // Mobile uses MobileBottomSheet (inline mode) — hide standalone fixed instance
+  if (renderMode === "fixed" && isMobile) return null;
+
   return (
     <div
       style={{
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
+        position: isInline ? "relative" : "fixed",
+        bottom: isInline ? undefined : 0,
+        left: isInline ? undefined : 0,
+        right: isInline ? undefined : 0,
         height: `${timelineHeight}px`,
-        zIndex: 30,
+        zIndex: isInline ? undefined : 30,
         background: "rgba(18, 24, 41, 0.85)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
@@ -315,6 +323,7 @@ export default function Timeline() {
           position: "relative",
           flex: 1,
           cursor: isDragging ? "grabbing" : "pointer",
+          touchAction: "none",
         }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}

@@ -253,72 +253,7 @@ export default function LaunchPanel() {
 
   return (
     <>
-      {/* ── Mobile: Hamburger button (top-right) ── */}
-      {isMobile && !focusMode && (
-        <button
-          onClick={togglePanel}
-          style={{
-            position: "fixed",
-            top: "16px",
-            right: "16px",
-            zIndex: 55,
-            width: "44px",
-            height: "44px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "5px",
-            borderRadius: "10px",
-            background: hamburgerBg,
-            backdropFilter: "blur(12px)",
-            border: hamburgerBorder,
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-            padding: 0,
-          }}
-        >
-          <span
-            style={{
-              width: "20px",
-              height: "2px",
-              background: barColor,
-              borderRadius: "1px",
-              transition: "all 0.2s ease",
-              transform: panelOpen
-                ? "rotate(45deg) translate(2.5px, 2.5px)"
-                : "none",
-            }}
-          />
-          <span
-            style={{
-              width: "20px",
-              height: "2px",
-              background: barColor,
-              borderRadius: "1px",
-              transition: "all 0.2s ease",
-              opacity: panelOpen ? 0 : 1,
-            }}
-          />
-          <span
-            style={{
-              width: "20px",
-              height: "2px",
-              background: barColor,
-              borderRadius: "1px",
-              transition: "all 0.2s ease",
-              transform: panelOpen
-                ? "rotate(-45deg) translate(2.5px, -2.5px)"
-                : "none",
-            }}
-          />
-        </button>
-      )}
-
-      {/* ── Mobile: backdrop overlay ── */}
-      {isMobile && (
-        <div style={mobileOverlayStyle} onClick={() => setPanelOpen(false)} />
-      )}
+      {/* ── Mobile: hamburger + overlay removed — now handled by MobileBottomSheet ── */}
 
       {/* ── Desktop: Toolbar + Toggle ── */}
       {!isMobile && !focusMode && (
@@ -365,8 +300,8 @@ export default function LaunchPanel() {
         </div>
       )}
 
-      {/* ── Panel (mobile = slide-in from right, desktop = right panel) ── */}
-      <div style={isMobile ? mobileSlideInStyle : desktopPanelStyle}>
+      {/* ── Panel (desktop only — mobile uses MobileBottomSheet) ── */}
+      {!isMobile && <div style={desktopPanelStyle}>
         {/* Header */}
         <div
           style={{
@@ -462,7 +397,7 @@ export default function LaunchPanel() {
             ))
           )}
         </div>
-      </div>
+      </div>}
     </>
   );
 }
