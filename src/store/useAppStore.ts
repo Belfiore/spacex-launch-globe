@@ -101,6 +101,11 @@ interface AppState {
   setFocusMode: (mode: boolean) => void;
   toggleFocusMode: () => void;
 
+  // Timeline visibility
+  timelineVisible: boolean;
+  setTimelineVisible: (visible: boolean) => void;
+  toggleTimeline: () => void;
+
   // Year navigation
   selectedYear: number | "all";
   setSelectedYear: (year: number | "all") => void;
@@ -236,6 +241,11 @@ export const useAppStore = create<AppState>((set) => ({
   focusMode: false,
   setFocusMode: (mode) => set({ focusMode: mode }),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
+
+  // Timeline visibility (hidden by default on load)
+  timelineVisible: false,
+  setTimelineVisible: (visible) => set({ timelineVisible: visible }),
+  toggleTimeline: () => set((s) => ({ timelineVisible: !s.timelineVisible })),
 
   // Year navigation
   selectedYear: "all",

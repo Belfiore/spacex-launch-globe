@@ -67,6 +67,8 @@ export const GLOBE = {
   IDLE_TIMEOUT: 5000, // ms before auto-rotate resumes
   // Looking from the Atlantic (SE of US) toward the East Coast, distance~5
   CAMERA_INITIAL: [-2.0, 2.5, 3.8] as [number, number, number],
+  /** Zoomed-out overview — whole Earth visible, used during intro modal */
+  CAMERA_OVERVIEW: [-3, 4, 7] as [number, number, number],
   FOV: 45,
   /** Central USA (Kansas) — orbit center so camera pivots around launch sites */
   USA_CENTER_LAT: 39.8,

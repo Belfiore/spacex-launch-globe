@@ -241,7 +241,7 @@ function formatFailureCategory(cat: string): string {
   return cat.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function InfoPanelContent({ launch }: { launch: Launch }) {
+export function InfoPanelContent({ launch }: { launch: Launch }) {
   const [videoExpanded, setVideoExpanded] = useState(false);
   const fh = launch.flightHistory;
   const pill = getRocketTypePill(launch.rocketType);

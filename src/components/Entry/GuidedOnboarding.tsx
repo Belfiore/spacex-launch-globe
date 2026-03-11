@@ -26,6 +26,7 @@ export default function GuidedOnboarding({ onComplete }: Props) {
 
   const [show, setShow] = useState(false);
   const [cardRect, setCardRect] = useState<DOMRect | null>(null);
+  const [playBtnRect, setPlayBtnRect] = useState<DOMRect | null>(null);
   const dismissedRef = useRef(false);
   const isMobile = useIsMobile();
 
@@ -89,9 +90,19 @@ export default function GuidedOnboarding({ onComplete }: Props) {
   useEffect(() => {
     if (!targetLaunch || dismissedRef.current) return;
 
-    // Open the panel first (desktop only — use window.innerWidth directly
-    // to avoid the useIsMobile hook's initial false state on SSR)
     const isDesktop = typeof window !== "undefined" && window.innerWidth >= 768;
+    const isMobileView = !isDesktop;
+
+    // Mobile: skip if already shown this session
+    if (isMobileView && typeof sessionStorage !== "undefined") {
+      if (sessionStorage.getItem("rocket-manifest-tooltip-shown") === "1") {
+        dismiss();
+        return;
+      }
+      sessionStorage.setItem("rocket-manifest-tooltip-shown", "1");
+    }
+
+    // Open the panel first (desktop only)
     if (isDesktop) {
       setPanelOpen(true);
     }
@@ -99,20 +110,41 @@ export default function GuidedOnboarding({ onComplete }: Props) {
     const timer = setTimeout(() => {
       if (dismissedRef.current) return;
 
-      // Try to find the card element in the DOM
       if (isDesktop && targetLaunch) {
+        // Desktop: position tooltip next to card
         const cardEl = document.querySelector(
           `[data-launch-id="${targetLaunch.id}"]`
         );
         if (cardEl) {
           setCardRect(cardEl.getBoundingClientRect());
         }
+      } else {
+        // Mobile: position tooltip above play button
+        const playBtn = document.querySelector("[data-play-button]");
+        if (playBtn) {
+          setPlayBtnRect(playBtn.getBoundingClientRect());
+        }
       }
 
       setShow(true);
     }, 800);
 
-    return () => clearTimeout(timer);
+    // Mobile: auto-dismiss after 8s and on any tap
+    let autoDismissTimer: ReturnType<typeof setTimeout> | undefined;
+    const tapDismiss = () => {
+      if (isMobileView) dismiss();
+    };
+
+    if (isMobileView) {
+      autoDismissTimer = setTimeout(dismiss, 8000);
+      window.addEventListener("touchstart", tapDismiss, { once: true });
+    }
+
+    return () => {
+      clearTimeout(timer);
+      if (autoDismissTimer) clearTimeout(autoDismissTimer);
+      window.removeEventListener("touchstart", tapDismiss);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetLaunch?.id]);
 
@@ -143,30 +175,72 @@ export default function GuidedOnboarding({ onComplete }: Props) {
 
   if (!show || !targetLaunch) return null;
 
-  // Position the tooltip to the LEFT of the card (desktop) or bottom (mobile)
-  const tooltipStyle: React.CSSProperties = isMobile
+  // ── Mobile: small tooltip above play button ──
+  if (isMobile) {
+    const tooltipRight = playBtnRect
+      ? window.innerWidth - playBtnRect.right + playBtnRect.width / 2 - 60
+      : 50;
+    const tooltipBottom = playBtnRect
+      ? window.innerHeight - playBtnRect.top + 10
+      : 165;
+
+    return (
+      <div
+        role="tooltip"
+        style={{
+          position: "fixed",
+          bottom: tooltipBottom,
+          right: Math.max(12, tooltipRight),
+          background: "rgba(6, 182, 212, 0.12)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          border: "1px solid rgba(6, 182, 212, 0.35)",
+          borderRadius: 8,
+          padding: "8px 12px",
+          fontSize: 11,
+          color: "#e2e8f0",
+          lineHeight: 1.4,
+          maxWidth: 180,
+          boxShadow:
+            "0 4px 16px rgba(0,0,0,0.5), 0 0 12px rgba(6, 182, 212, 0.1)",
+          zIndex: 82,
+          pointerEvents: "none",
+          animation: "toast-slide-in 0.3s ease-out",
+          textAlign: "center",
+        }}
+        onClick={handleViewTarget}
+      >
+        <span style={{ fontWeight: 600 }}>Tap to watch last rocket launch</span>
+        {/* Downward arrow */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: -6,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: 0,
+            height: 0,
+            borderLeft: "6px solid transparent",
+            borderRight: "6px solid transparent",
+            borderTop: "6px solid rgba(6, 182, 212, 0.35)",
+          }}
+        />
+      </div>
+    );
+  }
+
+  // ── Desktop: tooltip anchored to launch card ──
+  const tooltipStyle: React.CSSProperties = cardRect
     ? {
         position: "fixed",
-        bottom: 80,
-        left: 16,
-        right: 16,
-        top: "auto",
+        top: cardRect.top + cardRect.height / 2 - 28,
+        right: window.innerWidth - cardRect.left + 14,
       }
-    : cardRect
-      ? {
-          position: "fixed",
-          // Anchor to the left edge of the card, vertically centered
-          top: cardRect.top + cardRect.height / 2 - 28,
-          right: window.innerWidth - cardRect.left + 14,
-        }
-      : {
-          // Fallback: right side at panel-level
-          position: "fixed",
-          top: 170,
-          right: 40,
-        };
-
-  const tooltipTitle = isMobile ? "View Most Recent Launch" : "View Next Launch";
+    : {
+        position: "fixed",
+        top: 170,
+        right: 40,
+      };
 
   return (
     <div
@@ -192,8 +266,8 @@ export default function GuidedOnboarding({ onComplete }: Props) {
       }}
       onClick={handleViewTarget}
     >
-      {/* Arrow pointing right toward the card (desktop only) */}
-      {!isMobile && cardRect && (
+      {/* Arrow pointing right toward the card */}
+      {cardRect && (
         <div
           style={{
             position: "absolute",
@@ -212,7 +286,7 @@ export default function GuidedOnboarding({ onComplete }: Props) {
         <span style={{ fontSize: 18 }}>{"🚀"}</span>
         <div>
           <div style={{ fontWeight: 600, marginBottom: 2 }}>
-            {tooltipTitle}
+            View Next Launch
           </div>
           <div style={{ fontSize: 11, color: "#94a3b8" }}>
             {targetLaunch.name} &middot;{" "}

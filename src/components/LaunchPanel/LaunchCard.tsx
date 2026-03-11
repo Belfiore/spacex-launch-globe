@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import type { Launch } from "@/lib/types";
 import { getSiteAccentColor } from "@/lib/constants";
 import { useAppStore } from "@/store/useAppStore";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { InfoPanelContent } from "@/components/InfoPanel/InfoPanel";
 
 interface LaunchCardProps {
   launch: Launch;
@@ -59,6 +61,16 @@ export default function LaunchCard({
   const miniTimelinePlaying = useAppStore((s) => s.miniTimelinePlaying);
   const infoPanelLaunchId = useAppStore((s) => s.infoPanelLaunchId);
   const setInfoPanelLaunchId = useAppStore((s) => s.setInfoPanelLaunchId);
+  const isMobile = useIsMobile();
+  const [expanded, setExpanded] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Collapse when another launch is selected
+  useEffect(() => {
+    if (!isSelected && expanded) {
+      setExpanded(false);
+    }
+  }, [isSelected, expanded]);
 
   // This launch is actively playing if it's selected AND playback/mini is active
   const isPlaying =
@@ -89,9 +101,36 @@ export default function LaunchCard({
     return "none";
   }, [isSelected, isNext, accentColor]);
 
+  const handleCardClick = () => {
+    if (isMobile && isSelected) {
+      // Toggle expansion on mobile when already selected
+      setExpanded((prev) => {
+        const next = !prev;
+        if (next) {
+          // Scroll card to top of scrollable parent
+          setTimeout(() => {
+            cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 50);
+        }
+        return next;
+      });
+    } else if (isMobile) {
+      // First tap on mobile: select + expand
+      onClick();
+      setExpanded(true);
+      setTimeout(() => {
+        cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    } else {
+      // Desktop: normal behavior
+      onClick();
+    }
+  };
+
   return (
     <div
-      onClick={onClick}
+      ref={cardRef}
+      onClick={handleCardClick}
       style={{
         background: isSelected
           ? `${accentColor}0d`
@@ -436,6 +475,55 @@ export default function LaunchCard({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Mobile inline expansion — full InfoPanelContent */}
+      {isMobile && expanded && isSelected && (
+        <div
+          style={{
+            marginTop: "10px",
+            paddingTop: "10px",
+            borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <InfoPanelContent launch={launch} />
+          {/* Collapse button */}
+          <div
+            style={{
+              textAlign: "center",
+              marginTop: "8px",
+              paddingTop: "8px",
+              borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+            }}
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(false);
+              }}
+              style={{
+                background: "rgba(255, 255, 255, 0.04)",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                borderRadius: "6px",
+                padding: "6px 16px",
+                color: "#94a3b8",
+                cursor: "pointer",
+                fontSize: "11px",
+                fontWeight: 500,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              {/* Chevron up */}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="18 15 12 9 6 15" />
+              </svg>
+              Collapse
+            </button>
+          </div>
         </div>
       )}
     </div>

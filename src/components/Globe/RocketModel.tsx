@@ -8,6 +8,7 @@ interface RocketModelProps {
   tangent: THREE.Vector3;
   rocketType: string;
   progress: number;
+  isBooster?: boolean;
 }
 
 /**

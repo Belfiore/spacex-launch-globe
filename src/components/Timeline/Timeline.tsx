@@ -11,11 +11,11 @@ function getTimeRange(selectedYear: number | "all") {
   const currentYear = now.getFullYear();
 
   if (selectedYear === "all") {
-    // All years: ±6 months around now (same as current year view)
+    // All years: ±15 days around now (30-day window)
     const start = new Date(now);
-    start.setMonth(start.getMonth() - TIMELINE.RANGE_MONTHS_PAST);
+    start.setDate(start.getDate() - 15);
     const end = new Date(now);
-    end.setMonth(end.getMonth() + TIMELINE.RANGE_MONTHS_FUTURE);
+    end.setDate(end.getDate() + 15);
     return { start, end, now, isCurrentYear: true };
   } else if (selectedYear === currentYear) {
     // Current year: ±6 months around now
@@ -99,6 +99,7 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
   const setSelectedYear = useAppStore((s) => s.setSelectedYear);
   const availableYears = useAppStore((s) => s.availableYears);
   const focusMode = useAppStore((s) => s.focusMode);
+  const timelineVisible = useAppStore((s) => s.timelineVisible);
 
   // Only compute time range after mount to avoid SSR/client hydration mismatch
   const { start, end, now, isCurrentYear } = useMemo(() => {
@@ -225,8 +226,8 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
         padding: isMobile ? "4px 12px 6px" : "8px 24px 12px",
         userSelect: "none",
         transition: "transform 0.3s ease, opacity 0.3s ease",
-        transform: focusMode ? "translateY(100%)" : "translateY(0)",
-        opacity: focusMode ? 0 : 1,
+        transform: focusMode || (!isInline && !timelineVisible) ? "translateY(100%)" : "translateY(0)",
+        opacity: focusMode || (!isInline && !timelineVisible) ? 0 : 1,
       }}
     >
       {/* Date display + year selector */}

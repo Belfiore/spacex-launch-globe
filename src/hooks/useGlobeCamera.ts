@@ -6,6 +6,7 @@ import * as THREE from "three";
 import type { OrbitControls as OrbitControlsType } from "three-stdlib";
 import { useAppStore } from "@/store/useAppStore";
 import { latLngToVector3, getUSAOrbitTarget } from "@/lib/coordUtils";
+import { GLOBE } from "@/lib/constants";
 
 function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -19,6 +20,7 @@ export function useGlobeCamera(
   const cameraTarget = useAppStore((s) => s.cameraTarget);
   const miniTimelinePlaying = useAppStore((s) => s.miniTimelinePlaying);
   const zoomInRequested = useAppStore((s) => s.zoomInRequested);
+  const entryPhase = useAppStore((s) => s.entryPhase);
 
   // ── Non-cinematic animation refs ────────────────────────────
   const targetPosition = useRef<THREE.Vector3 | null>(null);
@@ -35,30 +37,51 @@ export function useGlobeCamera(
   // OrbitControls target recovery
   const controlsTargetRecovery = useRef(false);
 
-  // ── Intro zoom-in: fly from far space down to normal view ─────
+  // ── Position camera at overview when intro modal shows ─────
+  useEffect(() => {
+    if (entryPhase !== "intro") return;
+
+    const overviewPos = new THREE.Vector3(...GLOBE.CAMERA_OVERVIEW);
+    camera.position.copy(overviewPos);
+    const usaTarget = getUSAOrbitTarget();
+    camera.lookAt(usaTarget);
+    lastLookAt.current.copy(usaTarget);
+  }, [entryPhase, camera]);
+
+  // ── Intro zoom-in: two-phase animation (pullback → zoom-in) ─────
   useEffect(() => {
     if (!zoomInRequested) return;
 
-    // Move camera far out first, then animate to normal position
-    const farPos = new THREE.Vector3(-6.0, 5.5, 9.0); // far in space
-    const normalPos = new THREE.Vector3(-2.0, 2.5, 3.8); // GLOBE.CAMERA_INITIAL
-
-    camera.position.copy(farPos);
+    const currentPos = camera.position.clone();
+    // Phase 1: brief pullback (15% further out for dramatic effect)
+    const pullbackPos = currentPos.clone().multiplyScalar(1.15);
+    const normalPos = new THREE.Vector3(...GLOBE.CAMERA_INITIAL);
     const usaTarget = getUSAOrbitTarget();
-    camera.lookAt(usaTarget);
 
-    targetPosition.current = normalPos;
-    startPosition.current.copy(farPos);
+    // Start Phase 1: fast pullback
+    targetPosition.current = pullbackPos;
+    startPosition.current.copy(currentPos);
     startLookAt.current.copy(usaTarget);
     lastLookAt.current.copy(usaTarget);
     isAnimating.current = true;
     animProgress.current = 0;
-    animSpeed.current = 0.5; // slower for cinematic effect
+    animSpeed.current = 3.0; // fast pullback (~0.3s)
 
     onAnimComplete.current = () => {
-      // Transition from "zooming" to "onboarding"
-      useAppStore.getState().setZoomInRequested(false);
-      useAppStore.getState().setEntryPhase("onboarding");
+      // Phase 2: slow cinematic zoom to normal view
+      targetPosition.current = normalPos;
+      startPosition.current.copy(pullbackPos);
+      startLookAt.current.copy(usaTarget);
+      lastLookAt.current.copy(usaTarget);
+      isAnimating.current = true;
+      animProgress.current = 0;
+      animSpeed.current = 0.5; // slow cinematic zoom-in
+
+      onAnimComplete.current = () => {
+        // Transition from "zooming" to "onboarding"
+        useAppStore.getState().setZoomInRequested(false);
+        useAppStore.getState().setEntryPhase("onboarding");
+      };
     };
   }, [zoomInRequested, camera]);
 

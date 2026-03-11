@@ -13,6 +13,7 @@ interface VehicleModelProps {
   tangent: THREE.Vector3;
   rocketType: string;
   progress: number;
+  isBooster?: boolean;
 }
 
 interface ModelProps {
@@ -298,6 +299,44 @@ function ExhaustEffect({ bodyRadius }: { bodyRadius: number }) {
   );
 }
 
+// ── Booster-Only Model (for returning first-stage) ──────────
+// Renders just the first-stage body cylinder with engine bell.
+// No grid fins, landing legs, side boosters, or interstage ring.
+
+function BoosterModel({ config }: ModelProps) {
+  const { procedural } = config;
+  const { bodyRadius, bodyColor } = procedural;
+  const boosterHeight = procedural.bodyHeight * 0.7;
+
+  return (
+    <group>
+      {/* Tapered cylinder body — slightly narrower at top */}
+      <mesh>
+        <cylinderGeometry args={[bodyRadius * 0.95, bodyRadius, boosterHeight, 12]} />
+        <meshBasicMaterial color={bodyColor} />
+      </mesh>
+
+      {/* Engine bell cone at the base */}
+      <mesh
+        position={[0, -boosterHeight / 2 - 0.007, 0]}
+        rotation={[Math.PI, 0, 0]}
+      >
+        <coneGeometry args={[bodyRadius * 0.8, 0.015, 12]} />
+        <meshBasicMaterial color="#2a2a32" />
+      </mesh>
+
+      {/* Engine glow at base */}
+      <mesh position={[0, -boosterHeight / 2 - 0.002, 0]}>
+        <circleGeometry args={[bodyRadius * 0.6, 12]} />
+        <meshBasicMaterial
+          color="#1a1a22"
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+    </group>
+  );
+}
+
 // ── Main VehicleModel Component ──────────────────────────────
 
 export default function VehicleModel({
@@ -305,6 +344,7 @@ export default function VehicleModel({
   tangent,
   rocketType,
   progress,
+  isBooster,
 }: VehicleModelProps) {
   const config = getVehicleConfig(rocketType);
   const [glbFailed, setGlbFailed] = useState(false);
@@ -331,8 +371,10 @@ export default function VehicleModel({
       position={[position.x, position.y, position.z]}
       quaternion={quaternion}
     >
-      {/* Model — try GLB only if file exists, otherwise procedural */}
-      {config.hasGlb && !glbFailed ? (
+      {/* Model — booster-only for returning first stage, full vehicle otherwise */}
+      {isBooster ? (
+        <BoosterModel {...modelProps} />
+      ) : config.hasGlb && !glbFailed ? (
         <ModelErrorBoundary
           fallback={<ProceduralModel {...modelProps} />}
           onError={() => setGlbFailed(true)}

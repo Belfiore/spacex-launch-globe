@@ -35,6 +35,8 @@ export default function MobileBottomSheet() {
   const closeInfoPanel = useAppStore((s) => s.closeInfoPanel);
   const selectedYear = useAppStore((s) => s.selectedYear);
   const filters = useAppStore((s) => s.filters);
+  const timelineVisible = useAppStore((s) => s.timelineVisible);
+  const toggleTimeline = useAppStore((s) => s.toggleTimeline);
 
   // Swipe-down-to-close on handle
   const handleTouchStartY = useRef(0);
@@ -106,8 +108,7 @@ export default function MobileBottomSheet() {
         setTimelineDate(new Date(launch.dateUtc));
         setTrajectoryProgress(1);
         setOrbitCenter("launch");
-        // Auto-close sheet on selection
-        setMobileSheetExpanded(false);
+        // Don't auto-close — card expands inline to show details
       } else {
         setCameraTarget(null);
         setTrajectoryProgress(0);
@@ -207,13 +208,12 @@ export default function MobileBottomSheet() {
           flexDirection: "column",
         }}
       >
-        {/* List icon button — floats above the dock */}
+        {/* List / Close toggle button — floats above the dock */}
         <button
           onClick={toggleMobileSheet}
           style={{
             position: "absolute",
-            top: mobileSheetExpanded ? undefined : "-52px",
-            bottom: mobileSheetExpanded ? undefined : undefined,
+            top: "-52px",
             left: "12px",
             width: "40px",
             height: "40px",
@@ -229,24 +229,70 @@ export default function MobileBottomSheet() {
             color: mobileSheetExpanded ? "#22d3ee" : "#94a3b8",
             cursor: "pointer",
             zIndex: 46,
-            display: mobileSheetExpanded ? "none" : "flex",
+            display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: "16px",
             padding: 0,
-            transition: "all 0.2s ease",
+            transition: "all 0.25s ease",
+            transform: mobileSheetExpanded ? "rotate(90deg)" : "rotate(0deg)",
           }}
         >
-          {/* List icon SVG */}
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="8" y1="6" x2="21" y2="6" />
-            <line x1="8" y1="12" x2="21" y2="12" />
-            <line x1="8" y1="18" x2="21" y2="18" />
-            <line x1="3" y1="6" x2="3.01" y2="6" />
-            <line x1="3" y1="12" x2="3.01" y2="12" />
-            <line x1="3" y1="18" x2="3.01" y2="18" />
-          </svg>
+          {mobileSheetExpanded ? (
+            /* Close × icon */
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          ) : (
+            /* List icon */
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
+          )}
         </button>
+
+        {/* Timeline toggle button — floats above dock at right */}
+        {!mobileSheetExpanded && (
+          <button
+            onClick={toggleTimeline}
+            style={{
+              position: "absolute",
+              top: "-52px",
+              right: "12px",
+              width: "40px",
+              height: "40px",
+              borderRadius: "10px",
+              background: timelineVisible
+                ? "rgba(34, 211, 238, 0.15)"
+                : "rgba(18, 24, 41, 0.85)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: timelineVisible
+                ? "1px solid rgba(34, 211, 238, 0.3)"
+                : "1px solid rgba(255, 255, 255, 0.08)",
+              color: timelineVisible ? "#22d3ee" : "#94a3b8",
+              cursor: "pointer",
+              zIndex: 46,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 0,
+              transition: "all 0.25s ease",
+            }}
+          >
+            {/* Clock icon */}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </button>
+        )}
 
         {/* Expandable area — launch list */}
         <div
@@ -284,49 +330,22 @@ export default function MobileBottomSheet() {
                 margin: "0 auto 10px",
               }}
             />
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <div>
-                <h2
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 700,
-                    color: "#e2e8f0",
-                    letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                    marginBottom: "2px",
-                  }}
-                >
-                  Launch Manifest
-                </h2>
-                <p style={{ fontSize: "11px", color: "#64748b", margin: 0 }}>
-                  {filteredLaunches.length} of {launches.length} missions
-                </p>
-              </div>
-              <button
-                onClick={() => setMobileSheetExpanded(false)}
+            <div>
+              <h2
                 style={{
-                  width: "36px",
-                  height: "36px",
-                  borderRadius: "8px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "rgba(255, 255, 255, 0.04)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  color: "#94a3b8",
-                  cursor: "pointer",
-                  fontSize: "18px",
-                  padding: 0,
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  color: "#e2e8f0",
+                  letterSpacing: "0.05em",
+                  textTransform: "uppercase",
+                  marginBottom: "2px",
                 }}
               >
-                {"\u00D7"}
-              </button>
+                Launch Manifest
+              </h2>
+              <p style={{ fontSize: "11px", color: "#64748b", margin: 0 }}>
+                {filteredLaunches.length} of {launches.length} missions
+              </p>
             </div>
           </div>
 
@@ -373,19 +392,21 @@ export default function MobileBottomSheet() {
           </div>
         </div>
 
-        {/* ── Dock area — always visible ── */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "4px",
-            background: "rgba(10, 14, 26, 0.6)",
-          }}
-        >
-          <MiniTimeline renderMode="inline" />
-          <MiniLaunchCard renderMode="inline" />
-          <Timeline renderMode="inline" />
-        </div>
+        {/* ── Dock area — hidden when sheet expanded for more list space ── */}
+        {!mobileSheetExpanded && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "4px",
+              background: "rgba(10, 14, 26, 0.6)",
+            }}
+          >
+            <MiniTimeline renderMode="inline" />
+            <MiniLaunchCard renderMode="inline" />
+            {timelineVisible && <Timeline renderMode="inline" />}
+          </div>
+        )}
       </div>
     </>
   );

@@ -8,38 +8,35 @@ interface Props {
   onDismiss: () => void;
 }
 
-function GlobeIcon() {
+/* ── Combined rocket + globe icon ─────────────────────────── */
+function RocketGlobeIcon() {
   return (
     <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
+      width="32"
+      height="32"
+      viewBox="0 0 32 32"
       fill="none"
-      stroke="#06B6D4"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      xmlns="http://www.w3.org/2000/svg"
     >
-      <circle cx="12" cy="12" r="10" />
-      <path d="M2 12h20" />
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+      {/* Globe */}
+      <circle cx="16" cy="16" r="12" stroke="white" strokeWidth="1.2" opacity="0.5" />
+      <path d="M4 16h24" stroke="white" strokeWidth="0.8" opacity="0.3" />
+      <path d="M16 4c2.5 2.5 4 7.5 4 12s-1.5 9.5-4 12c-2.5-2.5-4-7.5-4-12s1.5-9.5 4-12z" stroke="white" strokeWidth="0.8" opacity="0.3" />
+      {/* Rocket */}
+      <path
+        d="M16 6c0 0-4 4-4 10c0 3 1 5 2 6.5l2-2.5l2 2.5c1-1.5 2-3.5 2-6.5c0-6-4-10-4-10z"
+        fill="white"
+        opacity="0.9"
+      />
+      <circle cx="16" cy="14" r="1.5" fill="#0a0e1a" />
     </svg>
   );
 }
 
-function RocketIcon() {
+/* ── Small rocket icon for CTA launch animation ───────────── */
+function SmallRocketIcon() {
   return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#06B6D4"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
       <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
       <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
@@ -47,32 +44,18 @@ function RocketIcon() {
   );
 }
 
-function ClockIcon() {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#06B6D4"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  );
-}
-
+/* ── Feature list items ───────────────────────────────────── */
 const FEATURES = [
-  { icon: <GlobeIcon />, label: "3 Launch Sites" },
-  { icon: <RocketIcon />, label: "Full Mission Profiles" },
-  { icon: <ClockIcon />, label: "Past, Present & Future" },
+  { icon: "🌍", text: "Visualize the trajectory of past, present & future launches" },
+  { icon: "📅", text: "Watch the full SpaceX flight schedule on a live timeline" },
+  { icon: "🚢", text: "See where autonomous drone ship barges are positioned and where boosters land" },
+  { icon: "📊", text: "Browse launch history — successes, failures, and mission context" },
+  { icon: "🔍", text: "Detailed information on every individual launch" },
 ];
 
 export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
   const [visible, setVisible] = useState(false);
+  const [isLaunching, setIsLaunching] = useState(false);
   const ctaRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const [ctaHovered, setCtaHovered] = useState(false);
@@ -99,6 +82,15 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [onDismiss]);
 
+  const handleCTAClick = () => {
+    if (isLaunching) return;
+    setIsLaunching(true);
+    // After micro-animation completes, trigger the camera zoom
+    setTimeout(() => {
+      onStartOnboarding();
+    }, 650);
+  };
+
   if (!visible) return null;
 
   return (
@@ -114,7 +106,6 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
         animation: "modal-enter 0.4s ease-out",
       }}
       onClick={(e) => {
-        // Click outside modal dismisses
         if (e.target === e.currentTarget) onDismiss();
       }}
     >
@@ -124,94 +115,123 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
         aria-modal="true"
         aria-labelledby="intro-heading"
         style={{
-          maxWidth: 520,
+          maxWidth: 480,
           width: "calc(100% - 48px)",
+          maxHeight: "85vh",
+          overflowY: "auto",
           background: "rgba(10, 15, 25, 0.92)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
           borderRadius: 14,
           border: "1px solid rgba(6, 182, 212, 0.15)",
-          padding: "36px 32px 28px",
+          padding: "32px 28px 24px",
           animation: "modal-enter 0.4s ease-out",
         }}
       >
-        {/* Heading */}
+        {/* Icon */}
+        <div style={{ textAlign: "center", marginBottom: 12 }}>
+          <RocketGlobeIcon />
+        </div>
+
+        {/* Title */}
         <h2
           id="intro-heading"
           style={{
-            fontSize: 20,
-            fontWeight: 600,
+            fontSize: 24,
+            fontWeight: 700,
             color: "#e2e8f0",
             letterSpacing: "0.04em",
-            marginBottom: 16,
+            marginBottom: 4,
             textAlign: "center",
           }}
         >
-          Welcome to Rocket Manifest
+          Rocket Manifest
         </h2>
 
-        {/* Body text */}
-        <div
+        {/* Subtitle */}
+        <p
           style={{
-            fontSize: 14,
-            lineHeight: 1.65,
-            color: "#94a3b8",
-            marginBottom: 24,
+            fontSize: 13,
+            color: "#64748b",
+            textAlign: "center",
+            marginBottom: 20,
           }}
         >
-          <p style={{ marginBottom: 12 }}>
-            Explore every SpaceX launch — past, present, and future — visualized
-            on an interactive 3D globe.
-          </p>
-          <p style={{ marginBottom: 0 }}>
-            Watch Falcon 9, Falcon Heavy, and Starship missions lift off from
-            Cape Canaveral, Vandenberg, and Starbase. See full mission profiles
-            including stage separation, booster landings, and orbital insertion.
-          </p>
-        </div>
+          What this does:
+        </p>
 
-        {/* Feature callouts */}
+        {/* Feature list */}
         <div
           style={{
             display: "flex",
-            justifyContent: "center",
-            gap: 28,
-            marginBottom: 28,
-            padding: "16px 0",
-            borderTop: "1px solid rgba(255,255,255,0.06)",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            flexDirection: "column",
+            gap: 10,
+            marginBottom: 16,
+            padding: "0 4px",
           }}
         >
-          {FEATURES.map((f) => (
+          {FEATURES.map((f, i) => (
             <div
-              key={f.label}
+              key={i}
               style={{
                 display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 8,
+                alignItems: "flex-start",
+                gap: 10,
+                fontSize: 13,
+                lineHeight: 1.5,
+                color: "#94a3b8",
               }}
             >
-              {f.icon}
-              <span
-                style={{
-                  fontSize: 11,
-                  color: "#64748b",
-                  letterSpacing: "0.02em",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {f.label}
+              <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>
+                {f.icon}
               </span>
+              <span>{f.text}</span>
             </div>
           ))}
+        </div>
+
+        {/* Jellyfish bonus item */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 10,
+            fontSize: 12,
+            lineHeight: 1.5,
+            color: "#f59e0b",
+            padding: "10px 12px",
+            background: "rgba(245, 158, 11, 0.06)",
+            borderRadius: 8,
+            border: "1px solid rgba(245, 158, 11, 0.12)",
+            marginBottom: 24,
+          }}
+        >
+          <span style={{ fontSize: 15, flexShrink: 0, marginTop: 0 }}>
+            {"🪼"}
+          </span>
+          <span>
+            Check if a launch has a jellyfish visibility prediction — powered by{" "}
+            <a
+              href="https://www.jellyfishapp.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: "#f59e0b",
+                textDecoration: "underline",
+                textUnderlineOffset: 2,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              John Kraus&apos;s Jellyfish Predictor
+            </a>
+          </span>
         </div>
 
         {/* CTA Button */}
         <div style={{ textAlign: "center" }}>
           <button
             ref={ctaRef}
-            onClick={onStartOnboarding}
+            onClick={handleCTAClick}
             onMouseEnter={() => setCtaHovered(true)}
             onMouseLeave={() => setCtaHovered(false)}
             style={{
@@ -222,42 +242,46 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
               padding: "12px 28px",
               fontSize: 14,
               fontWeight: 600,
-              cursor: "pointer",
+              cursor: isLaunching ? "default" : "pointer",
               letterSpacing: "0.02em",
               transition: "transform 0.15s ease, filter 0.15s ease",
-              transform: ctaHovered ? "scale(1.02)" : "scale(1)",
-              filter: ctaHovered ? "brightness(1.1)" : "brightness(1)",
+              transform: ctaHovered && !isLaunching ? "scale(1.02)" : "scale(1)",
+              filter: ctaHovered && !isLaunching ? "brightness(1.1)" : "brightness(1)",
               outline: "none",
+              minWidth: 200,
+              minHeight: 44,
+              position: "relative",
+              overflow: "hidden",
             }}
           >
-            Let&apos;s Start
-          </button>
-        </div>
+            {/* Button text — fades out when launching */}
+            <span
+              style={{
+                display: "inline-block",
+                transition: "all 0.3s ease",
+                opacity: isLaunching ? 0 : 1,
+                transform: isLaunching ? "translateY(-8px)" : "translateY(0)",
+              }}
+            >
+              Let&apos;s explore launches
+            </span>
 
-        {/* Don't show again */}
-        <div style={{ textAlign: "center", marginTop: 14 }}>
-          <button
-            onClick={onDismiss}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#475569",
-              fontSize: 12,
-              cursor: "pointer",
-              padding: "4px 8px",
-              textDecoration: "underline",
-              textDecorationColor: "rgba(71,85,105,0.4)",
-              textUnderlineOffset: 3,
-              transition: "color 0.15s ease",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = "#94a3b8")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "#475569")
-            }
-          >
-            Don&apos;t show this again
+            {/* Rocket icon — fades in and flies up when launching */}
+            <span
+              style={{
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                transform: isLaunching
+                  ? "translate(-50%, -120%)"
+                  : "translate(-50%, 50%)",
+                opacity: isLaunching ? 1 : 0,
+                transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+                color: "#0a0e1a",
+              }}
+            >
+              <SmallRocketIcon />
+            </span>
           </button>
         </div>
       </div>

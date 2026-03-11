@@ -307,9 +307,9 @@ export default function TrajectoryArc({
         <Line points={boosterAllPoints.map(toTuple)} color="#f59e0b" lineWidth={1} transparent opacity={0.15} />
       )}
 
-      {/* Booster rocket model */}
+      {/* Booster rocket model — standalone first-stage body only */}
       {showBoosterReturn && boosterPoint && boosterTangent && boosterProgress < 0.9 && (
-        <RocketModel position={boosterPoint} tangent={boosterTangent} rocketType={launch.rocketType} progress={0.4} />
+        <RocketModel position={boosterPoint} tangent={boosterTangent} rocketType={launch.rocketType} progress={0.4} isBooster />
       )}
 
       {/* Atmospheric reentry glow — visible during booster entry phase */}
@@ -470,7 +470,7 @@ export default function TrajectoryArc({
               <Line points={trailPts} color={accentColor} lineWidth={2} transparent opacity={0.65} />
             )}
             {bPoint && bTangent && bProg < 0.9 && (
-              <RocketModel position={bPoint} tangent={bTangent} rocketType={launch.rocketType} progress={0.4} />
+              <RocketModel position={bPoint} tangent={bTangent} rocketType={launch.rocketType} progress={0.4} isBooster />
             )}
             {/* Landing success flash */}
             {landPos && !entryFailed && (

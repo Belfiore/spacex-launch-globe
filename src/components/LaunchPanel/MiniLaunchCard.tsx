@@ -348,6 +348,7 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
             }}
           >
             <button
+              data-play-button
               onClick={(e) => {
                 e.stopPropagation();
                 handlePlay();
