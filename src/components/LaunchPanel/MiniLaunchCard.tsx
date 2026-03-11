@@ -8,7 +8,7 @@ import { getSiteAccentColor, SITE_GROUPS } from "@/lib/constants";
 /** Gap between cards in the carousel strip */
 const CARD_GAP = 8;
 /** How much of prev/next card peeks from the edges */
-const PEEK = 20;
+const PEEK = 40;
 
 interface MiniLaunchCardProps {
   renderMode?: "fixed" | "inline";
@@ -404,8 +404,7 @@ function CardSlot({
         width: `${cardWidth}px`,
         minWidth: `${cardWidth}px`,
         opacity: dimmed ? 0.45 : 1,
-        transform: dimmed ? "scale(0.96)" : "scale(1)",
-        transition: "opacity 0.2s ease, transform 0.2s ease",
+        transition: "opacity 0.2s ease",
       }}
     >
       <div

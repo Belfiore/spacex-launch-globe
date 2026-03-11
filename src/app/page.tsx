@@ -10,8 +10,6 @@ import Timeline from "@/components/Timeline/Timeline";
 
 import CinematicEntry from "@/components/Entry/CinematicEntry";
 import Wordmark from "@/components/Entry/Wordmark";
-import { useIsMobile } from "@/hooks/useIsMobile";
-
 import MiniTimeline from "@/components/UI/MiniTimeline";
 import InfoPanel from "@/components/InfoPanel/InfoPanel";
 import MobileBottomSheet from "@/components/LaunchPanel/MobileBottomSheet";
@@ -57,51 +55,8 @@ function FocusModeExitButton() {
   );
 }
 
-function TimelineToggleButton() {
-  const timelineVisible = useAppStore((s) => s.timelineVisible);
-  const toggleTimeline = useAppStore((s) => s.toggleTimeline);
-  const focusMode = useAppStore((s) => s.focusMode);
-  const isMobile = useIsMobile();
-
-  // Mobile has its own toggle in MobileBottomSheet
-  if (focusMode || isMobile) return null;
-
-  return (
-    <button
-      onClick={toggleTimeline}
-      style={{
-        position: "fixed",
-        bottom: timelineVisible ? "96px" : "16px",
-        right: "16px",
-        zIndex: 29,
-        width: "36px",
-        height: "36px",
-        borderRadius: "50%",
-        background: timelineVisible
-          ? "rgba(34, 211, 238, 0.15)"
-          : "rgba(10, 14, 26, 0.8)",
-        backdropFilter: "blur(12px)",
-        border: timelineVisible
-          ? "1px solid rgba(34, 211, 238, 0.3)"
-          : "1px solid rgba(255, 255, 255, 0.1)",
-        color: timelineVisible ? "#22d3ee" : "#94a3b8",
-        cursor: "pointer",
-        fontSize: "14px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        transition: "all 0.3s ease",
-      }}
-      title={timelineVisible ? "Hide timeline" : "Show timeline"}
-    >
-      {/* Clock icon */}
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-      </svg>
-    </button>
-  );
-}
+// Timeline toggle removed from desktop — timeline always visible.
+// Mobile/tablet toggle lives in MobileBottomSheet.
 
 export default function Home() {
   useSpaceXData();
@@ -148,8 +103,7 @@ export default function Home() {
       {/* Filter/settings menu — top-right */}
       <MobileFilterMenu />
 
-      {/* Timeline toggle button (desktop only — mobile has its own in MobileBottomSheet) */}
-      <TimelineToggleButton />
+      {/* Timeline always visible on desktop; mobile toggle in MobileBottomSheet */}
 
       {/* Focus mode exit button */}
       <FocusModeExitButton />

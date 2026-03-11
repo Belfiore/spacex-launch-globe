@@ -44,14 +44,8 @@ function SmallRocketIcon() {
   );
 }
 
-/* ── Feature list items ───────────────────────────────────── */
-const FEATURES = [
-  "Visualize the trajectory of past, present & future launches",
-  "Watch the full SpaceX flight schedule on a live timeline",
-  "See where autonomous drone ship barges are positioned and where boosters land",
-  "Browse launch history — successes, failures, and mission context",
-  "Detailed information on every individual launch",
-];
+/* Jellyfish cursor data URI */
+const JELLYFISH_CURSOR = `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text y='28' font-size='28'>%F0%9F%AA%BC</text></svg>") 16 16, auto`;
 
 export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
   const [visible, setVisible] = useState(false);
@@ -59,7 +53,6 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
   const ctaRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const [ctaHovered, setCtaHovered] = useState(false);
-  const [jellyfishHovered, setJellyfishHovered] = useState(false);
 
   // Delay entry by 500ms
   useEffect(() => {
@@ -103,7 +96,7 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "rgba(0, 0, 0, 0.4)",
+        background: "#000000",
         animation: "modal-enter 0.4s ease-out",
       }}
       onClick={(e) => {
@@ -116,7 +109,7 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
         aria-modal="true"
         aria-labelledby="intro-heading"
         style={{
-          maxWidth: 480,
+          maxWidth: 520,
           width: "calc(100% - 48px)",
           maxHeight: "85vh",
           overflowY: "auto",
@@ -125,12 +118,12 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
           WebkitBackdropFilter: "blur(16px)",
           borderRadius: 14,
           border: "1px solid rgba(6, 182, 212, 0.15)",
-          padding: "32px 28px 24px",
+          padding: "40px 36px 32px",
           animation: "modal-enter 0.4s ease-out",
         }}
       >
-        {/* Icon */}
-        <div style={{ textAlign: "center", marginBottom: 16 }}>
+        {/* Icon — centered */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
           <RocketGlobeIcon />
         </div>
 
@@ -138,7 +131,7 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
         <h2
           id="intro-heading"
           style={{
-            fontSize: 24,
+            fontSize: 32,
             fontWeight: 700,
             color: "#e2e8f0",
             letterSpacing: "0.04em",
@@ -152,99 +145,70 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
         {/* Subtitle */}
         <p
           style={{
-            fontSize: 14,
+            fontSize: 18,
             color: "#64748b",
             textAlign: "center",
-            marginBottom: 20,
+            marginBottom: 24,
           }}
         >
           What this does:
         </p>
 
-        {/* Feature list */}
+        {/* Feature list — all items including jellyfish as regular bullets */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 12,
-            marginBottom: 18,
+            gap: 14,
+            marginBottom: 28,
             padding: "0 4px",
           }}
         >
-          {FEATURES.map((text, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 10,
-                fontSize: 14,
-                lineHeight: 1.5,
-                color: "#94a3b8",
-              }}
-            >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: "#22d3ee",
-                  flexShrink: 0,
-                  marginTop: 7,
-                }}
-              />
-              <span>{text}</span>
-            </div>
-          ))}
-        </div>
+          <FeatureBullet text="Visualize the trajectory of past, present & future launches" />
+          <FeatureBullet text="Watch the full SpaceX flight schedule on a live timeline" />
+          <FeatureBullet text="See where autonomous drone ship barges are positioned and where boosters land" />
+          <FeatureBullet text="Browse launch history — successes, failures, and mission context" />
+          <FeatureBullet text="Detailed information on every individual launch" />
 
-        {/* Jellyfish bonus item */}
-        <div
-          onMouseEnter={() => setJellyfishHovered(true)}
-          onMouseLeave={() => setJellyfishHovered(false)}
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 10,
-            fontSize: 13,
-            lineHeight: 1.5,
-            color: "#94a3b8",
-            padding: "10px 12px",
-            background: "rgba(168, 85, 247, 0.06)",
-            borderRadius: 8,
-            border: "1px solid rgba(168, 85, 247, 0.12)",
-            marginBottom: 24,
-            cursor: jellyfishHovered
-              ? `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text y='28' font-size='28'>%F0%9F%AA%BC</text></svg>") 16 16, auto`
-              : "default",
-          }}
-        >
-          <span
+          {/* Jellyfish — same style as other bullets, cursor easter egg on link */}
+          <div
             style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background: "#c084fc",
-              flexShrink: 0,
-              marginTop: 7,
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 12,
+              fontSize: 16,
+              lineHeight: 1.5,
+              color: "#94a3b8",
             }}
-          />
-          <span>
-            Check if a launch has a jellyfish visibility prediction — powered by{" "}
-            <a
-              href="https://jellyfish.johnkrausphotos.com/"
-              target="_blank"
-              rel="noopener noreferrer"
+          >
+            <span
               style={{
-                color: "#c084fc",
-                textDecoration: "underline",
-                textUnderlineOffset: 2,
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: "#22d3ee",
+                flexShrink: 0,
+                marginTop: 9,
               }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              John Kraus&apos;s Jellyfish Predictor
-            </a>
-          </span>
+            />
+            <span>
+              Check if a launch has a jellyfish visibility prediction — powered by{" "}
+              <a
+                href="https://jellyfish.johnkrausphotos.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: "#c084fc",
+                  textDecoration: "underline",
+                  textUnderlineOffset: 2,
+                  cursor: JELLYFISH_CURSOR,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                John Kraus&apos;s Jellyfish Predictor
+              </a>
+            </span>
+          </div>
         </div>
 
         {/* CTA Button */}
@@ -259,8 +223,8 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
               color: "#0a0e1a",
               border: "none",
               borderRadius: 8,
-              padding: "12px 28px",
-              fontSize: 14,
+              padding: "14px 32px",
+              fontSize: 16,
               fontWeight: 600,
               cursor: isLaunching ? "default" : "pointer",
               letterSpacing: "0.02em",
@@ -268,8 +232,8 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
               transform: ctaHovered && !isLaunching ? "scale(1.02)" : "scale(1)",
               filter: ctaHovered && !isLaunching ? "brightness(1.1)" : "brightness(1)",
               outline: "none",
-              minWidth: 200,
-              minHeight: 44,
+              minWidth: 220,
+              minHeight: 48,
               position: "relative",
               overflow: "hidden",
             }}
@@ -305,6 +269,34 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ── Reusable feature bullet ── */
+function FeatureBullet({ text }: { text: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 12,
+        fontSize: 16,
+        lineHeight: 1.5,
+        color: "#94a3b8",
+      }}
+    >
+      <span
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: "50%",
+          background: "#22d3ee",
+          flexShrink: 0,
+          marginTop: 9,
+        }}
+      />
+      <span>{text}</span>
     </div>
   );
 }

@@ -786,8 +786,6 @@ export default function InfoPanel() {
         pointerEvents: isOpen && !focusMode ? "auto" : "none",
       };
 
-  const closeButtonSize = isMobile ? 44 : 28;
-
   return (
     <div style={panelStyle}>
       {/* Header */}
@@ -817,30 +815,85 @@ export default function InfoPanel() {
             {launch?.launchSite.name ?? ""}
           </div>
         </div>
-        <button
-          onClick={closeInfoPanel}
-          style={{
-            width: `${closeButtonSize}px`,
-            height: `${closeButtonSize}px`,
-            borderRadius: "6px",
-            background: "rgba(255, 255, 255, 0.05)",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            color: "#94a3b8",
-            cursor: "pointer",
-            fontSize: isMobile ? "18px" : "14px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-          title="Close info panel"
-        >
-          {"\u00D7"}
-        </button>
+        {/* Close X — mobile only (desktop uses sticky bottom button) */}
+        {isMobile && (
+          <button
+            onClick={closeInfoPanel}
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "6px",
+              background: "rgba(255, 255, 255, 0.05)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              color: "#94a3b8",
+              cursor: "pointer",
+              fontSize: "18px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+            title="Close info panel"
+          >
+            {"\u00D7"}
+          </button>
+        )}
       </div>
 
       {/* Content */}
       {launch && <InfoPanelContent launch={launch} />}
+
+      {/* Desktop: sticky bottom close button */}
+      {!isMobile && (
+        <div
+          style={{
+            position: "sticky",
+            bottom: 0,
+            flexShrink: 0,
+            padding: "12px 16px",
+            borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+            background: "rgba(18, 24, 41, 0.95)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <button
+            onClick={closeInfoPanel}
+            style={{
+              width: "100%",
+              padding: "10px 0",
+              borderRadius: "8px",
+              background: "rgba(255, 255, 255, 0.06)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              color: "#94a3b8",
+              cursor: "pointer",
+              fontSize: "13px",
+              fontWeight: 500,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              transition: "all 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+              e.currentTarget.style.color = "#e2e8f0";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.06)";
+              e.currentTarget.style.color = "#94a3b8";
+            }}
+            title="Close info panel"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+            Close
+          </button>
+        </div>
+      )}
     </div>
   );
 }

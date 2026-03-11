@@ -37,51 +37,35 @@ export function useGlobeCamera(
   // OrbitControls target recovery
   const controlsTargetRecovery = useRef(false);
 
-  // ── Position camera at overview when intro modal shows ─────
-  useEffect(() => {
-    if (entryPhase !== "intro") return;
-
-    const overviewPos = new THREE.Vector3(...GLOBE.CAMERA_OVERVIEW);
-    camera.position.copy(overviewPos);
-    const usaTarget = getUSAOrbitTarget();
-    camera.lookAt(usaTarget);
-    lastLookAt.current.copy(usaTarget);
-  }, [entryPhase, camera]);
-
-  // ── Intro zoom-in: two-phase animation (pullback → zoom-in) ─────
+  // ── Intro zoom-in: single smooth animation from overview → normal ─────
+  // The intro modal sits on an opaque black overlay, so the globe isn't
+  // visible until "Let's explore" is clicked and the overlay fades.
+  // We position the camera at CAMERA_OVERVIEW first, then animate to
+  // CAMERA_INITIAL when the user triggers the zoom.
   useEffect(() => {
     if (!zoomInRequested) return;
 
-    const currentPos = camera.position.clone();
-    // Phase 1: brief pullback (15% further out for dramatic effect)
-    const pullbackPos = currentPos.clone().multiplyScalar(1.15);
+    // Ensure camera starts at the overview position
+    const overviewPos = new THREE.Vector3(...GLOBE.CAMERA_OVERVIEW);
     const normalPos = new THREE.Vector3(...GLOBE.CAMERA_INITIAL);
     const usaTarget = getUSAOrbitTarget();
 
-    // Start Phase 1: fast pullback
-    targetPosition.current = pullbackPos;
-    startPosition.current.copy(currentPos);
-    startLookAt.current.copy(usaTarget);
+    camera.position.copy(overviewPos);
+    camera.lookAt(usaTarget);
     lastLookAt.current.copy(usaTarget);
+
+    // Single-phase cinematic zoom from overview → normal
+    targetPosition.current = normalPos;
+    startPosition.current.copy(overviewPos);
+    startLookAt.current.copy(usaTarget);
     isAnimating.current = true;
     animProgress.current = 0;
-    animSpeed.current = 3.0; // fast pullback (~0.3s)
+    animSpeed.current = 0.6; // smooth zoom-in (~1.7s)
 
     onAnimComplete.current = () => {
-      // Phase 2: slow cinematic zoom to normal view
-      targetPosition.current = normalPos;
-      startPosition.current.copy(pullbackPos);
-      startLookAt.current.copy(usaTarget);
-      lastLookAt.current.copy(usaTarget);
-      isAnimating.current = true;
-      animProgress.current = 0;
-      animSpeed.current = 0.5; // slow cinematic zoom-in
-
-      onAnimComplete.current = () => {
-        // Transition from "zooming" to "onboarding"
-        useAppStore.getState().setZoomInRequested(false);
-        useAppStore.getState().setEntryPhase("onboarding");
-      };
+      // Transition from "zooming" to "onboarding"
+      useAppStore.getState().setZoomInRequested(false);
+      useAppStore.getState().setEntryPhase("onboarding");
     };
   }, [zoomInRequested, camera]);
 

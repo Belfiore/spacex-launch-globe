@@ -42,6 +42,8 @@ export default function MobileFilterMenu() {
     setFocusMode(true);
   }, [setFocusMode]);
 
+  // Mobile/tablet only — desktop has ISS toggle in ControlsPanel
+  if (!isMobile) return null;
   // Hide during loading/intro or when UI is hidden
   if (focusMode || entryPhase !== "complete") return null;
 
