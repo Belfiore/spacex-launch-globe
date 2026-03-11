@@ -12,6 +12,7 @@ import TrajectoryArc from "./TrajectoryArc";
 import CameraController from "./CameraController";
 import DroneShipMarker from "./DroneShipMarker";
 import ISSOrbit from "./ISSOrbit";
+import StarlinkConstellation from "./StarlinkConstellation";
 import SiteLabels from "./SiteLabels";
 import { GLOBE, COLORS } from "@/lib/constants";
 import { getUSAOrbitTarget, latLngToVector3 } from "@/lib/coordUtils";
@@ -25,6 +26,7 @@ function GlobeScene() {
   const setCameraMode = useAppStore((s) => s.setCameraMode);
   const cameraResetCounter = useAppStore((s) => s.cameraResetCounter);
   const showISS = useAppStore((s) => s.showISS);
+  const showStarlink = useAppStore((s) => s.showStarlink);
   const trajectoryProgress = useAppStore((s) => s.trajectoryProgress);
   const orbitCenter = useAppStore((s) => s.orbitCenter);
 
@@ -101,6 +103,9 @@ function GlobeScene() {
 
       {/* ISS orbit ring + station (toggleable) */}
       {showISS && <ISSOrbit />}
+
+      {/* Starlink constellation (toggleable) */}
+      {showStarlink && <StarlinkConstellation />}
 
       {/* Camera Controller */}
       <CameraController controlsRef={controlsRef} />

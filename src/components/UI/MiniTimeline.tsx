@@ -216,12 +216,12 @@ export default function MiniTimeline({ renderMode = "fixed" }: MiniTimelineProps
     toggleMissionPlayback();
   }, [miniTimelinePlaying, toggleMissionPlayback, selectedLaunch]);
 
-  // ── Scrub handler ─────────────────────────────────────────────
-  const handleScrub = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
+  // ── Scrub handler (shared logic for mouse + touch) ──────────
+  const scrubAtClientX = useCallback(
+    (clientX: number) => {
       if (!selectedLaunch || !trackRef.current || phases.length === 0) return;
       const rect = trackRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
+      const x = clientX - rect.left;
       const pct = Math.max(0, Math.min(1, x / rect.width));
       const minT = phases[0].tSeconds;
       const maxT = phases[phases.length - 1].tSeconds;
@@ -237,6 +237,38 @@ export default function MiniTimeline({ renderMode = "fixed" }: MiniTimelineProps
     },
     [selectedLaunch, phases, setTimelineDate]
   );
+
+  const handleScrub = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      scrubAtClientX(e.clientX);
+    },
+    [scrubAtClientX]
+  );
+
+  // ── Touch scrub handlers for mobile ────────────────────────
+  const isScrubbing = useRef(false);
+
+  const handleTrackTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      e.stopPropagation();
+      isScrubbing.current = true;
+      scrubAtClientX(e.touches[0].clientX);
+    },
+    [scrubAtClientX]
+  );
+
+  const handleTrackTouchMove = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      if (!isScrubbing.current) return;
+      e.stopPropagation();
+      scrubAtClientX(e.touches[0].clientX);
+    },
+    [scrubAtClientX]
+  );
+
+  const handleTrackTouchEnd = useCallback(() => {
+    isScrubbing.current = false;
+  }, []);
 
   // ── Current narration ─────────────────────────────────────────
   const currentNarration = useMemo(() => {
@@ -373,6 +405,9 @@ export default function MiniTimeline({ renderMode = "fixed" }: MiniTimelineProps
       <div
         ref={trackRef}
         onClick={handleScrub}
+        onTouchStart={handleTrackTouchStart}
+        onTouchMove={handleTrackTouchMove}
+        onTouchEnd={handleTrackTouchEnd}
         style={{
           position: "relative",
           width: "min(520px, 70vw)",
@@ -383,6 +418,7 @@ export default function MiniTimeline({ renderMode = "fixed" }: MiniTimelineProps
           backdropFilter: "blur(6px)",
           cursor: "pointer",
           pointerEvents: "auto",
+          touchAction: "none",
         }}
       >
         {/* Track background */}

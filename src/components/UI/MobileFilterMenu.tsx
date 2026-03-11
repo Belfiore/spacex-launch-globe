@@ -49,6 +49,12 @@ export default function MobileFilterMenu() {
 
   return (
     <div ref={menuRef} style={{ position: "fixed", top: 14, right: 14, zIndex: 50 }}>
+      <style>{`
+        @keyframes filter-dropdown-in {
+          from { opacity: 0; transform: scaleY(0.8) scaleX(0.95); }
+          to   { opacity: 1; transform: scaleY(1) scaleX(1); }
+        }
+      `}</style>
       {/* Filter icon button */}
       <button
         onClick={() => setOpen((prev) => !prev)}
@@ -134,7 +140,8 @@ export default function MobileFilterMenu() {
             borderRadius: "12px",
             padding: "8px 0",
             boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
-            animation: "toast-slide-in 0.2s ease-out",
+            animation: "filter-dropdown-in 0.2s ease-out",
+            transformOrigin: "top right",
           }}
         >
           {/* Section label */}
