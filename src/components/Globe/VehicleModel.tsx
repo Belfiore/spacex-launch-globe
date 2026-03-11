@@ -113,7 +113,7 @@ function LandingLeg({
   return (
     <mesh position={position} rotation={rotation}>
       <boxGeometry args={[0.002, 0.025, 0.003]} />
-      <meshBasicMaterial color="#555555" />
+      <meshBasicMaterial color="#c0c0c0" />
     </mesh>
   );
 }
@@ -129,7 +129,7 @@ function ProceduralModel({ config }: ModelProps) {
   const isStarship = procedural.hasFins; // Starship uses fins flag
 
   // Interstage ring color (slightly lighter than body)
-  const interstageColor = isStarship ? "#c8d0dc" : "#3a3a44";
+  const interstageColor = isStarship ? "#d8e0ec" : "#d0d4da";
 
   return (
     <group>
@@ -149,22 +149,22 @@ function ProceduralModel({ config }: ModelProps) {
       <GridFin
         position={[bodyRadius + 0.008, bodyHeight / 2 - 0.01, 0]}
         rotation={[0, 0, 0]}
-        color={isStarship ? "#a0a8b4" : "#2a2a32"}
+        color={isStarship ? "#a0a8b4" : "#b0b8c4"}
       />
       <GridFin
         position={[-(bodyRadius + 0.008), bodyHeight / 2 - 0.01, 0]}
         rotation={[0, 0, 0]}
-        color={isStarship ? "#a0a8b4" : "#2a2a32"}
+        color={isStarship ? "#a0a8b4" : "#b0b8c4"}
       />
       <GridFin
         position={[0, bodyHeight / 2 - 0.01, bodyRadius + 0.008]}
         rotation={[0, Math.PI / 2, 0]}
-        color={isStarship ? "#a0a8b4" : "#2a2a32"}
+        color={isStarship ? "#a0a8b4" : "#b0b8c4"}
       />
       <GridFin
         position={[0, bodyHeight / 2 - 0.01, -(bodyRadius + 0.008)]}
         rotation={[0, Math.PI / 2, 0]}
-        color={isStarship ? "#a0a8b4" : "#2a2a32"}
+        color={isStarship ? "#a0a8b4" : "#b0b8c4"}
       />
 
       {/* Landing legs — 4 legs at the base (F9/FH only, Starship uses tower catch) */}
@@ -193,7 +193,7 @@ function ProceduralModel({ config }: ModelProps) {
       <mesh position={[0, -bodyHeight / 2 - 0.002, 0]}>
         <circleGeometry args={[bodyRadius * 0.75, 12]} />
         <meshBasicMaterial
-          color={isStarship ? "#334455" : "#1a1a22"}
+          color={isStarship ? "#334455" : "#8899aa"}
           side={THREE.DoubleSide}
         />
       </mesh>
@@ -211,12 +211,12 @@ function ProceduralModel({ config }: ModelProps) {
             <GridFin
               position={[0.011, 0.028, 0]}
               rotation={[0, 0, 0]}
-              color="#2a2a32"
+              color="#b0b8c4"
             />
             <GridFin
               position={[-0.011, 0.028, 0]}
               rotation={[0, 0, 0]}
-              color="#2a2a32"
+              color="#b0b8c4"
             />
           </group>
 
@@ -230,12 +230,12 @@ function ProceduralModel({ config }: ModelProps) {
             <GridFin
               position={[0.011, 0.028, 0]}
               rotation={[0, 0, 0]}
-              color="#2a2a32"
+              color="#b0b8c4"
             />
             <GridFin
               position={[-0.011, 0.028, 0]}
               rotation={[0, 0, 0]}
-              color="#2a2a32"
+              color="#b0b8c4"
             />
           </group>
         </>
@@ -322,14 +322,14 @@ function BoosterModel({ config }: ModelProps) {
         rotation={[Math.PI, 0, 0]}
       >
         <coneGeometry args={[bodyRadius * 0.8, 0.015, 12]} />
-        <meshBasicMaterial color="#2a2a32" />
+        <meshBasicMaterial color="#b0b8c4" />
       </mesh>
 
       {/* Engine glow at base */}
       <mesh position={[0, -boosterHeight / 2 - 0.002, 0]}>
         <circleGeometry args={[bodyRadius * 0.6, 12]} />
         <meshBasicMaterial
-          color="#1a1a22"
+          color="#8899aa"
           side={THREE.DoubleSide}
         />
       </mesh>

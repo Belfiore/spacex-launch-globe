@@ -103,9 +103,14 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
   const setTrajectoryProgress = useAppStore((s) => s.setTrajectoryProgress);
   const setOrbitCenter = useAppStore((s) => s.setOrbitCenter);
   const pauseMissionPlayback = useAppStore((s) => s.pauseMissionPlayback);
+  const timelineCinematicPlaying = useAppStore((s) => s.timelineCinematicPlaying);
+  const setTimelineCinematicPlaying = useAppStore((s) => s.setTimelineCinematicPlaying);
+  const setFocusMode = useAppStore((s) => s.setFocusMode);
+  const startMissionPlayback = useAppStore((s) => s.startMissionPlayback);
 
   // Track the last auto-selected launch during scrubbing
   const lastScrubLaunchId = useRef<string | null>(null);
+  const lastCinematicLaunchId = useRef<string | null>(null);
 
   // Only compute time range after mount to avoid SSR/client hydration mismatch
   const { start, end, now, isCurrentYear } = useMemo(() => {
@@ -240,6 +245,86 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
     });
   }
 
+  // ── Cinematic timeline playback ──────────────────────────────
+  const toggleCinematic = useCallback(() => {
+    if (timelineCinematicPlaying) {
+      // Stop cinematic — restore UI
+      setTimelineCinematicPlaying(false);
+      setFocusMode(false);
+      pauseMissionPlayback();
+    } else {
+      // Start cinematic — hide UI, begin from start of range
+      setTimelineCinematicPlaying(true);
+      setFocusMode(true);
+      setTimelineDate(new Date(start));
+      setSelectedLaunch(null);
+      setTrajectoryProgress(0);
+      lastCinematicLaunchId.current = null;
+    }
+  }, [timelineCinematicPlaying, setTimelineCinematicPlaying, setFocusMode, pauseMissionPlayback, setTimelineDate, start, setSelectedLaunch, setTrajectoryProgress]);
+
+  // RAF loop — advance playhead continuously during cinematic mode
+  useEffect(() => {
+    if (!timelineCinematicPlaying || !mounted) return;
+
+    const totalMs = end.getTime() - start.getTime();
+    // Scale duration: ~45s for 30 days, up to ~120s for a full year
+    const rangeDays = totalMs / 86_400_000;
+    const durationSec = Math.min(120, Math.max(45, rangeDays * 0.33));
+    const advancePerMs = totalMs / (durationSec * 1000);
+
+    let animId: number;
+    let prev = performance.now();
+
+    const tick = (now: number) => {
+      const dt = Math.min(now - prev, 100); // cap delta to avoid jumps
+      prev = now;
+
+      const state = useAppStore.getState();
+      const curMs = state.timelineDate.getTime();
+      const nextMs = curMs + dt * advancePerMs;
+
+      if (nextMs >= end.getTime()) {
+        // Reached the end — stop cinematic
+        setTimelineCinematicPlaying(false);
+        setFocusMode(false);
+        pauseMissionPlayback();
+        return;
+      }
+
+      setTimelineDate(new Date(nextMs));
+
+      // Auto-select launches as playhead crosses them
+      for (const launch of visibleLaunches) {
+        const launchMs = new Date(launch.dateUtc).getTime();
+        if (
+          launchMs > curMs &&
+          launchMs <= nextMs &&
+          lastCinematicLaunchId.current !== launch.id
+        ) {
+          lastCinematicLaunchId.current = launch.id;
+          pauseMissionPlayback();
+          setSelectedLaunch(launch);
+          setCameraTarget({
+            lat: launch.launchSite.lat,
+            lng: launch.launchSite.lng,
+          });
+          setOrbitCenter("launch");
+          setTrajectoryProgress(0);
+          setTimeout(() => {
+            useAppStore.getState().startMissionPlayback();
+          }, 80);
+          break;
+        }
+      }
+
+      animId = requestAnimationFrame(tick);
+    };
+
+    animId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animId);
+  }, [timelineCinematicPlaying, mounted, start, end, visibleLaunches, setTimelineDate, setSelectedLaunch, setCameraTarget, setOrbitCenter, setTrajectoryProgress, pauseMissionPlayback, setTimelineCinematicPlaying, setFocusMode]);
+
   // Mobile uses MobileBottomSheet (inline mode) — hide standalone fixed instance
   if (renderMode === "fixed" && isMobile) return null;
 
@@ -261,8 +346,8 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
         padding: isMobile ? "4px 12px 6px" : "8px 24px 12px",
         userSelect: "none",
         transition: "transform 0.3s ease, opacity 0.3s ease",
-        transform: focusMode || (!isInline && isMobile && !timelineVisible) ? "translateY(100%)" : "translateY(0)",
-        opacity: focusMode || (!isInline && isMobile && !timelineVisible) ? 0 : 1,
+        transform: (focusMode && !timelineCinematicPlaying) || (!isInline && isMobile && !timelineVisible) ? "translateY(100%)" : "translateY(0)",
+        opacity: (focusMode && !timelineCinematicPlaying) || (!isInline && isMobile && !timelineVisible) ? 0 : 1,
       }}
     >
       {/* Date display + year selector */}
@@ -336,6 +421,40 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
                   year: "numeric",
                 })}
               </span>
+              {/* Cinematic play/pause button */}
+              <button
+                onClick={toggleCinematic}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: isMobile ? "22px" : "24px",
+                  height: isMobile ? "22px" : "24px",
+                  borderRadius: "50%",
+                  border: timelineCinematicPlaying
+                    ? "1px solid rgba(34, 211, 238, 0.5)"
+                    : "1px solid rgba(255, 255, 255, 0.12)",
+                  background: timelineCinematicPlaying
+                    ? "rgba(34, 211, 238, 0.15)"
+                    : "rgba(255, 255, 255, 0.05)",
+                  color: timelineCinematicPlaying ? "#22d3ee" : "#94a3b8",
+                  cursor: "pointer",
+                  padding: 0,
+                  flexShrink: 0,
+                  transition: "all 0.2s ease",
+                }}
+              >
+                {timelineCinematicPlaying ? (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="5" y="4" width="5" height="16" rx="1" />
+                    <rect x="14" y="4" width="5" height="16" rx="1" />
+                  </svg>
+                ) : (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="6,4 20,12 6,20" />
+                  </svg>
+                )}
+              </button>
             </div>
             <span style={{ fontSize: "10px", color: "#475569" }}>
               {start.toLocaleDateString("en-US", {

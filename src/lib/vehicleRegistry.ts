@@ -51,8 +51,8 @@ export const VEHICLE_REGISTRY: Partial<Record<VehicleFamily, VehicleConfig>> & R
     procedural: {
       bodyRadius: 0.012,
       bodyHeight: 0.095,
-      bodyColor: "#1e1e24",
-      noseColor: "#e0e0e0",
+      bodyColor: "#e8ecf0",
+      noseColor: "#ffffff",
       hasSideBoosters: false,
       hasFins: false,
     },
@@ -74,8 +74,8 @@ export const VEHICLE_REGISTRY: Partial<Record<VehicleFamily, VehicleConfig>> & R
     procedural: {
       bodyRadius: 0.012,
       bodyHeight: 0.095,
-      bodyColor: "#1e1e24",
-      noseColor: "#e0e0e0",
+      bodyColor: "#e8ecf0",
+      noseColor: "#ffffff",
       hasSideBoosters: true,
       hasFins: false,
     },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback, useMemo } from "react";
+import { useRef, useCallback, useMemo, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { SITE_GROUPS } from "@/lib/constants";
@@ -37,6 +37,7 @@ export default function MobileBottomSheet() {
   const filters = useAppStore((s) => s.filters);
   const timelineVisible = useAppStore((s) => s.timelineVisible);
   const toggleTimeline = useAppStore((s) => s.toggleTimeline);
+  const resetFilters = useAppStore((s) => s.resetFilters);
 
   // Swipe-down-to-close on handle
   const handleTouchStartY = useRef(0);
@@ -177,6 +178,40 @@ export default function MobileBottomSheet() {
     }
     handleTouchDeltaY.current = 0;
   }, [setMobileSheetExpanded]);
+
+  // Auto-scroll to next upcoming launch when sheet expands
+  useEffect(() => {
+    if (!mobileSheetExpanded || !scrollRef.current || !nextUpcoming) return;
+    const timer = setTimeout(() => {
+      const el = scrollRef.current?.querySelector(
+        `[data-launch-id="${nextUpcoming.id}"]`
+      );
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 350); // wait for expand animation
+    return () => clearTimeout(timer);
+  }, [mobileSheetExpanded, nextUpcoming]);
+
+  // Go to next launch — clears filters and scrolls to next upcoming
+  const goToNextLaunch = useCallback(() => {
+    resetFilters();
+    // Find the next upcoming in the full list (after filters cleared)
+    const now = Date.now();
+    const next = launches.find(
+      (l) => l.status === "upcoming" && new Date(l.dateUtc).getTime() > now
+    );
+    if (!next) return;
+    // Wait for filter reset to propagate, then scroll
+    setTimeout(() => {
+      const el = scrollRef.current?.querySelector(
+        `[data-launch-id="${next.id}"]`
+      );
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 100);
+  }, [resetFilters, launches]);
 
   if (!isMobile || focusMode) return null;
 
@@ -330,22 +365,42 @@ export default function MobileBottomSheet() {
                 margin: "0 auto 10px",
               }}
             />
-            <div>
-              <h2
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <h2
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    color: "#e2e8f0",
+                    letterSpacing: "0.05em",
+                    textTransform: "uppercase",
+                    marginBottom: "2px",
+                  }}
+                >
+                  Launch Manifest
+                </h2>
+                <p style={{ fontSize: "11px", color: "#64748b", margin: 0 }}>
+                  {filteredLaunches.length} of {launches.length} missions
+                </p>
+              </div>
+              <button
+                onClick={goToNextLaunch}
                 style={{
-                  fontSize: "14px",
-                  fontWeight: 700,
-                  color: "#e2e8f0",
-                  letterSpacing: "0.05em",
-                  textTransform: "uppercase",
-                  marginBottom: "2px",
+                  background: "rgba(34, 211, 238, 0.1)",
+                  border: "1px solid rgba(34, 211, 238, 0.25)",
+                  borderRadius: "6px",
+                  padding: "4px 10px",
+                  fontSize: "10px",
+                  fontWeight: 600,
+                  color: "#22d3ee",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  letterSpacing: "0.03em",
+                  flexShrink: 0,
                 }}
               >
-                Launch Manifest
-              </h2>
-              <p style={{ fontSize: "11px", color: "#64748b", margin: 0 }}>
-                {filteredLaunches.length} of {launches.length} missions
-              </p>
+                Next Launch ↓
+              </button>
             </div>
           </div>
 

@@ -228,6 +228,14 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
     setActiveIdx(currentIdx);
   }, [currentIdx]);
 
+  // Index of next upcoming launch (for NEXT LAUNCH tag)
+  const nextUpcomingIdx = useMemo(() => {
+    const now = Date.now();
+    return filteredLaunches.findIndex(
+      (l) => l.status === "upcoming" && new Date(l.dateUtc).getTime() > now
+    );
+  }, [filteredLaunches]);
+
   // Is this launch currently playing?
   const displayLaunch = filteredLaunches[activeIdx];
   const isPlaying = displayLaunch && selectedLaunch?.id === displayLaunch.id && miniTimelinePlaying;
@@ -262,35 +270,41 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
           msOverflowStyle: "none",
         }}
       >
-        {filteredLaunches.map((launch, idx) => (
-          <CardSlot
-            key={launch.id}
-            launch={launch}
-            cardWidthCalc={cardWidthCalc}
-            isActive={idx === activeIdx}
-            onTap={() => {
-              if (idx !== activeIdx) {
-                // Scroll to tapped card
-                const el = scrollRef.current;
-                const cardEl = el?.children[idx] as HTMLElement | undefined;
-                if (cardEl) {
-                  programmaticScrollRef.current = true;
-                  cardEl.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-                  setTimeout(() => { programmaticScrollRef.current = false; }, 500);
+        {filteredLaunches.map((launch, idx) => {
+          const isNext = nextUpcomingIdx >= 0 && idx === nextUpcomingIdx;
+          return (
+            <CardSlot
+              key={launch.id}
+              launch={launch}
+              cardWidthCalc={cardWidthCalc}
+              isActive={idx === activeIdx}
+              isNext={isNext}
+              onTap={() => {
+                if (idx !== activeIdx) {
+                  // Scroll to tapped card — animate only, select after scroll completes
+                  const el = scrollRef.current;
+                  const cardEl = el?.children[idx] as HTMLElement | undefined;
+                  if (cardEl) {
+                    programmaticScrollRef.current = true;
+                    cardEl.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+                    setTimeout(() => {
+                      programmaticScrollRef.current = false;
+                      selectLaunch(idx);
+                    }, 400);
+                  }
+                  setActiveIdx(idx);
+                } else {
+                  selectLaunch(idx);
                 }
-                setActiveIdx(idx);
-                selectLaunch(idx);
-              } else {
-                selectLaunch(idx);
-              }
-            }}
-            isPlaying={idx === activeIdx && !!isPlaying}
-            onPlay={idx === activeIdx ? handlePlay : undefined}
-            onPause={idx === activeIdx ? handlePause : undefined}
-            onInfoOpen={idx === activeIdx ? handleInfoOpen : undefined}
-            counterText={idx === activeIdx ? `${activeIdx + 1}/${filteredLaunches.length}` : undefined}
-          />
-        ))}
+              }}
+              isPlaying={idx === activeIdx && !!isPlaying}
+              onPlay={idx === activeIdx ? handlePlay : undefined}
+              onPause={idx === activeIdx ? handlePause : undefined}
+              onInfoOpen={idx === activeIdx ? handleInfoOpen : undefined}
+              counterText={idx === activeIdx ? `${activeIdx + 1}/${filteredLaunches.length}` : undefined}
+            />
+          );
+        })}
       </div>
 
       {/* Swipe hint dots */}
@@ -347,6 +361,7 @@ interface CardSlotProps {
   };
   cardWidthCalc: string;
   isActive: boolean;
+  isNext?: boolean;
   onTap: () => void;
   isPlaying?: boolean;
   onPlay?: () => void;
@@ -359,6 +374,7 @@ function CardSlot({
   launch,
   cardWidthCalc,
   isActive,
+  isNext,
   onTap,
   isPlaying,
   onPlay,
@@ -367,7 +383,7 @@ function CardSlot({
   counterText,
 }: CardSlotProps) {
   const accentColor = getSiteAccentColor(launch.launchSite.id);
-  const dimmed = !isActive;
+  const dimmed = false; // Never dim — full visibility for peek cards
 
   const date = new Date(launch.dateUtc);
   const dateStr = date.toLocaleDateString("en-US", {
@@ -408,7 +424,7 @@ function CardSlot({
         onClick={onTap}
       >
         {/* Left: play/pause button (only on active card) */}
-        {!dimmed && onPlay && onPause ? (
+        {isActive && onPlay && onPause ? (
           <button
             data-play-button
             onClick={(e) => {
@@ -459,11 +475,25 @@ function CardSlot({
 
         {/* Center: mission info */}
         <div style={{ flex: 1, minWidth: 0 }}>
+          {isNext && isActive && (
+            <div
+              style={{
+                fontSize: "8px",
+                fontWeight: 700,
+                color: "#22d3ee",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                marginBottom: "1px",
+              }}
+            >
+              NEXT LAUNCH
+            </div>
+          )}
           <div
             style={{
               fontSize: "13px",
               fontWeight: 600,
-              color: dimmed ? "#94a3b8" : "#e2e8f0",
+              color: isActive ? "#e2e8f0" : "#94a3b8",
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -483,7 +513,7 @@ function CardSlot({
             }}
           >
             <span>{dateStr}</span>
-            {!dimmed && (
+            {isActive && (
               <>
                 <span style={{ color: "#475569" }}>|</span>
                 <span>{launch.rocketType}</span>
@@ -497,7 +527,7 @@ function CardSlot({
         </div>
 
         {/* Right: info button + counter (only on active card) */}
-        {!dimmed && onInfoOpen && (
+        {isActive && onInfoOpen && (
           <div
             style={{
               display: "flex",

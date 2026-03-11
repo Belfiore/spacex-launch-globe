@@ -86,6 +86,10 @@ interface AppState {
   zoomInRequested: boolean;
   setZoomInRequested: (val: boolean) => void;
 
+  // Cinematic timeline playback
+  timelineCinematicPlaying: boolean;
+  setTimelineCinematicPlaying: (playing: boolean) => void;
+
   // Filters
   filters: FilterState;
   setFilters: (filters: Partial<FilterState>) => void;
@@ -231,6 +235,10 @@ export const useAppStore = create<AppState>((set) => ({
   setFilters: (filters) =>
     set((s) => ({ filters: { ...s.filters, ...filters } })),
   resetFilters: () => set({ filters: { ...defaultFilters } }),
+
+  // Cinematic timeline playback
+  timelineCinematicPlaying: false,
+  setTimelineCinematicPlaying: (playing) => set({ timelineCinematicPlaying: playing }),
 
   // Info panel
   infoPanelLaunchId: null,

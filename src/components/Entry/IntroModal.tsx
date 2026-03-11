@@ -111,19 +111,20 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
         style={{
           maxWidth: 520,
           width: "calc(100% - 48px)",
-          maxHeight: "85vh",
-          overflowY: "auto",
+          maxHeight: "90dvh",
+          display: "flex",
+          flexDirection: "column" as const,
           background: "rgba(10, 15, 25, 0.92)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
           borderRadius: 14,
           border: "1px solid rgba(6, 182, 212, 0.15)",
-          padding: "40px 36px 32px",
+          padding: "28px 28px 24px",
           animation: "modal-enter 0.4s ease-out",
         }}
       >
         {/* Icon — centered */}
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
           <RocketGlobeIcon />
         </div>
 
@@ -131,7 +132,7 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
         <h2
           id="intro-heading"
           style={{
-            fontSize: 32,
+            fontSize: 26,
             fontWeight: 700,
             color: "#e2e8f0",
             letterSpacing: "0.04em",
@@ -145,10 +146,10 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
         {/* Subtitle */}
         <p
           style={{
-            fontSize: 18,
+            fontSize: 15,
             color: "#64748b",
             textAlign: "center",
-            marginBottom: 24,
+            marginBottom: 16,
           }}
         >
           What this does:
@@ -159,24 +160,24 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 14,
-            marginBottom: 28,
+            gap: 10,
+            marginBottom: 20,
             padding: "0 4px",
           }}
         >
-          <FeatureBullet text="Visualize the trajectory of past, present & future launches" />
-          <FeatureBullet text="Watch the full SpaceX flight schedule on a live timeline" />
-          <FeatureBullet text="See where autonomous drone ship barges are positioned and where boosters land" />
-          <FeatureBullet text="Browse launch history — successes, failures, and mission context" />
-          <FeatureBullet text="Detailed information on every individual launch" />
+          <FeatureBullet text="Visualize trajectories of past, present & future launches" />
+          <FeatureBullet text="Full SpaceX flight schedule on a live timeline" />
+          <FeatureBullet text="See drone ship positions and booster landings" />
+          <FeatureBullet text="Browse launch history \u2014 successes, failures, and context" />
+          <FeatureBullet text="Detailed info on every individual launch" />
 
           {/* Jellyfish — same style as other bullets, cursor easter egg on link */}
           <div
             style={{
               display: "flex",
               alignItems: "flex-start",
-              gap: 12,
-              fontSize: 16,
+              gap: 10,
+              fontSize: 13,
               lineHeight: 1.5,
               color: "#94a3b8",
             }}
@@ -188,11 +189,11 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
                 borderRadius: "50%",
                 background: "#22d3ee",
                 flexShrink: 0,
-                marginTop: 9,
+                marginTop: 7,
               }}
             />
             <span>
-              Check if a launch has a jellyfish visibility prediction — powered by{" "}
+              Jellyfish visibility predictions powered by{" "}
               <a
                 href="https://jellyfish.johnkrausphotos.com/"
                 target="_blank"
@@ -223,8 +224,8 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
               color: "#0a0e1a",
               border: "none",
               borderRadius: 8,
-              padding: "14px 32px",
-              fontSize: 16,
+              padding: "12px 28px",
+              fontSize: 15,
               fontWeight: 600,
               cursor: isLaunching ? "default" : "pointer",
               letterSpacing: "0.02em",
@@ -280,8 +281,8 @@ function FeatureBullet({ text }: { text: string }) {
       style={{
         display: "flex",
         alignItems: "flex-start",
-        gap: 12,
-        fontSize: 16,
+        gap: 10,
+        fontSize: 13,
         lineHeight: 1.5,
         color: "#94a3b8",
       }}
@@ -293,7 +294,7 @@ function FeatureBullet({ text }: { text: string }) {
           borderRadius: "50%",
           background: "#22d3ee",
           flexShrink: 0,
-          marginTop: 9,
+          marginTop: 7,
         }}
       />
       <span>{text}</span>
