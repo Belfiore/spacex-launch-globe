@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAppStore } from "@/store/useAppStore";
-import { SITE_GROUPS } from "@/lib/constants";
+import { SITE_GROUPS, getSiteGroupCenter } from "@/lib/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import Tooltip from "@/components/UI/Tooltip";
 
@@ -63,6 +63,17 @@ export default function FilterBar() {
       ? current.filter((k) => k !== key)
       : [...current, key];
     setFilters({ sites: next });
+
+    // Animate camera: 1 site → zoom to it; 0 or 2+ → no camera move
+    if (next.length === 1) {
+      const center = getSiteGroupCenter(next[0]);
+      if (center) {
+        useAppStore.setState({
+          cameraTarget: center,
+          orbitCenter: "launch" as const,
+        });
+      }
+    }
   }
 
   const chipPadding = isMobile ? "6px 12px" : "3px 8px";
@@ -308,8 +319,28 @@ export default function FilterBar() {
 
         <span style={{ color: "#334155", margin: "0 2px" }}>|</span>
 
-        {/* Jellyfish filter */}
-        <Tooltip text={TOOLTIPS["jellyfish"]}>
+        {/* Jellyfish filter — rich tooltip on desktop, simple on mobile */}
+        <Tooltip
+          position={isMobile ? "bottom" : "left"}
+          content={
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span style={{ fontSize: "16px" }}>{"🪼"}</span>
+                <span style={{ fontSize: "12px", fontWeight: 700, color: "#c084fc" }}>
+                  Jellyfish Predictor
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: "11px", color: "#94a3b8", lineHeight: 1.5 }}>
+                Jellyfish plumes occur when a rocket launches during twilight — the exhaust
+                trail is illuminated by the sun while the sky is dark, creating a
+                glowing, jellyfish-like effect visible for hundreds of miles.
+              </p>
+              <p style={{ margin: 0, fontSize: "10px", color: "#64748b", lineHeight: 1.4 }}>
+                Data from <span style={{ color: "#a78bfa" }}>John Kraus Jellyfish Predictor</span>
+              </p>
+            </div>
+          }
+        >
         <button
           onClick={() => setFilters({ jellyfish: !filters.jellyfish })}
           style={{

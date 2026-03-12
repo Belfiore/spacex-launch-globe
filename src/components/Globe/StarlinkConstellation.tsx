@@ -4,16 +4,18 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { GLOBE } from "@/lib/constants";
+import { useAppStore } from "@/store/useAppStore";
 import type { OMMRecord } from "@/lib/starlink/types";
 
 /**
  * StarlinkConstellation — renders live Starlink satellites as a points cloud
  * on the globe. Uses simplified Keplerian propagation from OMM orbital elements.
  *
- * Samples every Nth satellite to keep ~400 dots for mobile performance.
+ * Desktop: up to 2000 satellites. Mobile: up to 800 for performance.
  */
 
-const MAX_SATS = 800;
+const MAX_SATS_DESKTOP = 2000;
+const MAX_SATS_MOBILE = 800;
 const EARTH_RADIUS_KM = 6371;
 const DEG2RAD = Math.PI / 180;
 
@@ -100,11 +102,16 @@ function getPosition(orbit: SatOrbit, timeMs: number): [number, number, number] 
 export default function StarlinkConstellation() {
   const [orbits, setOrbits] = useState<SatOrbit[]>([]);
   const pointsRef = useRef<THREE.Points>(null);
+  const materialRef = useRef<THREE.PointsMaterial>(null);
   const [loading, setLoading] = useState(true);
+  const opacityRef = useRef(0); // Start at 0 for fade-in
+  const fadeStartRef = useRef(0);
 
   // Fetch Starlink data on mount
   useEffect(() => {
     let cancelled = false;
+    // Signal loading to store
+    useAppStore.getState().setStarlinkLoading(true);
 
     async function load() {
       try {
@@ -123,19 +130,29 @@ export default function StarlinkConstellation() {
             typeof r.INCLINATION === "number"
         );
 
-        // Sample evenly to get ~MAX_SATS
-        const step = Math.max(1, Math.floor(valid.length / MAX_SATS));
+        // Adaptive limit: desktop gets more satellites
+        const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+        const maxSats = isMobile ? MAX_SATS_MOBILE : MAX_SATS_DESKTOP;
+
+        // Sample evenly to get ~maxSats
+        const step = Math.max(1, Math.floor(valid.length / maxSats));
         const sampled: SatOrbit[] = [];
-        for (let i = 0; i < valid.length && sampled.length < MAX_SATS; i += step) {
+        for (let i = 0; i < valid.length && sampled.length < maxSats; i += step) {
           sampled.push(ommToOrbit(valid[i]));
         }
 
         setOrbits(sampled);
         setLoading(false);
+        fadeStartRef.current = Date.now();
+        useAppStore.setState({
+          starlinkLoading: false,
+          starlinkCount: sampled.length,
+        });
         console.log(`[Starlink] Loaded ${sampled.length} of ${valid.length} satellites`);
       } catch (err) {
         console.error("[Starlink] Failed to load:", err);
         setLoading(false);
+        useAppStore.getState().setStarlinkLoading(false);
       }
     }
 
@@ -148,7 +165,7 @@ export default function StarlinkConstellation() {
     return new Float32Array(orbits.length * 3);
   }, [orbits.length]);
 
-  // Update satellite positions every frame
+  // Update satellite positions every frame + fade-in opacity
   useFrame(() => {
     if (orbits.length === 0 || !pointsRef.current) return;
 
@@ -165,6 +182,14 @@ export default function StarlinkConstellation() {
       arr[i * 3 + 2] = z;
     }
     posAttr.needsUpdate = true;
+
+    // Fade-in animation over ~1 second
+    if (materialRef.current && opacityRef.current < 0.6) {
+      const elapsed = (now - fadeStartRef.current) / 1000; // seconds
+      const targetOpacity = Math.min(0.6, elapsed * 0.6); // 0 → 0.6 over 1s
+      opacityRef.current = targetOpacity;
+      materialRef.current.opacity = targetOpacity;
+    }
   });
 
   if (loading || orbits.length === 0) return null;
@@ -179,10 +204,11 @@ export default function StarlinkConstellation() {
         />
       </bufferGeometry>
       <pointsMaterial
+        ref={materialRef}
         color="#ffffff"
         size={0.02}
         transparent
-        opacity={0.6}
+        opacity={0} // Start at 0, animated by useFrame
         sizeAttenuation
         blending={THREE.AdditiveBlending}
         depthWrite={false}

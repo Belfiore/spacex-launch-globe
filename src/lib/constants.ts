@@ -158,6 +158,19 @@ export function getSiteKey(siteId: string): string {
   return group?.key ?? "?";
 }
 
+/** Get average lat/lng center for a SITE_GROUP key (e.g., "CC", "BC") */
+export function getSiteGroupCenter(key: string): { lat: number; lng: number } | null {
+  const group = SITE_GROUPS.find((g) => g.key === key);
+  if (!group) return null;
+  const sites = group.siteIds
+    .map((id) => LAUNCH_SITES[id])
+    .filter(Boolean);
+  if (sites.length === 0) return null;
+  const lat = sites.reduce((sum, s) => sum + s.lat, 0) / sites.length;
+  const lng = sites.reduce((sum, s) => sum + s.lng, 0) / sites.length;
+  return { lat, lng };
+}
+
 // ── Stage separation & booster return ───────────────────────
 /** Fraction along the main arc where first-stage separation occurs */
 export const STAGING_PROGRESS = 0.35;

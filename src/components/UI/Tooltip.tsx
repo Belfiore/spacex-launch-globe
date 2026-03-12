@@ -3,7 +3,10 @@
 import { useState, useRef, useCallback } from "react";
 
 interface TooltipProps {
-  text: string;
+  /** Simple text tooltip (backward-compatible) */
+  text?: string;
+  /** Rich content tooltip — overrides text if provided */
+  content?: React.ReactNode;
   children: React.ReactNode;
   /** Position relative to the trigger element */
   position?: "top" | "bottom" | "left" | "right";
@@ -12,18 +15,23 @@ interface TooltipProps {
 /**
  * Instant tooltip — appears immediately on hover with no delay.
  * Replaces native title attribute for a consistent, styled experience.
+ *
+ * Supports both simple `text` and rich `content` (ReactNode) modes.
  */
-export default function Tooltip({ text, children, position = "bottom" }: TooltipProps) {
+export default function Tooltip({ text, content, children, position = "bottom" }: TooltipProps) {
   const [visible, setVisible] = useState(false);
   const triggerRef = useRef<HTMLDivElement>(null);
 
   const show = useCallback(() => setVisible(true), []);
   const hide = useCallback(() => setVisible(false), []);
 
+  const isRich = !!content;
+
   const tooltipStyle: React.CSSProperties = {
     position: "absolute",
-    whiteSpace: "nowrap",
-    padding: "5px 10px",
+    whiteSpace: isRich ? "normal" : "nowrap",
+    maxWidth: isRich ? "280px" : undefined,
+    padding: isRich ? "10px 14px" : "5px 10px",
     borderRadius: "6px",
     background: "rgba(15, 23, 42, 0.95)",
     border: "1px solid rgba(255, 255, 255, 0.1)",
@@ -67,7 +75,7 @@ export default function Tooltip({ text, children, position = "bottom" }: Tooltip
     >
       {children}
       <div role="tooltip" style={tooltipStyle}>
-        {text}
+        {content ?? text}
       </div>
     </div>
   );

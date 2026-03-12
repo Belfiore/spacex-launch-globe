@@ -113,29 +113,44 @@ function ISSToggle() {
 function StarlinkToggle() {
   const showStarlink = useAppStore((s) => s.showStarlink);
   const toggleStarlink = useAppStore((s) => s.toggleStarlink);
+  const starlinkLoading = useAppStore((s) => s.starlinkLoading);
+  const starlinkCount = useAppStore((s) => s.starlinkCount);
+
+  const isLoading = showStarlink && starlinkLoading;
+  const showCount = showStarlink && !starlinkLoading && starlinkCount > 0;
 
   return (
-    <Tooltip text={showStarlink ? "Hide Starlink satellites" : "Show Starlink satellites"}>
+    <Tooltip
+      text={
+        showStarlink
+          ? isLoading
+            ? "Loading Starlink data…"
+            : `Hide Starlink (${starlinkCount.toLocaleString()})`
+          : "Show Starlink satellites"
+      }
+    >
       <button
         onClick={(e) => {
           e.stopPropagation();
           toggleStarlink();
         }}
         style={{
-          width: "28px",
           height: "28px",
+          minWidth: "28px",
           borderRadius: "6px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          gap: "3px",
           background: showStarlink ? "rgba(34, 211, 238, 0.15)" : "transparent",
           border: "none",
           color: showStarlink ? "#22d3ee" : "#94a3b8",
           cursor: "pointer",
           fontSize: "14px",
-          padding: 0,
+          padding: showCount ? "0 6px 0 4px" : "0",
           transition: "all 0.15s ease",
           flexShrink: 0,
+          position: "relative",
         }}
         onMouseEnter={(e) => {
           if (!showStarlink) e.currentTarget.style.background = "rgba(255,255,255,0.06)";
@@ -148,8 +163,38 @@ function StarlinkToggle() {
           e.currentTarget.style.color = showStarlink ? "#22d3ee" : "#94a3b8";
         }}
       >
-        {"✦"}
+        {isLoading ? (
+          <span
+            style={{
+              display: "inline-block",
+              width: "14px",
+              height: "14px",
+              border: "2px solid rgba(34, 211, 238, 0.3)",
+              borderTopColor: "#22d3ee",
+              borderRadius: "50%",
+              animation: "starlinkSpin 0.8s linear infinite",
+            }}
+          />
+        ) : (
+          "✦"
+        )}
+        {showCount && (
+          <span
+            style={{
+              fontSize: "9px",
+              fontWeight: 700,
+              fontFamily: "monospace",
+              color: "#22d3ee",
+              lineHeight: 1,
+            }}
+          >
+            {starlinkCount >= 1000
+              ? `${(starlinkCount / 1000).toFixed(1)}k`
+              : starlinkCount}
+          </span>
+        )}
       </button>
+      <style>{`@keyframes starlinkSpin { to { transform: rotate(360deg); } }`}</style>
     </Tooltip>
   );
 }

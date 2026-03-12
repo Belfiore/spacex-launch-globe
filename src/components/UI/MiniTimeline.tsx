@@ -72,8 +72,8 @@ function formatT(seconds: number): string {
   return `T${sign}${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-/** Mini timeline playback speed: 20x real time => 15-min mission plays in ~45 seconds */
-const MINI_PLAYBACK_SPEED = 20;
+/** Mini timeline playback speed: 30x real time => 15-min mission plays in ~30 seconds */
+const MINI_PLAYBACK_SPEED = 30;
 
 interface MiniTimelineProps {
   renderMode?: "fixed" | "inline";
@@ -218,13 +218,20 @@ export default function MiniTimeline({ renderMode = "fixed" }: MiniTimelineProps
   // ── Play/pause handler — uses unified store action ──────────────
   const handlePlayPause = useCallback(() => {
     if (!miniTimelinePlaying && selectedLaunch) {
-      // Starting playback — always reset to the beginning
+      // Starting playback — only reset if at/before the start or past the end
       const phasesArr = getPhasesForRocket(selectedLaunch.rocketType);
-      const initT = phasesArr.length > 0 ? phasesArr[0].tSeconds : 0;
-      localTRef.current = initT;
-      setLocalT(initT);
-      // Reset trajectory so it plays from the start
-      useAppStore.getState().setTrajectoryProgress(0);
+      if (phasesArr.length > 0) {
+        const startT = phasesArr[0].tSeconds;
+        const endT = phasesArr[phasesArr.length - 1].tSeconds + 30; // +30 matches RAF loop
+        const currentT = localTRef.current ?? startT;
+        if (currentT <= startT || currentT >= endT) {
+          // At start or past end — reset to beginning
+          localTRef.current = startT;
+          setLocalT(startT);
+          useAppStore.getState().setTrajectoryProgress(0);
+        }
+        // Otherwise: resume from current scrubbed position — don't reset
+      }
     }
     toggleMissionPlayback();
   }, [miniTimelinePlaying, toggleMissionPlayback, selectedLaunch]);

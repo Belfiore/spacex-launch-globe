@@ -359,7 +359,10 @@ export default function TrajectoryArc({
     );
   }
 
-  const rocketPoint = allPoints[Math.min(rocketIdx, allPoints.length - 1)];
+  // Use continuous interpolation for smooth rocket movement (not discrete allPoints index)
+  const rocketPoint = isStaticPreview
+    ? allPoints[0]
+    : curve.getPointAt(Math.max(0.001, clampedProgress));
   const rocketTangent = curve.getTangentAt(Math.max(0.001, clampedProgress));
 
   const accentColor = "#00E5FF";

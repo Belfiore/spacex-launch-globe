@@ -251,10 +251,9 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
     });
   }
 
-  // ── Cinematic timeline playback ──────────────────────────────
+  /* ── CINEMATIC PLAYBACK — DISABLED (may re-enable later) ──────
   const toggleCinematic = useCallback(() => {
     if (timelineCinematicPlaying) {
-      // Stop cinematic — restore UI (single batched update)
       useAppStore.setState({
         timelineCinematicPlaying: false,
         focusMode: false,
@@ -262,7 +261,6 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
         playbackState: "paused" as const,
       });
     } else {
-      // Start cinematic — hide UI, begin from start of range (single batched update)
       useAppStore.setState({
         timelineCinematicPlaying: true,
         focusMode: true,
@@ -281,85 +279,12 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
     });
   }, []);
 
-  // RAF loop — advance playhead continuously during cinematic mode
-  // Uses internal tracking + throttled setState for performance
+  // RAF loop for cinematic mode — DISABLED
   useEffect(() => {
     if (!timelineCinematicPlaying || !mounted) return;
-
-    const totalMs = end.getTime() - start.getTime();
-    // Base duration: ~90s for 30 days, up to ~240s for a full year (at 1x)
-    // Multiplied by speed: 3x → 30s for 30 days, 6x → 15s
-    const rangeDays = totalMs / 86_400_000;
-    const durationSec = Math.min(240, Math.max(90, rangeDays * 0.5));
-    const baseAdvancePerMs = totalMs / (durationSec * 1000);
-
-    let animId: number;
-    let prev = performance.now();
-    let currentMs = useAppStore.getState().timelineDate.getTime();
-    let lastUIUpdateTime = 0;
-
-    const tick = (now: number) => {
-      const dt = Math.min(now - prev, 100); // cap delta to avoid jumps
-      prev = now;
-
-      const prevMs = currentMs;
-      const nextMs = currentMs + dt * baseAdvancePerMs * cinematicSpeedRef.current;
-      currentMs = nextMs;
-
-      if (nextMs >= end.getTime()) {
-        // Reached the end — stop cinematic (batched)
-        useAppStore.setState({
-          timelineCinematicPlaying: false,
-          focusMode: false,
-          miniTimelinePlaying: false,
-          playbackState: "paused" as const,
-          timelineDate: new Date(end.getTime()),
-        });
-        return;
-      }
-
-      // Throttle UI date updates to ~15fps to avoid 60 re-renders/sec
-      if (now - lastUIUpdateTime > 66) {
-        useAppStore.setState({ timelineDate: new Date(nextMs) });
-        lastUIUpdateTime = now;
-      }
-
-      // Auto-select launches as playhead crosses them (batched update)
-      for (const launch of visibleLaunches) {
-        const launchMs = new Date(launch.dateUtc).getTime();
-        if (
-          launchMs > prevMs &&
-          launchMs <= nextMs &&
-          lastCinematicLaunchId.current !== launch.id
-        ) {
-          lastCinematicLaunchId.current = launch.id;
-          useAppStore.setState({
-            miniTimelinePlaying: false,
-            playbackState: "paused" as const,
-            selectedLaunch: launch,
-            cameraTarget: {
-              lat: launch.launchSite.lat - 15,
-              lng: launch.launchSite.lng + 10,
-            },
-            orbitCenter: "launch" as const,
-            trajectoryProgress: 0,
-          });
-          setTimeout(() => {
-            useAppStore.setState({
-              miniTimelinePlaying: true,
-              playbackState: "playing" as const,
-            });
-          }, 80);
-          break;
-        }
-      }
-
-      animId = requestAnimationFrame(tick);
-    };
-
-    animId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animId);
+    // ... cinematic RAF loop disabled ...
   }, [timelineCinematicPlaying, mounted, start, end, visibleLaunches]);
+  ── END CINEMATIC DISABLED ── */
 
   // Mobile uses MobileBottomSheet (inline mode) — hide standalone fixed instance
   if (renderMode === "fixed" && isMobile) return null;
@@ -457,66 +382,10 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
                   year: "numeric",
                 })}
               </span>
-              {/* Cinematic play/pause button */}
-              <button
-                onClick={toggleCinematic}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: isMobile ? "22px" : "24px",
-                  height: isMobile ? "22px" : "24px",
-                  borderRadius: "50%",
-                  border: timelineCinematicPlaying
-                    ? "1px solid rgba(34, 211, 238, 0.5)"
-                    : "1px solid rgba(255, 255, 255, 0.12)",
-                  background: timelineCinematicPlaying
-                    ? "rgba(34, 211, 238, 0.15)"
-                    : "rgba(255, 255, 255, 0.05)",
-                  color: timelineCinematicPlaying ? "#22d3ee" : "#94a3b8",
-                  cursor: "pointer",
-                  padding: 0,
-                  flexShrink: 0,
-                  transition: "all 0.2s ease",
-                }}
-              >
-                {timelineCinematicPlaying ? (
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                    <rect x="5" y="4" width="5" height="16" rx="1" />
-                    <rect x="14" y="4" width="5" height="16" rx="1" />
-                  </svg>
-                ) : (
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="6,4 20,12 6,20" />
-                  </svg>
-                )}
-              </button>
-              {/* Speed selector — visible when cinematic is playing */}
-              {timelineCinematicPlaying && (
-                <button
-                  onClick={cycleSpeed}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    height: isMobile ? "18px" : "20px",
-                    padding: "0 6px",
-                    borderRadius: "10px",
-                    border: "1px solid rgba(34, 211, 238, 0.3)",
-                    background: "rgba(34, 211, 238, 0.1)",
-                    color: "#22d3ee",
-                    cursor: "pointer",
-                    fontSize: "9px",
-                    fontWeight: 700,
-                    fontFamily: "monospace",
-                    letterSpacing: "0.02em",
-                    flexShrink: 0,
-                    transition: "all 0.15s ease",
-                  }}
-                >
-                  {cinematicSpeed}x
-                </button>
-              )}
+              {/* CINEMATIC BUTTONS DISABLED — may re-enable later
+              <button onClick={toggleCinematic} style={{...}}>...</button>
+              <button onClick={cycleSpeed} style={{...}}>...</button>
+              */}
             </div>
             <span style={{ fontSize: "10px", color: "#475569" }}>
               {start.toLocaleDateString("en-US", {

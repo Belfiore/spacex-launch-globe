@@ -75,6 +75,8 @@ interface AppState {
   toggleStarlink: () => void;
   starlinkCount: number;
   setStarlinkCount: (count: number) => void;
+  starlinkLoading: boolean;
+  setStarlinkLoading: (loading: boolean) => void;
 
   // Entry / onboarding phase
   entryPhase: "loading" | "intro" | "zooming" | "onboarding" | "complete";
@@ -221,6 +223,8 @@ export const useAppStore = create<AppState>((set) => ({
   toggleStarlink: () => set((s) => ({ showStarlink: !s.showStarlink })),
   starlinkCount: 0,
   setStarlinkCount: (count) => set({ starlinkCount: count }),
+  starlinkLoading: false,
+  setStarlinkLoading: (loading) => set({ starlinkLoading: loading }),
 
   // Entry / onboarding phase
   entryPhase: "loading",
