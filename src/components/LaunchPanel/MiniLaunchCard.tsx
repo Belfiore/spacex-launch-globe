@@ -24,14 +24,6 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
   const isMobile = useIsMobile();
   const launches = useAppStore((s) => s.launches);
   const selectedLaunch = useAppStore((s) => s.selectedLaunch);
-  const setSelectedLaunch = useAppStore((s) => s.setSelectedLaunch);
-  const setCameraTarget = useAppStore((s) => s.setCameraTarget);
-  const setTimelineDate = useAppStore((s) => s.setTimelineDate);
-  const setTrajectoryProgress = useAppStore((s) => s.setTrajectoryProgress);
-  const setOrbitCenter = useAppStore((s) => s.setOrbitCenter);
-  const pauseMissionPlayback = useAppStore((s) => s.pauseMissionPlayback);
-  const startMissionPlayback = useAppStore((s) => s.startMissionPlayback);
-  const closeInfoPanel = useAppStore((s) => s.closeInfoPanel);
   const focusMode = useAppStore((s) => s.focusMode);
   const selectedYear = useAppStore((s) => s.selectedYear);
   const filters = useAppStore((s) => s.filters);
@@ -109,57 +101,52 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
     (idx: number) => {
       const launch = filteredLaunches[idx];
       if (!launch) return;
-      pauseMissionPlayback();
-      closeInfoPanel();
-      setSelectedLaunch(launch);
-      setCameraTarget({
-        lat: launch.launchSite.lat,
-        lng: launch.launchSite.lng,
+      useAppStore.setState({
+        miniTimelinePlaying: false,
+        playbackState: "paused" as const,
+        infoPanelLaunchId: null,
+        selectedLaunch: launch,
+        cameraTarget: {
+          lat: launch.launchSite.lat,
+          lng: launch.launchSite.lng,
+        },
+        timelineDate: new Date(launch.dateUtc),
+        trajectoryProgress: 1,
+        orbitCenter: "launch" as const,
       });
-      setTimelineDate(new Date(launch.dateUtc));
-      setTrajectoryProgress(1);
-      setOrbitCenter("launch");
     },
-    [
-      filteredLaunches,
-      pauseMissionPlayback,
-      closeInfoPanel,
-      setSelectedLaunch,
-      setCameraTarget,
-      setTimelineDate,
-      setTrajectoryProgress,
-      setOrbitCenter,
-    ]
+    [filteredLaunches]
   );
 
   const handlePlay = useCallback(() => {
     const launch = filteredLaunches[activeIdx];
     if (!launch) return;
-    pauseMissionPlayback();
-    setSelectedLaunch(launch);
-    setCameraTarget({
-      lat: launch.launchSite.lat - 15,
-      lng: launch.launchSite.lng + 10,
+    useAppStore.setState({
+      miniTimelinePlaying: false,
+      playbackState: "paused" as const,
+      selectedLaunch: launch,
+      cameraTarget: {
+        lat: launch.launchSite.lat - 15,
+        lng: launch.launchSite.lng + 10,
+      },
+      timelineDate: new Date(launch.dateUtc),
+      orbitCenter: "launch" as const,
+      trajectoryProgress: 0,
     });
-    setTimelineDate(new Date(launch.dateUtc));
-    setOrbitCenter("launch");
-    setTrajectoryProgress(0);
-    setTimeout(() => startMissionPlayback(), 50);
-  }, [
-    filteredLaunches,
-    activeIdx,
-    pauseMissionPlayback,
-    setSelectedLaunch,
-    setCameraTarget,
-    setTimelineDate,
-    setOrbitCenter,
-    setTrajectoryProgress,
-    startMissionPlayback,
-  ]);
+    setTimeout(() => {
+      useAppStore.setState({
+        miniTimelinePlaying: true,
+        playbackState: "playing" as const,
+      });
+    }, 50);
+  }, [filteredLaunches, activeIdx]);
 
   const handlePause = useCallback(() => {
-    pauseMissionPlayback();
-  }, [pauseMissionPlayback]);
+    useAppStore.setState({
+      miniTimelinePlaying: false,
+      playbackState: "paused" as const,
+    });
+  }, []);
 
   const handleInfoOpen = useCallback(() => {
     const launch = filteredLaunches[activeIdx];

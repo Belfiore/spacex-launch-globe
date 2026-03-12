@@ -40,8 +40,11 @@ const FRAGMENT_SHADER = `
     float blueDominance = raw.b - max(raw.r, raw.g);
     float isOcean = smoothstep(-0.05, 0.1, blueDominance);
 
-    // Ocean: dark navy with visible blue undertone
-    vec3 ocean = vec3(0.03, 0.06, 0.14) + raw * 0.25;
+    // Ocean: procedural dark navy with depth variation (no texture dependency = no pixelation)
+    float depth = smoothstep(0.0, 1.0, 1.0 - abs(vUv.y - 0.5) * 2.0);
+    vec3 oceanDeep = vec3(0.02, 0.04, 0.12);
+    vec3 oceanShallow = vec3(0.05, 0.09, 0.20);
+    vec3 ocean = mix(oceanDeep, oceanShallow, depth * 0.5);
 
     // Land: clearly distinguishable — let the texture colors show through
     vec3 land = vec3(0.06, 0.09, 0.04) + raw * 0.60;
@@ -85,6 +88,11 @@ const FRAGMENT_SHADER = `
     vec3 lightDir = normalize(vec3(1.0, 0.5, 0.8));
     float diffuse = max(dot(vWorldNormal, lightDir), 0.0);
     baseColor *= 0.85 + diffuse * 0.25;
+
+    // ---- Ocean specular highlight for realism ----
+    float specAngle = dot(reflect(-lightDir, vWorldNormal), viewDir);
+    float spec = pow(max(specAngle, 0.0), 48.0) * isOcean;
+    baseColor += vec3(0.03, 0.06, 0.12) * spec;
 
     gl_FragColor = vec4(baseColor, 1.0);
   }

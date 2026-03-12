@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useSpaceXData } from "@/hooks/useSpaceXData";
 import { useAppStore } from "@/store/useAppStore";
@@ -31,7 +31,7 @@ function FocusModeExitButton() {
       onClick={() => setFocusMode(false)}
       style={{
         position: "fixed",
-        bottom: "16px",
+        top: "16px",
         right: "16px",
         zIndex: 50,
         width: "36px",
@@ -63,6 +63,31 @@ export default function Home() {
 
   const focusMode = useAppStore((s) => s.focusMode);
   const setFocusMode = useAppStore((s) => s.setFocusMode);
+  const entryPhase = useAppStore((s) => s.entryPhase);
+  const launches = useAppStore((s) => s.launches);
+  const autoSelectedRef = useRef(false);
+
+  // Auto-select next upcoming launch when entry completes
+  // This ensures: MiniTimeline shows, MiniLaunchCard centers on next launch, map navigates
+  useEffect(() => {
+    if (entryPhase !== "complete" || autoSelectedRef.current) return;
+    const { selectedLaunch } = useAppStore.getState();
+    if (selectedLaunch) return;
+    const now = Date.now();
+    const next = launches.find(
+      (l) => l.status === "upcoming" && new Date(l.dateUtc).getTime() > now
+    );
+    if (next) {
+      autoSelectedRef.current = true;
+      useAppStore.setState({
+        selectedLaunch: next,
+        cameraTarget: { lat: next.launchSite.lat, lng: next.launchSite.lng },
+        timelineDate: new Date(next.dateUtc),
+        orbitCenter: "launch" as const,
+        trajectoryProgress: 1,
+      });
+    }
+  }, [entryPhase, launches]);
 
   // Escape key exits focus mode
   const handleEscape = useCallback(

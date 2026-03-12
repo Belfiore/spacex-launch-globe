@@ -125,6 +125,9 @@ export default function MiniTimeline({ renderMode = "fixed" }: MiniTimelineProps
   }, [selectedLaunch?.id]);
 
   // ── Isolated RAF loop for mini timeline playback ──────────────
+  // ── Isolated RAF loop for mini timeline playback ──────────────
+  // Uses internal ref tracking at 60fps but throttles zustand store
+  // updates to ~15fps to avoid performance bottleneck.
   useEffect(() => {
     if (!miniTimelinePlaying || !selectedLaunch || phases.length === 0) {
       if (rafRef.current) {
@@ -135,6 +138,7 @@ export default function MiniTimeline({ renderMode = "fixed" }: MiniTimelineProps
     }
 
     lastFrameTimeRef.current = 0;
+    let lastUIUpdateTime = 0;
 
     function tick(timestamp: number) {
       if (lastFrameTimeRef.current === 0) {
@@ -162,31 +166,40 @@ export default function MiniTimeline({ renderMode = "fixed" }: MiniTimelineProps
         // Auto-stop at end of mission phases
         localTRef.current = maxT;
         setLocalT(maxT);
-        // Defer store updates to avoid setState-during-render
+        // Batched final update
         queueMicrotask(() => {
-          const s = useAppStore.getState();
-          s.pauseMissionPlayback();
-          s.setTrajectoryProgress(1);
-          if (store.selectedLaunch) {
-            const launchMs = new Date(store.selectedLaunch.dateUtc).getTime();
-            s.setTimelineDate(new Date(launchMs + maxT * 1000));
-          }
+          const launchMs = store.selectedLaunch
+            ? new Date(store.selectedLaunch.dateUtc).getTime()
+            : 0;
+          useAppStore.setState({
+            miniTimelinePlaying: false,
+            playbackState: "paused" as const,
+            trajectoryProgress: 1,
+            ...(store.selectedLaunch
+              ? { timelineDate: new Date(launchMs + maxT * 1000) }
+              : {}),
+          });
         });
         return; // Don't request another frame
       }
 
+      // Update internal ref at 60fps (smooth tracking)
       localTRef.current = newT;
-      setLocalT(newT);
 
-      // Sync global timeline and trajectory progress
-      if (store.selectedLaunch) {
-        const launchMs = new Date(store.selectedLaunch.dateUtc).getTime();
-        const s = useAppStore.getState();
-        s.setTimelineDate(new Date(launchMs + newT * 1000));
+      // Throttle store + React state updates to ~15fps for performance
+      if (timestamp - lastUIUpdateTime > 66) {
+        lastUIUpdateTime = timestamp;
+        setLocalT(newT);
 
-        // Drive trajectory progress (0-1) proportional to mini timeline position
-        const normalizedProgress = Math.max(0, Math.min(1, (newT - minPhaseT) / totalDuration));
-        s.setTrajectoryProgress(normalizedProgress);
+        // Batched store update — single setState instead of two separate set() calls
+        if (store.selectedLaunch) {
+          const launchMs = new Date(store.selectedLaunch.dateUtc).getTime();
+          const normalizedProgress = Math.max(0, Math.min(1, (newT - minPhaseT) / totalDuration));
+          useAppStore.setState({
+            timelineDate: new Date(launchMs + newT * 1000),
+            trajectoryProgress: normalizedProgress,
+          });
+        }
       }
 
       rafRef.current = requestAnimationFrame(tick);

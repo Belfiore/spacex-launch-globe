@@ -12,18 +12,12 @@ import Tooltip from "@/components/UI/Tooltip";
 export default function LaunchPanel() {
   const launches = useAppStore((s) => s.launches);
   const selectedLaunch = useAppStore((s) => s.selectedLaunch);
-  const setSelectedLaunch = useAppStore((s) => s.setSelectedLaunch);
-  const setCameraTarget = useAppStore((s) => s.setCameraTarget);
-  const setTimelineDate = useAppStore((s) => s.setTimelineDate);
   const panelOpen = useAppStore((s) => s.panelOpen);
   const togglePanel = useAppStore((s) => s.togglePanel);
   const setPanelOpen = useAppStore((s) => s.setPanelOpen);
   const filters = useAppStore((s) => s.filters);
 
-  const setTrajectoryProgress = useAppStore((s) => s.setTrajectoryProgress);
-  const startMissionPlayback = useAppStore((s) => s.startMissionPlayback);
-  const pauseMissionPlayback = useAppStore((s) => s.pauseMissionPlayback);
-  const setOrbitCenter = useAppStore((s) => s.setOrbitCenter);
+  const entryPhase = useAppStore((s) => s.entryPhase);
 
   const selectedYear = useAppStore((s) => s.selectedYear);
   const focusMode = useAppStore((s) => s.focusMode);
@@ -31,42 +25,53 @@ export default function LaunchPanel() {
   const isMobile = useIsMobile();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Play mission — ensure the launch is selected + centered first
-  // Camera offset gives an angled view so the trajectory arc is visible
+  // Play mission — batched into a single setState for performance
   const handlePlay = useCallback(
     (launch: (typeof launches)[0]) => {
+      const updates: Partial<{
+        miniTimelinePlaying: boolean;
+        playbackState: "stopped" | "playing" | "paused";
+        selectedLaunch: typeof launch | null;
+        timelineDate: Date;
+        orbitCenter: "usa" | "earth" | "launch";
+        cameraTarget: { lat: number; lng: number } | null;
+        trajectoryProgress: number;
+        panelOpen: boolean;
+      }> = {
+        cameraTarget: {
+          lat: launch.launchSite.lat - 15,
+          lng: launch.launchSite.lng + 10,
+        },
+        trajectoryProgress: 0,
+      };
+
       if (selectedLaunch?.id !== launch.id) {
-        pauseMissionPlayback();
-        setSelectedLaunch(launch);
-        setTimelineDate(new Date(launch.dateUtc));
-        setOrbitCenter("launch");
+        updates.miniTimelinePlaying = false;
+        updates.playbackState = "paused";
+        updates.selectedLaunch = launch;
+        updates.timelineDate = new Date(launch.dateUtc);
+        updates.orbitCenter = "launch";
       }
-      setCameraTarget({
-        lat: launch.launchSite.lat - 15,
-        lng: launch.launchSite.lng + 10,
-      });
-      setTrajectoryProgress(0);
-      setTimeout(() => startMissionPlayback(), 50);
-      // Auto-close mobile panel on play
-      if (isMobile) setPanelOpen(false);
+
+      if (isMobile) updates.panelOpen = false;
+
+      useAppStore.setState(updates);
+      setTimeout(() => {
+        useAppStore.setState({
+          miniTimelinePlaying: true,
+          playbackState: "playing" as const,
+        });
+      }, 50);
     },
-    [
-      selectedLaunch,
-      pauseMissionPlayback,
-      setSelectedLaunch,
-      setCameraTarget,
-      setTimelineDate,
-      setTrajectoryProgress,
-      setOrbitCenter,
-      startMissionPlayback,
-      isMobile,
-      setPanelOpen,
-    ]
+    [selectedLaunch, isMobile]
   );
 
   const handlePause = useCallback(() => {
-    pauseMissionPlayback();
-  }, [pauseMissionPlayback]);
+    useAppStore.setState({
+      miniTimelinePlaying: false,
+      playbackState: "paused" as const,
+    });
+  }, []);
 
   // Filter launches (including year filter)
   const filteredLaunches = useMemo(() => {
@@ -121,9 +126,10 @@ export default function LaunchPanel() {
     );
   }, [filteredLaunches]);
 
-  // Auto-scroll to next upcoming launch on mount
+  // Auto-scroll to next upcoming launch on mount / after entry completes
   useEffect(() => {
     if (!scrollRef.current || selectedLaunch || !nextUpcoming) return;
+    if (entryPhase !== "complete") return;
     const timer = setTimeout(() => {
       const el = scrollRef.current?.querySelector(
         `[data-launch-id="${nextUpcoming.id}"]`
@@ -133,7 +139,7 @@ export default function LaunchPanel() {
       }
     }, 100);
     return () => clearTimeout(timer);
-  }, [nextUpcoming?.id, selectedLaunch]);
+  }, [nextUpcoming?.id, selectedLaunch, entryPhase]);
 
   // Scroll to selected launch when it changes
   useEffect(() => {
@@ -153,27 +159,33 @@ export default function LaunchPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedLaunch?.id]);
 
-  const closeInfoPanel = useAppStore((s) => s.closeInfoPanel);
-
   function handleCardClick(launch: (typeof launches)[0]) {
     const isDeselect = selectedLaunch?.id === launch.id;
-    pauseMissionPlayback();
-    closeInfoPanel();
-    setSelectedLaunch(isDeselect ? null : launch);
     if (!isDeselect) {
-      setCameraTarget({
-        lat: launch.launchSite.lat,
-        lng: launch.launchSite.lng,
+      useAppStore.setState({
+        miniTimelinePlaying: false,
+        playbackState: "paused" as const,
+        infoPanelLaunchId: null,
+        selectedLaunch: launch,
+        cameraTarget: {
+          lat: launch.launchSite.lat,
+          lng: launch.launchSite.lng,
+        },
+        timelineDate: new Date(launch.dateUtc),
+        trajectoryProgress: 1,
+        orbitCenter: "launch" as const,
+        ...(isMobile ? { panelOpen: false } : {}),
       });
-      setTimelineDate(new Date(launch.dateUtc));
-      setTrajectoryProgress(1);
-      setOrbitCenter("launch");
-      // Auto-close mobile panel when a card is tapped
-      if (isMobile) setPanelOpen(false);
     } else {
-      setCameraTarget(null);
-      setTrajectoryProgress(0);
-      setOrbitCenter("usa");
+      useAppStore.setState({
+        miniTimelinePlaying: false,
+        playbackState: "paused" as const,
+        infoPanelLaunchId: null,
+        selectedLaunch: null,
+        cameraTarget: null,
+        trajectoryProgress: 0,
+        orbitCenter: "usa" as const,
+      });
     }
   }
 

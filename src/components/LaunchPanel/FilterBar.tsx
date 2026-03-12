@@ -112,7 +112,7 @@ export default function FilterBar() {
         }}
       >
         <option value="all" style={{ background: "#0a0e1a", color: "#e2e8f0" }}>
-          All Years
+          Current
         </option>
         {availableYears.map((year) => (
           <option key={year} value={year} style={{ background: "#0a0e1a", color: "#e2e8f0" }}>

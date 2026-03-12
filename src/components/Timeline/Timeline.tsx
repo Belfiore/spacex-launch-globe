@@ -98,20 +98,12 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
   const launches = useAppStore((s) => s.launches);
   const timelineDate = useAppStore((s) => s.timelineDate);
   const setTimelineDate = useAppStore((s) => s.setTimelineDate);
-  const setSelectedLaunch = useAppStore((s) => s.setSelectedLaunch);
-  const setCameraTarget = useAppStore((s) => s.setCameraTarget);
   const selectedYear = useAppStore((s) => s.selectedYear);
   const setSelectedYear = useAppStore((s) => s.setSelectedYear);
   const availableYears = useAppStore((s) => s.availableYears);
   const focusMode = useAppStore((s) => s.focusMode);
   const timelineVisible = useAppStore((s) => s.timelineVisible);
-  const setTrajectoryProgress = useAppStore((s) => s.setTrajectoryProgress);
-  const setOrbitCenter = useAppStore((s) => s.setOrbitCenter);
-  const pauseMissionPlayback = useAppStore((s) => s.pauseMissionPlayback);
   const timelineCinematicPlaying = useAppStore((s) => s.timelineCinematicPlaying);
-  const setTimelineCinematicPlaying = useAppStore((s) => s.setTimelineCinematicPlaying);
-  const setFocusMode = useAppStore((s) => s.setFocusMode);
-  const startMissionPlayback = useAppStore((s) => s.startMissionPlayback);
 
   // Keep speed ref in sync
   useEffect(() => { cinematicSpeedRef.current = cinematicSpeed; }, [cinematicSpeed]);
@@ -175,23 +167,27 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
 
       // If within 20px of a launch dot, select it and show trajectory
       if (closestLaunch && closestPixelDist < 20) {
-        setTrajectoryProgress(1);
-
         if (lastScrubLaunchId.current !== closestLaunch.id) {
-          pauseMissionPlayback();
-          setSelectedLaunch(closestLaunch);
-          setCameraTarget({
-            lat: closestLaunch.launchSite.lat,
-            lng: closestLaunch.launchSite.lng,
+          useAppStore.setState({
+            miniTimelinePlaying: false,
+            playbackState: "paused" as const,
+            selectedLaunch: closestLaunch,
+            cameraTarget: {
+              lat: closestLaunch.launchSite.lat,
+              lng: closestLaunch.launchSite.lng,
+            },
+            orbitCenter: "launch" as const,
+            trajectoryProgress: 1,
           });
-          setOrbitCenter("launch");
           lastScrubLaunchId.current = closestLaunch.id;
+        } else {
+          useAppStore.setState({ trajectoryProgress: 1 });
         }
       } else if (lastScrubLaunchId.current !== null) {
         lastScrubLaunchId.current = null;
       }
     },
-    [start, end, setTimelineDate, visibleLaunches, setSelectedLaunch, setCameraTarget, setTrajectoryProgress, setOrbitCenter, pauseMissionPlayback]
+    [start, end, setTimelineDate, visibleLaunches]
   );
 
   const handleMouseDown = useCallback(
@@ -245,31 +241,38 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
   }, []);
 
   function handleLaunchTickClick(launch: Launch) {
-    setTimelineDate(new Date(launch.dateUtc));
-    setSelectedLaunch(launch);
-    setCameraTarget({
-      lat: launch.launchSite.lat,
-      lng: launch.launchSite.lng,
+    useAppStore.setState({
+      timelineDate: new Date(launch.dateUtc),
+      selectedLaunch: launch,
+      cameraTarget: {
+        lat: launch.launchSite.lat,
+        lng: launch.launchSite.lng,
+      },
     });
   }
 
   // ── Cinematic timeline playback ──────────────────────────────
   const toggleCinematic = useCallback(() => {
     if (timelineCinematicPlaying) {
-      // Stop cinematic — restore UI
-      setTimelineCinematicPlaying(false);
-      setFocusMode(false);
-      pauseMissionPlayback();
+      // Stop cinematic — restore UI (single batched update)
+      useAppStore.setState({
+        timelineCinematicPlaying: false,
+        focusMode: false,
+        miniTimelinePlaying: false,
+        playbackState: "paused" as const,
+      });
     } else {
-      // Start cinematic — hide UI, begin from start of range
-      setTimelineCinematicPlaying(true);
-      setFocusMode(true);
-      setTimelineDate(new Date(start));
-      setSelectedLaunch(null);
-      setTrajectoryProgress(0);
+      // Start cinematic — hide UI, begin from start of range (single batched update)
+      useAppStore.setState({
+        timelineCinematicPlaying: true,
+        focusMode: true,
+        timelineDate: new Date(start),
+        selectedLaunch: null,
+        trajectoryProgress: 0,
+      });
       lastCinematicLaunchId.current = null;
     }
-  }, [timelineCinematicPlaying, setTimelineCinematicPlaying, setFocusMode, pauseMissionPlayback, setTimelineDate, start, setSelectedLaunch, setTrajectoryProgress]);
+  }, [timelineCinematicPlaying, start]);
 
   const cycleSpeed = useCallback(() => {
     setCinematicSpeed((prev) => {
@@ -279,55 +282,73 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
   }, []);
 
   // RAF loop — advance playhead continuously during cinematic mode
+  // Uses internal tracking + throttled setState for performance
   useEffect(() => {
     if (!timelineCinematicPlaying || !mounted) return;
 
     const totalMs = end.getTime() - start.getTime();
-    // Base duration: ~45s for 30 days, up to ~120s for a full year (at 1x)
+    // Base duration: ~90s for 30 days, up to ~240s for a full year (at 1x)
+    // Multiplied by speed: 3x → 30s for 30 days, 6x → 15s
     const rangeDays = totalMs / 86_400_000;
-    const durationSec = Math.min(120, Math.max(45, rangeDays * 0.33));
+    const durationSec = Math.min(240, Math.max(90, rangeDays * 0.5));
     const baseAdvancePerMs = totalMs / (durationSec * 1000);
 
     let animId: number;
     let prev = performance.now();
+    let currentMs = useAppStore.getState().timelineDate.getTime();
+    let lastUIUpdateTime = 0;
 
     const tick = (now: number) => {
       const dt = Math.min(now - prev, 100); // cap delta to avoid jumps
       prev = now;
 
-      const state = useAppStore.getState();
-      const curMs = state.timelineDate.getTime();
-      const nextMs = curMs + dt * baseAdvancePerMs * cinematicSpeedRef.current;
+      const prevMs = currentMs;
+      const nextMs = currentMs + dt * baseAdvancePerMs * cinematicSpeedRef.current;
+      currentMs = nextMs;
 
       if (nextMs >= end.getTime()) {
-        // Reached the end — stop cinematic
-        setTimelineCinematicPlaying(false);
-        setFocusMode(false);
-        pauseMissionPlayback();
+        // Reached the end — stop cinematic (batched)
+        useAppStore.setState({
+          timelineCinematicPlaying: false,
+          focusMode: false,
+          miniTimelinePlaying: false,
+          playbackState: "paused" as const,
+          timelineDate: new Date(end.getTime()),
+        });
         return;
       }
 
-      setTimelineDate(new Date(nextMs));
+      // Throttle UI date updates to ~15fps to avoid 60 re-renders/sec
+      if (now - lastUIUpdateTime > 66) {
+        useAppStore.setState({ timelineDate: new Date(nextMs) });
+        lastUIUpdateTime = now;
+      }
 
-      // Auto-select launches as playhead crosses them
+      // Auto-select launches as playhead crosses them (batched update)
       for (const launch of visibleLaunches) {
         const launchMs = new Date(launch.dateUtc).getTime();
         if (
-          launchMs > curMs &&
+          launchMs > prevMs &&
           launchMs <= nextMs &&
           lastCinematicLaunchId.current !== launch.id
         ) {
           lastCinematicLaunchId.current = launch.id;
-          pauseMissionPlayback();
-          setSelectedLaunch(launch);
-          setCameraTarget({
-            lat: launch.launchSite.lat - 15,
-            lng: launch.launchSite.lng + 10,
+          useAppStore.setState({
+            miniTimelinePlaying: false,
+            playbackState: "paused" as const,
+            selectedLaunch: launch,
+            cameraTarget: {
+              lat: launch.launchSite.lat - 15,
+              lng: launch.launchSite.lng + 10,
+            },
+            orbitCenter: "launch" as const,
+            trajectoryProgress: 0,
           });
-          setOrbitCenter("launch");
-          setTrajectoryProgress(0);
           setTimeout(() => {
-            useAppStore.getState().startMissionPlayback();
+            useAppStore.setState({
+              miniTimelinePlaying: true,
+              playbackState: "playing" as const,
+            });
           }, 80);
           break;
         }
@@ -338,7 +359,7 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
 
     animId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animId);
-  }, [timelineCinematicPlaying, mounted, start, end, visibleLaunches, setTimelineDate, setSelectedLaunch, setCameraTarget, setOrbitCenter, setTrajectoryProgress, pauseMissionPlayback, setTimelineCinematicPlaying, setFocusMode]);
+  }, [timelineCinematicPlaying, mounted, start, end, visibleLaunches]);
 
   // Mobile uses MobileBottomSheet (inline mode) — hide standalone fixed instance
   if (renderMode === "fixed" && isMobile) return null;
@@ -416,7 +437,7 @@ export default function Timeline({ renderMode = "fixed" }: TimelineProps) {
                   value="all"
                   style={{ background: "#0a0e1a", color: "#e2e8f0" }}
                 >
-                  All
+                  Current
                 </option>
                 {availableYears.map((year) => (
                   <option

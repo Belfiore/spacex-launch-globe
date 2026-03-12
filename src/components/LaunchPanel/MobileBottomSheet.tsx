@@ -25,14 +25,6 @@ export default function MobileBottomSheet() {
 
   const launches = useAppStore((s) => s.launches);
   const selectedLaunch = useAppStore((s) => s.selectedLaunch);
-  const setSelectedLaunch = useAppStore((s) => s.setSelectedLaunch);
-  const setCameraTarget = useAppStore((s) => s.setCameraTarget);
-  const setTimelineDate = useAppStore((s) => s.setTimelineDate);
-  const setTrajectoryProgress = useAppStore((s) => s.setTrajectoryProgress);
-  const setOrbitCenter = useAppStore((s) => s.setOrbitCenter);
-  const pauseMissionPlayback = useAppStore((s) => s.pauseMissionPlayback);
-  const startMissionPlayback = useAppStore((s) => s.startMissionPlayback);
-  const closeInfoPanel = useAppStore((s) => s.closeInfoPanel);
   const selectedYear = useAppStore((s) => s.selectedYear);
   const filters = useAppStore((s) => s.filters);
   const timelineVisible = useAppStore((s) => s.timelineVisible);
@@ -95,72 +87,74 @@ export default function MobileBottomSheet() {
     );
   }, [filteredLaunches]);
 
+  // Batched handlers — single setState for performance
   const handleCardClick = useCallback(
     (launch: (typeof launches)[0]) => {
       const isDeselect = selectedLaunch?.id === launch.id;
-      pauseMissionPlayback();
-      closeInfoPanel();
-      setSelectedLaunch(isDeselect ? null : launch);
       if (!isDeselect) {
-        setCameraTarget({
-          lat: launch.launchSite.lat,
-          lng: launch.launchSite.lng,
+        useAppStore.setState({
+          miniTimelinePlaying: false,
+          playbackState: "paused" as const,
+          infoPanelLaunchId: null,
+          selectedLaunch: launch,
+          cameraTarget: {
+            lat: launch.launchSite.lat,
+            lng: launch.launchSite.lng,
+          },
+          timelineDate: new Date(launch.dateUtc),
+          trajectoryProgress: 1,
+          orbitCenter: "launch" as const,
+          mobileSheetExpanded: false,
         });
-        setTimelineDate(new Date(launch.dateUtc));
-        setTrajectoryProgress(1);
-        setOrbitCenter("launch");
-        setMobileSheetExpanded(false); // Collapse sheet so user sees globe
       } else {
-        setCameraTarget(null);
-        setTrajectoryProgress(0);
-        setOrbitCenter("usa");
+        useAppStore.setState({
+          miniTimelinePlaying: false,
+          playbackState: "paused" as const,
+          infoPanelLaunchId: null,
+          selectedLaunch: null,
+          cameraTarget: null,
+          trajectoryProgress: 0,
+          orbitCenter: "usa" as const,
+        });
       }
     },
-    [
-      selectedLaunch,
-      pauseMissionPlayback,
-      closeInfoPanel,
-      setSelectedLaunch,
-      setCameraTarget,
-      setTimelineDate,
-      setTrajectoryProgress,
-      setOrbitCenter,
-      setMobileSheetExpanded,
-    ]
+    [selectedLaunch]
   );
 
   const handlePlay = useCallback(
     (launch: (typeof launches)[0]) => {
+      const updates: Record<string, unknown> = {
+        cameraTarget: {
+          lat: launch.launchSite.lat - 15,
+          lng: launch.launchSite.lng + 10,
+        },
+        trajectoryProgress: 0,
+        mobileSheetExpanded: false,
+      };
       if (selectedLaunch?.id !== launch.id) {
-        pauseMissionPlayback();
-        setSelectedLaunch(launch);
-        setCameraTarget({
-          lat: launch.launchSite.lat,
-          lng: launch.launchSite.lng,
-        });
-        setTimelineDate(new Date(launch.dateUtc));
-        setOrbitCenter("launch");
+        updates.miniTimelinePlaying = false;
+        updates.playbackState = "paused";
+        updates.selectedLaunch = launch;
+        updates.timelineDate = new Date(launch.dateUtc);
+        updates.orbitCenter = "launch";
       }
-      setTrajectoryProgress(0);
-      setTimeout(() => startMissionPlayback(), 50);
-      setMobileSheetExpanded(false);
+      useAppStore.setState(updates);
+      setTimeout(() => {
+        useAppStore.setState({
+          miniTimelinePlaying: true,
+          playbackState: "playing" as const,
+        });
+      }, 50);
     },
-    [
-      selectedLaunch,
-      pauseMissionPlayback,
-      setSelectedLaunch,
-      setCameraTarget,
-      setTimelineDate,
-      setTrajectoryProgress,
-      setOrbitCenter,
-      startMissionPlayback,
-      setMobileSheetExpanded,
-    ]
+    [selectedLaunch]
   );
 
   const handlePause = useCallback(() => {
-    pauseMissionPlayback();
-  }, [pauseMissionPlayback]);
+    useAppStore.setState({
+      miniTimelinePlaying: false,
+      playbackState: "paused" as const,
+    });
+  }, []);
 
   // ── Swipe-down-to-close gesture on sheet header ──
   const onHandleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -193,24 +187,26 @@ export default function MobileBottomSheet() {
     return () => clearTimeout(timer);
   }, [mobileSheetExpanded, nextUpcoming]);
 
-  // Go to next launch — clears filters and scrolls to next upcoming
+  // Go to next launch — clears filters, selects the launch, updates map, collapses sheet
   const goToNextLaunch = useCallback(() => {
     resetFilters();
-    // Find the next upcoming in the full list (after filters cleared)
     const now = Date.now();
     const next = launches.find(
       (l) => l.status === "upcoming" && new Date(l.dateUtc).getTime() > now
     );
     if (!next) return;
-    // Wait for filter reset to propagate, then scroll
-    setTimeout(() => {
-      const el = scrollRef.current?.querySelector(
-        `[data-launch-id="${next.id}"]`
-      );
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 100);
+    // Batched state update — select launch, navigate map, collapse sheet
+    useAppStore.setState({
+      selectedLaunch: next,
+      cameraTarget: { lat: next.launchSite.lat, lng: next.launchSite.lng },
+      timelineDate: new Date(next.dateUtc),
+      orbitCenter: "launch" as const,
+      trajectoryProgress: 1,
+      miniTimelinePlaying: false,
+      playbackState: "paused" as const,
+      infoPanelLaunchId: null,
+      mobileSheetExpanded: false,
+    });
   }, [resetFilters, launches]);
 
   if (!isMobile || focusMode) return null;
