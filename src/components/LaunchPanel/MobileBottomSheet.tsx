@@ -164,6 +164,10 @@ export default function MobileBottomSheet() {
 
   const onHandleTouchMove = useCallback((e: React.TouchEvent) => {
     handleTouchDeltaY.current = e.touches[0].clientY - handleTouchStartY.current;
+    // Prevent Globe from receiving touch events during sheet drag
+    if (Math.abs(handleTouchDeltaY.current) > 10) {
+      e.stopPropagation();
+    }
   }, []);
 
   const onHandleTouchEnd = useCallback(() => {

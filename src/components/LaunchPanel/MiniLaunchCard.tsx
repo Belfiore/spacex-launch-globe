@@ -35,6 +35,8 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
   const [activeIdx, setActiveIdx] = useState(0);
   const isScrollingRef = useRef(false);
   const programmaticScrollRef = useRef(false);
+  const hasInitializedRef = useRef(false);
+  const userHasScrolledRef = useRef(false);
 
   // Filter launches the same way the panel does
   const filteredLaunches = useMemo(() => {
@@ -119,7 +121,8 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
   );
 
   const handlePlay = useCallback(() => {
-    const launch = filteredLaunches[activeIdx];
+    // Prefer selectedLaunch from store (source of truth), fallback to carousel position
+    const launch = selectedLaunch ?? filteredLaunches[activeIdx];
     if (!launch) return;
     useAppStore.setState({
       miniTimelinePlaying: false,
@@ -139,7 +142,7 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
         playbackState: "playing" as const,
       });
     }, 50);
-  }, [filteredLaunches, activeIdx]);
+  }, [selectedLaunch, filteredLaunches, activeIdx]);
 
   const handlePause = useCallback(() => {
     useAppStore.setState({
@@ -149,12 +152,12 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
   }, []);
 
   const handleInfoOpen = useCallback(() => {
-    const launch = filteredLaunches[activeIdx];
+    const launch = selectedLaunch ?? filteredLaunches[activeIdx];
     if (!launch) return;
     setInfoPanelLaunchId(launch.id);
-  }, [filteredLaunches, activeIdx, setInfoPanelLaunchId]);
+  }, [selectedLaunch, filteredLaunches, activeIdx, setInfoPanelLaunchId]);
 
-  // Detect which card is centered via scroll position
+  // Detect which card is centered via scroll position (user-initiated scrolls only)
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -162,16 +165,16 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
     let scrollTimer: ReturnType<typeof setTimeout>;
 
     const onScroll = () => {
+      // Ignore programmatic scrolls (from auto-select, card tap, etc.)
       if (programmaticScrollRef.current) return;
 
+      // Mark that the user has manually swiped the carousel
+      userHasScrolledRef.current = true;
       isScrollingRef.current = true;
       clearTimeout(scrollTimer);
 
       // Calculate which card is closest to center
       const scrollLeft = el.scrollLeft;
-      // Each card occupies cardWidth + gap, and we started with PEEK padding
-      // The card at index i has its left edge at i * (cardWidth + gap)
-      // For 100vw container: cardWidth = 100vw - 2*PEEK - GAP
       const containerWidth = el.clientWidth;
       const cardWidth = containerWidth - 2 * PEEK - CARD_GAP;
       const cardUnit = cardWidth + CARD_GAP;
@@ -207,10 +210,22 @@ export default function MiniLaunchCard({ renderMode = "fixed" }: MiniLaunchCardP
     const cardEl = el.children[currentIdx] as HTMLElement | undefined;
     if (cardEl) {
       programmaticScrollRef.current = true;
-      cardEl.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      // Use instant scroll on first initialization to avoid race conditions
+      // with scroll-snap settling at wrong positions; smooth for subsequent navigations
+      const isFirstInit = !hasInitializedRef.current;
+      if (isFirstInit) {
+        hasInitializedRef.current = true;
+      }
+      cardEl.scrollIntoView({
+        behavior: isFirstInit ? "instant" : "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+      // Longer guard for smooth scrolls through many cards
+      const guardMs = isFirstInit ? 100 : 600;
       setTimeout(() => {
         programmaticScrollRef.current = false;
-      }, 500);
+      }, guardMs);
     }
     setActiveIdx(currentIdx);
   }, [currentIdx]);
