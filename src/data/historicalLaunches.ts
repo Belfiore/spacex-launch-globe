@@ -841,7 +841,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     details:
       "First Starship to reach space. Payload bay door test and propellant transfer demo achieved. Ship broke apart during reentry.",
     boosterReturn: {
-      landingType: "ASDS",
+      landingType: "ocean",
       landingCoords: { lat: 26.0, lng: -95.5 },
     },
     webcastUrl: "https://www.youtube.com/watch?v=ApMrILhTulI",
@@ -915,7 +915,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     details:
       "First fully successful Starship flight. Ship survived reentry for the first time — despite a damaged flap, completed landing flip and ocean splashdown.",
     boosterReturn: {
-      landingType: "ASDS",
+      landingType: "ocean",
       landingCoords: { lat: 26.0, lng: -95.5 },
     },
     webcastUrl: "https://www.youtube.com/watch?v=j2BdNDTlWbo",
@@ -1057,7 +1057,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     details:
       "First in-space Raptor engine relight. Tower catch aborted — booster splashed down in Gulf. Ship survived reentry.",
     boosterReturn: {
-      landingType: "ASDS",
+      landingType: "ocean",
       landingCoords: { lat: 26.0, lng: -95.5 },
     },
     webcastUrl: "https://www.youtube.com/watch?v=CMGiNKcVSek",
@@ -1278,7 +1278,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     details:
       "First Super Heavy booster reuse (B14 from Flight 7). Ship reached orbit — first Block 2 ship to do so — but methane leak caused loss of control.",
     boosterReturn: {
-      landingType: "ASDS",
+      landingType: "ocean",
       landingCoords: { lat: 26.0, lng: -95.5 },
     },
     webcastUrl: "",
@@ -1363,7 +1363,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     details:
       "Broke the Block 2 curse. First successful payload deployment! Ship reentered with intentionally missing tiles, splashed down ~3m from target.",
     boosterReturn: {
-      landingType: "ASDS",
+      landingType: "ocean",
       landingCoords: { lat: 26.0, lng: -95.5 },
     },
     webcastUrl: "https://www.youtube.com/watch?v=rcd_SQZDlnk",
@@ -1445,7 +1445,7 @@ export const HISTORICAL_LAUNCHES: Launch[] = [
     details:
       "Final Block 2 flight. Second booster reuse (B15). Ship deployed 8 sims, performed banking maneuver during reentry, precision splashdown.",
     boosterReturn: {
-      landingType: "ASDS",
+      landingType: "ocean",
       landingCoords: { lat: 26.5, lng: -96.0 },
     },
     webcastUrl: "",

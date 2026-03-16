@@ -20974,9 +20974,9 @@
     "launchStatus": "partial_failure",
     "payloadOrbit": "Sub-orbital",
     "inclinationDeg": null,
-    "landingAttempted": false,
+    "landingAttempted": true,
     "landingSuccess": false,
-    "landingMode": null,
+    "landingMode": "ocean",
     "landingZone": null,
     "isStarlink": false,
     "isCrewed": false,
@@ -20995,6 +20995,13 @@
       "direction_label": "E",
       "confidence": "medium",
       "notes": "Starship test flight corridor over Gulf of Mexico"
+    },
+    "boosterReturn": {
+      "landingType": "ocean",
+      "landingCoords": {
+        "lat": 26,
+        "lng": -96
+      }
     }
   },
   {
@@ -28242,7 +28249,7 @@
     "inclinationDeg": null,
     "landingAttempted": true,
     "landingSuccess": true,
-    "landingMode": "catch",
+    "landingMode": "ocean",
     "landingZone": null,
     "isStarlink": false,
     "isCrewed": false,
@@ -28263,10 +28270,10 @@
       "notes": "Starship test flight corridor over Gulf of Mexico"
     },
     "boosterReturn": {
-      "landingType": "catch",
+      "landingType": "ocean",
       "landingCoords": {
-        "lat": 25.9972,
-        "lng": -97.156
+        "lat": 26,
+        "lng": -96
       }
     }
   },
@@ -30140,9 +30147,9 @@
     "launchStatus": "failure",
     "payloadOrbit": "Sub-orbital",
     "inclinationDeg": null,
-    "landingAttempted": false,
+    "landingAttempted": true,
     "landingSuccess": false,
-    "landingMode": null,
+    "landingMode": "ocean",
     "landingZone": null,
     "isStarlink": false,
     "isCrewed": false,
@@ -30162,6 +30169,13 @@
       "direction_label": "E",
       "confidence": "medium",
       "notes": "Starship test flight corridor over Gulf of Mexico"
+    },
+    "boosterReturn": {
+      "landingType": "ocean",
+      "landingCoords": {
+        "lat": 26,
+        "lng": -96
+      }
     }
   },
   {
@@ -32230,12 +32244,12 @@
       "lat": 25.9972,
       "lng": -97.156
     },
-    "status": "failure",
-    "launchStatus": "partial_failure",
+    "status": "success",
+    "launchStatus": "success",
     "payloadOrbit": "Sub-orbital",
     "inclinationDeg": null,
     "landingAttempted": true,
-    "landingSuccess": false,
+    "landingSuccess": true,
     "landingMode": "ocean",
     "landingZone": null,
     "isStarlink": false,
