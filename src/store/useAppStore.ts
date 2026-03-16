@@ -125,7 +125,6 @@ const defaultFilters: FilterState = {
   status: null,
   site: null,
   sites: [],
-  jellyfish: false,
 };
 
 export const useAppStore = create<AppState>((set) => ({

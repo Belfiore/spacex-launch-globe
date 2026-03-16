@@ -157,7 +157,6 @@ function SiteLabelItem({ site }: { site: SiteLabel }) {
         status: null,
         site: null,
         sites: [site.groupKey],
-        jellyfish: false,
       },
       // Animate camera to site
       cameraTarget: { lat: site.lat, lng: site.lng },

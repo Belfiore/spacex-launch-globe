@@ -67,8 +67,7 @@ export default function LaunchCard({
   const isPlaying =
     selectedLaunch?.id === launch.id &&
     (playbackState === "playing" || miniTimelinePlaying);
-  const hasJellyfish =
-    launch.jellyfish && launch.jellyfish.potential !== "none";
+
 
   // 24-hour launch pulse for returning visitors
   const entryPhase = useAppStore((s) => s.entryPhase);
@@ -288,35 +287,6 @@ export default function LaunchCard({
                 </Tooltip>
               )}
 
-              {/* Jellyfish badge */}
-              {hasJellyfish && (
-                <span
-                  style={{
-                    padding: "2px 6px",
-                    borderRadius: "4px",
-                    fontSize: "9px",
-                    fontWeight: 600,
-                    background:
-                      launch.jellyfish!.potential === "high"
-                        ? "rgba(168, 85, 247, 0.15)"
-                        : "rgba(168, 85, 247, 0.08)",
-                    border: `1px solid ${
-                      launch.jellyfish!.potential === "high"
-                        ? "rgba(168, 85, 247, 0.4)"
-                        : "rgba(168, 85, 247, 0.2)"
-                    }`,
-                    color:
-                      launch.jellyfish!.potential === "high"
-                        ? "#c084fc"
-                        : "#a78bfa",
-                    flexShrink: 0,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  JF
-                </span>
-              )}
-
               <span className={`badge ${status.className}`}>{status.label}</span>
             </div>
           </div>
@@ -406,67 +376,6 @@ export default function LaunchCard({
               </div>
             )}
 
-            {/* Jellyfish details panel */}
-            {hasJellyfish && (
-              <div
-                style={{
-                  marginTop: "10px",
-                  paddingTop: "10px",
-                  paddingBottom: "2px",
-                  paddingLeft: "10px",
-                  borderLeft: "3px solid #a855f7",
-                  borderTop: "1px solid rgba(168, 85, 247, 0.15)",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    color: "#c084fc",
-                    marginBottom: "6px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                  }}
-                >
-                  Jellyfish Predictor:{" "}
-                  {launch.jellyfish!.apiLabel
-                    ? launch.jellyfish!.apiLabel.toUpperCase()
-                    : launch.jellyfish!.potential === "high" ? "LIKELY" : "POSSIBLE"}
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "3px 8px",
-                    fontSize: "10px",
-                    color: "#94a3b8",
-                  }}
-                >
-                  <div>
-                    <span style={{ color: "#64748b" }}>Sun: </span>
-                    <span style={{ color: "#c084fc" }}>
-                      {launch.jellyfish!.sunAltitude}°
-                    </span>
-                  </div>
-                  <div>
-                    <span style={{ color: "#64748b" }}>Phase: </span>
-                    <span style={{ color: "#c084fc", textTransform: "capitalize" }}>
-                      {launch.jellyfish!.twilightPhase}
-                    </span>
-                  </div>
-                </div>
-                <div
-                  style={{
-                    marginTop: "5px",
-                    fontSize: "10px",
-                    color: "#64748b",
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {launch.jellyfish!.description}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>

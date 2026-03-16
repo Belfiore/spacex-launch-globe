@@ -26,7 +26,6 @@ const TOOLTIPS: Record<string, string> = {
   "V": "Vandenberg SFB, California",
   "OI": "Omelek Island, Kwajalein Atoll",
   // Special
-  "jellyfish": "Exhaust plume glows in twilight sunlight",
   "clear": "Remove all active filters",
 };
 
@@ -46,15 +45,13 @@ export default function FilterBar() {
     filters.rocketType ||
     filters.status ||
     filters.site ||
-    filters.sites.length > 0 ||
-    filters.jellyfish;
+    filters.sites.length > 0;
 
   const activeFilterCount = [
     filters.rocketType,
     filters.status,
     filters.site,
     filters.sites.length > 0,
-    filters.jellyfish,
   ].filter(Boolean).length;
 
   function toggleSite(key: string) {
@@ -317,65 +314,6 @@ export default function FilterBar() {
           );
         })}
 
-        <span style={{ color: "#334155", margin: "0 2px" }}>|</span>
-
-        {/* Jellyfish filter — rich tooltip on desktop, simple on mobile */}
-        <Tooltip
-          position={isMobile ? "bottom" : "left"}
-          content={
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <span style={{ fontSize: "16px" }}>{"🪼"}</span>
-                <span style={{ fontSize: "12px", fontWeight: 700, color: "#c084fc" }}>
-                  Jellyfish Predictor
-                </span>
-              </div>
-              <p style={{ margin: 0, fontSize: "11px", color: "#94a3b8", lineHeight: 1.5 }}>
-                Jellyfish plumes occur when a rocket launches during twilight — the exhaust
-                trail is illuminated by the sun while the sky is dark, creating a
-                glowing, jellyfish-like effect visible for hundreds of miles.
-              </p>
-              <p style={{ margin: 0, fontSize: "10px", color: "#64748b", lineHeight: 1.4 }}>
-                Data from <span style={{ color: "#a78bfa" }}>John Kraus Jellyfish Predictor</span>
-              </p>
-            </div>
-          }
-        >
-        <button
-          onClick={() => setFilters({ jellyfish: !filters.jellyfish })}
-          style={{
-            padding: chipPadding,
-            borderRadius: "4px",
-            border: `1px solid ${
-              filters.jellyfish
-                ? "rgba(168, 85, 247, 0.5)"
-                : "rgba(255, 255, 255, 0.08)"
-            }`,
-            background: filters.jellyfish
-              ? "rgba(168, 85, 247, 0.15)"
-              : "rgba(255, 255, 255, 0.02)",
-            color: filters.jellyfish ? "#c084fc" : "#64748b",
-            cursor: "pointer",
-            transition: "all 0.15s ease",
-            fontWeight: filters.jellyfish ? 600 : 400,
-            display: "flex",
-            alignItems: "center",
-            gap: "3px",
-          }}
-        >
-          <span
-            style={{
-              width: "6px",
-              height: "6px",
-              borderRadius: "50%",
-              background: "#a855f7",
-              opacity: filters.jellyfish ? 1 : 0.4,
-              flexShrink: 0,
-            }}
-          />
-          JF
-        </button>
-        </Tooltip>
 
         {/* Clear */}
         {hasActiveFilters && (

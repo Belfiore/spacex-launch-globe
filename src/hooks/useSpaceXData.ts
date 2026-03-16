@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { LAUNCHPAD_SITE_MAP, LAUNCH_SITES, ROCKET_NAMES } from "@/lib/constants";
 import type { Launch, LaunchSite } from "@/lib/types";
-import { computeJellyfish } from "@/lib/jellyfish";
+
 import fallbackData from "@/data/fallbackLaunches.json";
 import { HISTORICAL_LAUNCHES } from "@/data/historicalLaunches";
 
@@ -113,65 +113,6 @@ async function fetchSpaceXData(): Promise<Launch[]> {
     .sort((a, b) => a.dateUnix - b.dateUnix);
 }
 
-/** Enrich launches with jellyfish potential data */
-function enrichWithJellyfish(launches: Launch[]): Launch[] {
-  return launches.map((l) => {
-    if (l.jellyfish) return l; // already has jellyfish data
-    const jf = computeJellyfish(l.dateUtc, l.launchSite.lat, l.launchSite.lng);
-    return jf.potential !== "none" ? { ...l, jellyfish: jf } : l;
-  });
-}
-
-/** Fetch jellyfish API predictions and merge with launches */
-async function fetchAndMergeJellyfish(launches: Launch[]): Promise<Launch[]> {
-  try {
-    const res = await fetch("/api/jellyfish");
-    if (!res.ok) return launches;
-    const data = await res.json();
-    const missions: Array<{ mission: string; label: string; score: number; launchTime: string }> = data.missions ?? [];
-    if (missions.length === 0) return launches;
-
-    // Build lookup by normalized mission name
-    const labelMap = new Map<string, { label: string; score: number }>();
-    for (const m of missions) {
-      const key = m.mission.toLowerCase().replace(/[^a-z0-9]/g, "");
-      labelMap.set(key, { label: m.label, score: m.score });
-    }
-
-    return launches.map((l) => {
-      const key = l.name.toLowerCase().replace(/[^a-z0-9]/g, "");
-      const match = labelMap.get(key);
-      if (!match) return l;
-
-      // Map API label to our potential scale
-      const apiLabel = match.label;
-      const isLikelyOrAbove = /^(likely|very likely)$/i.test(apiLabel);
-      const isModerate = /^(possibly|possible)$/i.test(apiLabel);
-
-      // Build or update jellyfish data with API info
-      const baseJf = l.jellyfish ?? computeJellyfish(l.dateUtc, l.launchSite.lat, l.launchSite.lng);
-      const potential = isLikelyOrAbove ? "high" as const
-        : isModerate ? "moderate" as const
-        : baseJf.potential;
-
-      return {
-        ...l,
-        jellyfish: {
-          ...baseJf,
-          potential,
-          apiLabel,
-          apiScore: match.score,
-          description: isLikelyOrAbove
-            ? `Jellyfish Predictor: ${apiLabel}. ${baseJf.description}`
-            : baseJf.description,
-        },
-      };
-    });
-  } catch {
-    // Jellyfish API optional — just return launches as-is
-    return launches;
-  }
-}
 
 function loadFallbackData(): Launch[] {
   return (fallbackData as Launch[]).sort((a, b) => a.dateUnix - b.dateUnix);
@@ -285,23 +226,14 @@ export function useSpaceXData() {
         }
 
         if (!cancelled) {
-          const enriched = enrichWithJellyfish(base);
-          const merged = mergeWithHistorical(enriched);
-          // Load immediately with computed jellyfish, then overlay API data
+          const merged = mergeWithHistorical(base);
           setLaunches(merged);
           setAvailableYears(computeAvailableYears(merged));
-
-          // Async: fetch real jellyfish predictions from API and update
-          fetchAndMergeJellyfish(merged).then((withJf) => {
-            if (!cancelled) setLaunches(withJf);
-          });
         }
       } catch (err) {
         console.error("[SpaceX Data] Error loading data:", err);
         if (!cancelled) {
-          const merged = mergeWithHistorical(
-            enrichWithJellyfish(loadFallbackData())
-          );
+          const merged = mergeWithHistorical(loadFallbackData());
           setLaunches(merged);
           setAvailableYears(computeAvailableYears(merged));
         }

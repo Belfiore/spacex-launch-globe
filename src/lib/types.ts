@@ -248,6 +248,4 @@ export interface FilterState {
   site: string | null;
   /** Multi-select site filter — site group keys like "CC", "BC", "V", "OI" */
   sites: string[];
-  /** When true, only show launches with jellyfish potential */
-  jellyfish: boolean;
 }

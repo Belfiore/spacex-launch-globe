@@ -59,15 +59,6 @@ export default function MobileBottomSheet() {
         }
       }
       if (filters.site && l.launchSite.id !== filters.site) return false;
-      if (filters.jellyfish) {
-        if (!l.jellyfish) return false;
-        if (l.jellyfish.apiLabel) {
-          const label = l.jellyfish.apiLabel.toLowerCase();
-          if (label !== "likely" && label !== "very likely") return false;
-        } else if (l.jellyfish.potential !== "high") {
-          return false;
-        }
-      }
       if (filters.sites.length > 0) {
         const matchesSiteGroup = SITE_GROUPS.some(
           (g) =>

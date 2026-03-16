@@ -44,8 +44,6 @@ function SmallRocketIcon() {
   );
 }
 
-/* Jellyfish cursor data URI */
-const JELLYFISH_CURSOR = `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text y='28' font-size='28'>%F0%9F%AA%BC</text></svg>") 16 16, auto`;
 
 export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
   const [visible, setVisible] = useState(false);
@@ -170,46 +168,6 @@ export default function IntroModal({ onStartOnboarding, onDismiss }: Props) {
           <FeatureBullet text="See drone ship positions and booster landings" />
           <FeatureBullet text="Browse launch history \u2014 successes, failures, and context" />
           <FeatureBullet text="Detailed info on every individual launch" />
-
-          {/* Jellyfish — same style as other bullets, cursor easter egg on link */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 10,
-              fontSize: 13,
-              lineHeight: 1.5,
-              color: "#94a3b8",
-            }}
-          >
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: "#22d3ee",
-                flexShrink: 0,
-                marginTop: 7,
-              }}
-            />
-            <span>
-              Jellyfish visibility predictions powered by{" "}
-              <a
-                href="https://jellyfish.johnkrausphotos.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: "#c084fc",
-                  textDecoration: "underline",
-                  textUnderlineOffset: 2,
-                  cursor: JELLYFISH_CURSOR,
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                John Kraus&apos;s Jellyfish Predictor
-              </a>
-            </span>
-          </div>
         </div>
 
         {/* CTA Button */}
