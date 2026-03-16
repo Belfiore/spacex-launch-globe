@@ -328,6 +328,138 @@
     "details": "Next generation Starlink satellite deployment."
   },
   {
+    "id": "fb-sl-17-24",
+    "name": "Starlink Group 17-24",
+    "dateUtc": "2026-03-17T02:37:00.000Z",
+    "dateUnix": 1773896220,
+    "launchSite": {
+      "id": "vandenberg-slc4e",
+      "name": "VSFB SLC-4E",
+      "fullName": "Vandenberg Space Force Base SLC-4E",
+      "lat": 34.632,
+      "lng": -120.611
+    },
+    "status": "upcoming",
+    "rocketType": "Falcon 9",
+    "payloadOrbit": "LEO",
+    "isStarlink": true,
+    "boosterReturn": {
+      "landingType": "ASDS",
+      "landingCoords": { "lat": 32.5, "lng": -118.5 }
+    },
+    "details": "Starlink V2 Mini satellite deployment to 70 degree shell."
+  },
+  {
+    "id": "fb-sl-10-46",
+    "name": "Starlink Group 10-46",
+    "dateUtc": "2026-03-17T10:26:00.000Z",
+    "dateUnix": 1773924360,
+    "launchSite": {
+      "id": "cape-canaveral-slc40",
+      "name": "CCSFS SLC-40",
+      "fullName": "Cape Canaveral Space Force Station SLC-40",
+      "lat": 28.5618,
+      "lng": -80.577
+    },
+    "status": "upcoming",
+    "rocketType": "Falcon 9",
+    "payloadOrbit": "LEO",
+    "isStarlink": true,
+    "boosterReturn": {
+      "landingType": "ASDS",
+      "landingCoords": { "lat": 31, "lng": -75.5 }
+    },
+    "details": "Starlink V2 Mini satellite deployment to 53 degree shell."
+  },
+  {
+    "id": "fb-sl-10-33",
+    "name": "Starlink Group 10-33",
+    "dateUtc": "2026-03-19T10:35:00.000Z",
+    "dateUnix": 1774097700,
+    "launchSite": {
+      "id": "cape-canaveral-slc40",
+      "name": "CCSFS SLC-40",
+      "fullName": "Cape Canaveral Space Force Station SLC-40",
+      "lat": 28.5618,
+      "lng": -80.577
+    },
+    "status": "upcoming",
+    "rocketType": "Falcon 9",
+    "payloadOrbit": "LEO",
+    "isStarlink": true,
+    "boosterReturn": {
+      "landingType": "ASDS",
+      "landingCoords": { "lat": 31, "lng": -75.5 }
+    },
+    "details": "Starlink V2 Mini satellite deployment to 53 degree shell."
+  },
+  {
+    "id": "fb-sl-17-15",
+    "name": "Starlink Group 17-15",
+    "dateUtc": "2026-03-20T21:48:00.000Z",
+    "dateUnix": 1774224480,
+    "launchSite": {
+      "id": "vandenberg-slc4e",
+      "name": "VSFB SLC-4E",
+      "fullName": "Vandenberg Space Force Base SLC-4E",
+      "lat": 34.632,
+      "lng": -120.611
+    },
+    "status": "upcoming",
+    "rocketType": "Falcon 9",
+    "payloadOrbit": "LEO",
+    "isStarlink": true,
+    "boosterReturn": {
+      "landingType": "ASDS",
+      "landingCoords": { "lat": 32.5, "lng": -118.5 }
+    },
+    "details": "Starlink V2 Mini satellite deployment to 70 degree shell."
+  },
+  {
+    "id": "fb-sl-10-62",
+    "name": "Starlink Group 10-62",
+    "dateUtc": "2026-03-22T14:43:00.000Z",
+    "dateUnix": 1774371780,
+    "launchSite": {
+      "id": "cape-canaveral-slc40",
+      "name": "CCSFS SLC-40",
+      "fullName": "Cape Canaveral Space Force Station SLC-40",
+      "lat": 28.5618,
+      "lng": -80.577
+    },
+    "status": "upcoming",
+    "rocketType": "Falcon 9",
+    "payloadOrbit": "LEO",
+    "isStarlink": true,
+    "boosterReturn": {
+      "landingType": "ASDS",
+      "landingCoords": { "lat": 31, "lng": -75.5 }
+    },
+    "details": "Starlink V2 Mini satellite deployment to 53 degree shell."
+  },
+  {
+    "id": "fb-sl-17-17",
+    "name": "Starlink Group 17-17",
+    "dateUtc": "2026-03-24T23:03:00.000Z",
+    "dateUnix": 1774573380,
+    "launchSite": {
+      "id": "vandenberg-slc4e",
+      "name": "VSFB SLC-4E",
+      "fullName": "Vandenberg Space Force Base SLC-4E",
+      "lat": 34.632,
+      "lng": -120.611
+    },
+    "status": "upcoming",
+    "rocketType": "Falcon 9",
+    "payloadOrbit": "LEO",
+    "isStarlink": true,
+    "boosterReturn": {
+      "landingType": "ASDS",
+      "landingCoords": { "lat": 32.5, "lng": -118.5 }
+    },
+    "details": "Starlink V2 Mini satellite deployment to 70 degree shell."
+  },
+  {
     "id": "fb-015",
     "name": "Starship Flight 11",
     "dateUtc": "2026-03-25T16:30:00.000Z",
